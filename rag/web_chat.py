@@ -263,9 +263,10 @@ Instructions: Analyze the provided information intelligently. If the question is
             print(f"llama.cpp error: {e}")
             # If llama.cpp fails, provide a fallback response based on RAG content
             if "No relevant information found" in rag_content:
-                ai_response = "I don't have specific information about that in my sources, but I'd be happy to help with general questions!"
+                ai_response = "I'm having trouble connecting to my AI processing server right now. The system is still starting up - please try again in a few moments!"
             else:
-                ai_response = f"Based on your sources: {rag_content}\n\nNote: I couldn't generate a full response due to a server issue, but here's the relevant information I found."
+                # Provide a more intelligent fallback using the RAG content
+                ai_response = f"I found this relevant information: {rag_content[:300]}{'...' if len(rag_content) > 300 else ''}\n\n(Note: My AI processing is still starting up, so this is just the raw information from my knowledge base. Try again in a moment for a more detailed response!)"
         
         # Clean up the response to remove source mentions
         cleaned_response = ai_response
@@ -470,16 +471,23 @@ def loading_status():
         llama_details = "Not responding"
         try:
             import requests
-            response = requests.get('http://localhost:8000/v1/models', timeout=2)
-            if response.status_code == 200:
-                llama_status = "ready"
-                llama_details = "Ready"
-            else:
-                llama_status = "error"
-                llama_details = f"HTTP {response.status_code}"
+            # Try both health and models endpoints
+            for endpoint in ['/health', '/v1/models']:
+                try:
+                    response = requests.get(f'http://localhost:8000{endpoint}', timeout=5)
+                    if response.status_code == 200:
+                        llama_status = "ready"
+                        llama_details = "Ready"
+                        break
+                except:
+                    continue
+            
+            if llama_status == "error":
+                llama_details = "Server not responding on any endpoint"
+                
         except Exception as e:
             llama_status = "error"
-            llama_details = "Connection failed"
+            llama_details = f"Connection failed: {str(e)[:50]}"
         
         # Check RAG system
         rag_status = "error"

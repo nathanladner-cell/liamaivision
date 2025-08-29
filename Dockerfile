@@ -68,42 +68,60 @@ ENV FLASK_ENV=production
 # Expose port
 EXPOSE 8081
 
-# Create startup script
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-echo "Starting AmpAI deployment..."\n\
-\n\
-# Start llama.cpp server in background\n\
-echo "Starting llama.cpp server..."\n\
-llama-server \\\n\
-    --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf \\\n\
-    --host 0.0.0.0 \\\n\
-    --port 8000 \\\n\
-    --ctx-size 4096 \\\n\
-    --threads $(nproc) \\\n\
-    --log-format text &\n\
-\n\
-# Wait for llama server to be ready\n\
-echo "Waiting for llama server to start..."\n\
-for i in {1..30}; do\n\
-    if curl -s http://localhost:8000/v1/models > /dev/null 2>&1; then\n\
-        echo "Llama server is ready!"\n\
-        break\n\
-    fi\n\
-    echo "Waiting... ($i/30)"\n\
-    sleep 2\n\
-done\n\
-\n\
-# Initialize RAG system\n\
-echo "Initializing RAG system..."\n\
-cd /app/rag\n\
-python3 rag_simple.py reindex\n\
-\n\
-# Start Flask app\n\
-echo "Starting Flask web server..."\n\
-python3 web_chat.py\n\
-' > /app/start.sh && chmod +x /app/start.sh
+# Create startup script with better error handling
+COPY <<EOF /app/start.sh
+#!/bin/bash
+set -e
+
+echo "🚀 Starting AmpAI deployment..."
+
+# Check if model exists
+if [ ! -f "/app/models/Llama-3.2-3B-Instruct-Q6_K.gguf" ]; then
+    echo "❌ Model file not found!"
+    exit 1
+fi
+
+# Start llama.cpp server in background with proper logging
+echo "🤖 Starting llama.cpp server..."
+/usr/local/bin/llama-server \
+    --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --ctx-size 2048 \
+    --threads \$(nproc) \
+    --log-format text \
+    --verbose &
+
+LLAMA_PID=\$!
+echo "📋 Llama server PID: \$LLAMA_PID"
+
+# Wait for llama server to be ready with better checking
+echo "⏳ Waiting for llama server to start..."
+for i in {1..60}; do
+    if curl -s http://localhost:8000/health > /dev/null 2>&1 || curl -s http://localhost:8000/v1/models > /dev/null 2>&1; then
+        echo "✅ Llama server is ready!"
+        break
+    fi
+    if [ \$i -eq 60 ]; then
+        echo "❌ Llama server failed to start within 2 minutes"
+        kill \$LLAMA_PID 2>/dev/null || true
+        exit 1
+    fi
+    echo "   Waiting... (\$i/60)"
+    sleep 2
+done
+
+# Initialize RAG system
+echo "📚 Initializing RAG system..."
+cd /app/rag
+python3 rag_simple.py reindex
+
+# Start Flask app
+echo "🌐 Starting Flask web server..."
+exec python3 web_chat.py
+EOF
+
+RUN chmod +x /app/start.sh
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
