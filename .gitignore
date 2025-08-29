@@ -63,3 +63,4 @@ instance/
 # Temporary files
 *.tmp
 *.temp
+llama.cpp/

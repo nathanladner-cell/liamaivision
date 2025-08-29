@@ -11,11 +11,11 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Build llama.cpp
+# Clone and build llama.cpp
 WORKDIR /build
-COPY llama.cpp/ ./llama.cpp/
-WORKDIR /build/llama.cpp
-RUN mkdir build && cd build && \
+RUN git clone https://github.com/ggerganov/llama.cpp.git && \
+    cd llama.cpp && \
+    mkdir build && cd build && \
     cmake .. -DLLAMA_CURL=ON -DCMAKE_BUILD_TYPE=Release && \
     make -j$(nproc) llama-server
 
