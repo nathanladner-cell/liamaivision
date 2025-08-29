@@ -13,13 +13,19 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Clone and build llama.cpp
+# Clone and build llama.cpp with explicit configuration
 WORKDIR /build
-RUN git clone https://github.com/ggerganov/llama.cpp.git && \
-    cd llama.cpp && \
-    mkdir build && cd build && \
-    cmake .. -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release && \
-    make -j$(nproc) llama-server
+RUN git clone https://github.com/ggerganov/llama.cpp.git
+WORKDIR /build/llama.cpp
+RUN mkdir build
+WORKDIR /build/llama.cpp/build
+RUN cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLLAMA_CURL=OFF \
+    -DGGML_CCACHE=OFF \
+    -DLLAMA_BUILD_TESTS=OFF \
+    -DLLAMA_BUILD_EXAMPLES=OFF
+RUN make -j$(nproc) llama-server
 
 # Final runtime image
 FROM ubuntu:22.04
