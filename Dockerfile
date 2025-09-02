@@ -31,16 +31,5 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8081}/api/status || exit 1
 
-# Create cloud startup script
-RUN echo '#!/bin/bash\n\
-echo "🌩️  Starting AmpAI Cloud on Railway..."\n\
-echo "📋 Environment: Cloud-Native (Pinecone + OpenAI + GitHub)"\n\
-echo "📋 No local dependencies required"\n\
-\n\
-cd /app/rag\n\
-echo "🚀 Starting cloud Flask application..."\n\
-python3 web_chat_cloud.py\n\
-' > /app/start_cloud.sh && chmod +x /app/start_cloud.sh
-
-# Start the cloud application
-CMD ["/app/start_cloud.sh"]
+# Start the cloud application directly
+CMD ["python3", "rag/web_chat_cloud.py"]

@@ -7,8 +7,12 @@ import sys
 # Set environment variables for cloud deployment
 os.environ['FLASK_ENV'] = os.getenv('FLASK_ENV', 'production')
 
+# Add the rag directory to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, render_template, request, jsonify, session
 import openai
+
 from cloud_vector_db import get_cloud_collection, FallbackCloudCollection
 import uuid
 from datetime import datetime
