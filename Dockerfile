@@ -20,6 +20,9 @@ COPY rag/ ./rag/
 COPY sources/ ./sources/
 COPY scripts/ ./scripts/
 
+# Ensure sources directory exists and has proper permissions
+RUN ls -la /app/sources/ && echo "Sources directory contents:" && find /app/sources/ -name "*.jsonl" | head -5
+
 # Create necessary directories
 RUN mkdir -p /app/rag/chroma_db /app/rag/static /app/rag/templates
 
