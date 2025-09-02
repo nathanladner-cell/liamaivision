@@ -78,8 +78,10 @@ Provide a direct, helpful response based on the context above."""
 
 def get_collection():
     try:
-        # ChromaDB 0.5.5+ compatibility - no tenant parameter needed
-        chroma = chromadb.PersistentClient(path=DB_DIR, settings=Settings(anonymized_telemetry=True))
+        # ChromaDB 0.5.5+ compatibility - disable telemetry for Railway
+        import os
+        settings = Settings(anonymized_telemetry=False)
+        chroma = chromadb.PersistentClient(path=DB_DIR, settings=settings)
         # Get all collections and find the most recent ampai_sources collection
         collections = chroma.list_collections()
         ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
@@ -87,13 +89,16 @@ def get_collection():
         if not ampai_collections:
             # No ampai_sources collections found - Try to reindex automatically
             try:
+                print("No RAG collection found, initializing...")
                 from rag_simple import simple_reindex
                 simple_reindex()
+                print("RAG collection initialized successfully")
                 # Check again after reindex
                 collections = chroma.list_collections()
                 ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
                 if not ampai_collections:
                     # Reindex failed to create collections
+                    print("Warning: No collections found after reindexing")
                     return None
             except Exception as reindex_error:
                 # Automatic reindex failed
@@ -101,29 +106,38 @@ def get_collection():
             
         # Get the most recent collection (highest timestamp)
         latest_collection = max(ampai_collections, key=lambda x: x.name)
-        
+        print(f"Using RAG collection: {latest_collection.name}")
+
         # Verify collection has data
         collection = chroma.get_collection(latest_collection.name)
         count = collection.count()
+        print(f"Collection has {count} documents")
+
         if count == 0:
             # Collection is empty, attempting reindex
+            print("Collection is empty, reindexing...")
             try:
                 from rag_simple import simple_reindex
                 simple_reindex()
+                print("Reindex completed, checking collection again...")
                 # Get the updated collection
                 collections = chroma.list_collections()
                 ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
                 if ampai_collections:
                     latest_collection = max(ampai_collections, key=lambda x: x.name)
                     collection = chroma.get_collection(latest_collection.name)
+                    new_count = collection.count()
+                    print(f"After reindex: {new_count} documents")
                     # Reindex completed successfully
                 else:
                     # Reindex failed to create collections
+                    print("Reindex failed to create collections")
                     return None
             except Exception as reindex_error:
                 # Reindex failed
+                print(f"Reindex failed: {reindex_error}")
                 return None
-        
+
         return collection
     except Exception as e:
         # Error getting collection

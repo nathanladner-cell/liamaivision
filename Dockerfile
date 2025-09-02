@@ -22,11 +22,19 @@ COPY scripts/ ./scripts/
 # Create necessary directories
 RUN mkdir -p /app/rag/chroma_db /app/rag/static /app/rag/templates
 
+# Pre-index the RAG collection during build (if API key is available)
+RUN if [ -n "$OPENAI_API_KEY" ]; then \
+        cd /app/rag && python3 rag_simple.py reindex; \
+    else \
+        echo "Warning: OPENAI_API_KEY not set during build, RAG will be indexed at runtime"; \
+    fi
+
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV FLASK_APP=rag/web_chat.py
 ENV FLASK_ENV=production
 ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+ENV CHROMA_TELEMETRY_ENABLED=false
 
 # Expose port (Railway will set PORT environment variable)
 EXPOSE $PORT
