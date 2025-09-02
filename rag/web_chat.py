@@ -811,19 +811,76 @@ if __name__ == '__main__':
 
         @app.route('/api/status')
         def status():
+            # Check llama-server
+            llama_status = "error"
+            try:
+                import requests
+                response = requests.get("http://localhost:8080/health", timeout=3)
+                if response.status_code == 200:
+                    llama_status = "running"
+                else:
+                    llama_status = "error"
+            except:
+                llama_status = "not responding"
+
+            # Check RAG system
+            rag_status = "error"
+            try:
+                import chromadb
+                from chromadb.config import Settings
+                chroma = chromadb.PersistentClient(path="chroma_db", settings=Settings(anonymized_telemetry=True))
+                collections = chroma.list_collections()
+                ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
+                if len(ampai_collections) > 0:
+                    rag_status = "ready"
+                else:
+                    rag_status = "no collections"
+            except Exception as e:
+                rag_status = f"error: {str(e)[:30]}"
+
+            overall_health = "healthy" if (llama_status == "running" and rag_status == "ready") else "degraded"
+
             return jsonify({
-                'llama_server': 'ready',  # Will be checked properly later
-                'rag_system': 'ready',     # Will be checked properly later
-                'overall_health': 'healthy'
+                'llama_server': llama_status,
+                'rag_system': rag_status,
+                'overall_health': overall_health
             })
 
         @app.route('/api/loading-status')
         def loading_status():
+            # Same logic as status endpoint
+            llama_status = "error"
+            try:
+                import requests
+                response = requests.get("http://localhost:8080/health", timeout=3)
+                if response.status_code == 200:
+                    llama_status = "ready"
+                else:
+                    llama_status = "error"
+            except:
+                llama_status = "error"
+
+            rag_status = "error"
+            try:
+                import chromadb
+                from chromadb.config import Settings
+                chroma = chromadb.PersistentClient(path="chroma_db", settings=Settings(anonymized_telemetry=True))
+                collections = chroma.list_collections()
+                ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
+                if len(ampai_collections) > 0:
+                    rag_status = "ready"
+                else:
+                    rag_status = "error"
+            except:
+                rag_status = "error"
+
+            overall_status = "ready" if (llama_status == "ready" and rag_status == "ready") else "loading"
+
             return jsonify({
-                'llama_server': 'ready',
-                'rag_system': 'ready',
+                'llama_server': llama_status,
+                'rag_system': rag_status,
                 'web_server': 'ready',
-                'overall_status': 'ready'
+                'overall_status': overall_status
             })
 
         print(f"📋 Starting Flask on {host}:{port}...")
