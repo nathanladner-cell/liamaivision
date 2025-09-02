@@ -355,14 +355,13 @@ class FallbackCollection:
         }
 
 def query_rag(question):
-    """Query the RAG system for relevant content"""
+    """Query the RAG system for relevant content - gracefully handle failures"""
     try:
         col = get_collection()
         if not col:
-            # Fallback to fallback collection if ChromaDB fails
-            print("Using fallback collection due to ChromaDB issues")
-            col = FallbackCollection()
-            # Continue with normal processing using fallback collection
+            # RAG system unavailable - return graceful message
+            print("RAG system unavailable, using general knowledge mode")
+            return "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
         
         # Use ChromaDB's default embeddings for querying
         results = col.query(
@@ -393,8 +392,8 @@ def query_rag(question):
         else:
             return "No relevant information found in your sources. Try rephrasing your question."
     except Exception as e:
-        print(f"Error in query_rag: {e}")
-        return f"Error querying RAG system: {e}"
+        print(f"RAG system error (non-fatal): {e}")
+        return "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
 
 @app.route('/favicon.ico')
 def favicon():
@@ -471,16 +470,19 @@ def chat():
         # Create context-specific instructions based on RAG results
 
         # Add context-specific instructions
-        if "No relevant information found" in rag_content or "No highly relevant information" in rag_content:
-            context_instructions = """Available Information:
-No relevant information found in sources.
+        if ("No relevant information found" in rag_content or 
+            "No highly relevant information" in rag_content or
+            "general knowledge" in rag_content):
+            context_instructions = f"""Mode: General Knowledge Assistant
+Status: {rag_content}
 
-Instructions: If the question is unclear, ask for clarification. If you need more context, ask for it. Help the user understand what information you need to provide a helpful answer."""
+Instructions: You are Liam, an expert in electrical safety and NFPA 70E standards. Use your general knowledge to provide helpful, accurate information about electrical safety, calibration, PPE testing, and related topics. Be professional and authoritative while acknowledging when specific documentation would be helpful."""
         else:
-            context_instructions = f"""Available Information:
+            context_instructions = f"""Mode: Knowledge Base Enhanced
+Available Information:
 {rag_content}
 
-Instructions: Analyze the provided information intelligently. If the question is incomplete or unclear, ask for clarification. If you can answer based on the sources, provide a comprehensive response that synthesizes the relevant information."""
+Instructions: Analyze the provided information intelligently. If the question is incomplete or unclear, ask for clarification. Provide a comprehensive response that synthesizes the relevant information from the knowledge base."""
 
         # Combine base prompt with context-specific instructions
         system_prompt = BASE_SYSTEM_PROMPT.format(
@@ -750,9 +752,9 @@ def loading_status():
             openai_status = "error"
             openai_details = f"API connection failed: {str(e)[:50]}"
         
-        # Check RAG system
-        rag_status = "error"
-        rag_details = "Not available"
+        # Check RAG system (non-blocking - for info only)
+        rag_status = "optional"
+        rag_details = "Checking in background..."
         try:
             col = get_collection()
             if col:
@@ -761,21 +763,21 @@ def loading_status():
                     rag_status = "ready"
                     rag_details = f"Ready ({count} documents)"
                 else:
-                    rag_status = "error"
-                    rag_details = "Empty collection"
+                    rag_status = "fallback"
+                    rag_details = "Using fallback mode"
             else:
-                rag_status = "error"
-                rag_details = "No collection found"
+                rag_status = "fallback"
+                rag_details = "Using fallback mode"
         except Exception as e:
-            rag_status = "error"
-            rag_details = f"Error: {str(e)[:50]}"
+            rag_status = "fallback"
+            rag_details = f"Using fallback mode"
         
         # Check if web server is running (we're already here, so it's ready)
         web_status = "ready"
         web_details = "Ready"
         
-        # Determine overall system status
-        overall_status = "ready" if (openai_status == "ready" and rag_status == "ready") else "loading"
+        # Determine overall system status - ONLY require OpenAI API
+        overall_status = "ready" if openai_status == "ready" else "loading"
 
         return jsonify({
             'openai_api': openai_status,
