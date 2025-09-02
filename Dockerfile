@@ -19,7 +19,7 @@ RUN git clone https://github.com/ggerganov/llama.cpp.git
 WORKDIR /build/llama.cpp
 RUN mkdir build
 WORKDIR /build/llama.cpp/build
-# Use simpler build configuration to avoid library issues
+# Build static binary to avoid shared library issues
 RUN cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DLLAMA_CURL=OFF \
@@ -28,7 +28,9 @@ RUN cmake .. \
     -DLLAMA_BUILD_EXAMPLES=OFF \
     -DGGML_NATIVE=OFF \
     -DGGML_OPENMP=ON \
-    -DGGML_BLAS=OFF
+    -DGGML_BLAS=OFF \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DLLAMA_STATIC=ON
 RUN make -j$(nproc) llama-server
 
 # Final runtime image
@@ -48,7 +50,7 @@ RUN apt-get update && apt-get install -y \
 # Create app directory
 WORKDIR /app
 
-# Copy built llama.cpp server
+# Copy built static llama.cpp server binary
 COPY --from=builder /build/llama.cpp/build/bin/llama-server /usr/local/bin/
 
 # Copy application files (excluding large model files)
