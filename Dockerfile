@@ -1,11 +1,9 @@
-# OpenAI-powered AmpAI Dockerfile
+# Cloud-Native AmpAI Dockerfile - Zero Local Dependencies
 FROM python:3.11-slim
 
-# Install system dependencies including PostgreSQL client
+# Install minimal system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
-    poppler-utils \
-    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
@@ -15,57 +13,34 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
-COPY rag/ ./rag/
-COPY sources/ ./sources/
-COPY scripts/ ./scripts/
+# Copy only necessary application files (no local database files)
+COPY rag/web_chat_cloud.py ./rag/
+COPY rag/cloud_vector_db.py ./rag/
+COPY rag/static/ ./rag/static/
+COPY rag/templates/ ./rag/templates/
 
-# Ensure sources directory exists and has proper permissions
-RUN ls -la /app/sources/ && echo "Sources directory contents:" && find /app/sources/ -name "*.jsonl" | head -5
-
-# Create necessary directories
-RUN mkdir -p /app/rag/chroma_db /app/rag/static /app/rag/templates
-
-# Pre-index the RAG collection during build (if API key is available)
-RUN if [ -n "$OPENAI_API_KEY" ]; then \
-        cd /app/rag && python3 rag_simple.py reindex; \
-    else \
-        echo "Warning: OPENAI_API_KEY not set during build, RAG will be indexed at runtime"; \
-    fi
-
-# Set environment variables
+# Set environment variables for cloud deployment
 ENV PYTHONPATH=/app
-ENV FLASK_APP=rag/web_chat.py
+ENV FLASK_APP=rag/web_chat_cloud.py
 ENV FLASK_ENV=production
-ENV OPENAI_API_KEY=${OPENAI_API_KEY}
-ENV CHROMA_TELEMETRY_ENABLED=false
-ENV ANONYMIZED_TELEMETRY=false
-ENV CHROMA_SERVER_NO_TELEMETRY=true
 
 # Expose port (Railway will set PORT environment variable)
 EXPOSE $PORT
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:$PORT/api/status || exit 1
+# Health check for cloud version
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8081}/api/status || exit 1
 
-# Create startup script with Railway-specific initialization
+# Create cloud startup script
 RUN echo '#!/bin/bash\n\
-echo "🚀 Starting Liam AI Assistant on Railway..."\n\
+echo "🌩️  Starting AmpAI Cloud on Railway..."\n\
+echo "📋 Environment: Cloud-Native (Pinecone + OpenAI + GitHub)"\n\
+echo "📋 No local dependencies required"\n\
 \n\
-# Railway-specific vector database initialization\n\
 cd /app/rag\n\
-echo "📊 Running Railway database initialization..."\n\
-if python3 railway_init.py; then\n\
-    echo "✅ Railway initialization successful"\n\
-else\n\
-    echo "⚠️  Railway initialization had issues, but continuing..."\n\
-fi\n\
-\n\
-# Start the application\n\
-echo "🤖 Starting Flask application..."\n\
-python3 web_chat.py\n\
-' > /app/start.sh && chmod +x /app/start.sh
+echo "🚀 Starting cloud Flask application..."\n\
+python3 web_chat_cloud.py\n\
+' > /app/start_cloud.sh && chmod +x /app/start_cloud.sh
 
-# Start the application
-CMD ["/app/start.sh"]
+# Start the cloud application
+CMD ["/app/start_cloud.sh"]

@@ -5,12 +5,12 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python3 rag/web_chat_cloud.py",
+    "startCommand": "cd rag && python3 web_chat_cloud.py",
     "numReplicas": 1,
     "sleepApplication": false,
     "restartPolicyType": "ON_FAILURE",
     "healthcheckPath": "/api/status",
-    "healthcheckTimeout": 300,
+    "healthcheckTimeout": 120,
     "sourceDir": "/"
   },
   "environments": {
