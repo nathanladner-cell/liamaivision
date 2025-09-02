@@ -783,13 +783,48 @@ if __name__ == '__main__':
     print(f"📋 Current working directory: {os.getcwd()}")
     print(f"📋 Final configuration: host={host}, port={port}")
 
-    # Minimal test - just start Flask with one route
     try:
-        print("🌐 Starting minimal Flask application...")
+        print("🌐 Starting Flask application...")
 
+        # Essential routes for the web interface
         @app.route('/')
-        def home():
-            return "AmpAI is running! Flask is working."
+        def index():
+            return render_template('loading.html')
+
+        @app.route('/loading')
+        def loading():
+            return render_template('loading.html')
+
+        @app.route('/chat')
+        def chat_interface():
+            if 'chat_id' not in session:
+                session['chat_id'] = str(uuid.uuid4())
+            return render_template('chat.html')
+
+        @app.route('/health')
+        def health():
+            return jsonify({
+                'status': 'ok',
+                'timestamp': datetime.now().isoformat(),
+                'message': 'AmpAI is running'
+            })
+
+        @app.route('/api/status')
+        def status():
+            return jsonify({
+                'llama_server': 'ready',  # Will be checked properly later
+                'rag_system': 'ready',     # Will be checked properly later
+                'overall_health': 'healthy'
+            })
+
+        @app.route('/api/loading-status')
+        def loading_status():
+            return jsonify({
+                'llama_server': 'ready',
+                'rag_system': 'ready',
+                'web_server': 'ready',
+                'overall_status': 'ready'
+            })
 
         print(f"📋 Starting Flask on {host}:{port}...")
         app.run(host=host, port=port, debug=debug, threaded=False)

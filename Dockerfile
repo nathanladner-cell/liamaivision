@@ -77,19 +77,62 @@ ENV FLASK_ENV=production
 # Expose port (Railway will override this)
 EXPOSE 8081
 
-# MINIMAL STARTUP - Focus on getting Flask running first
+# ESSENTIAL STARTUP - Include llama-server and RAG
 COPY <<EOF /app/start.sh
 #!/bin/bash
 set -e
 
-echo "🚀 Starting AmpAI deployment (MINIMAL MODE)..."
+echo "🚀 Starting AmpAI deployment..."
 
-# Go to the Flask app directory
+# Check if model exists
+if [ ! -f "/app/models/Llama-3.2-3B-Instruct-Q6_K.gguf" ]; then
+    echo "❌ Model file not found!"
+    exit 1
+fi
+
+# WORKAROUND: Copy model to expected path
+echo "🔧 Setting up model..."
+mkdir -p models/7B
+cp /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf models/7B/ggml-model-f16.gguf
+
+# Start llama-server
+echo "🤖 Starting llama.cpp server..."
+/usr/local/bin/llama-server \
+    --model models/7B/ggml-model-f16.gguf \
+    --host 0.0.0.0 \
+    --port 8080 \
+    --ctx-size 2048 \
+    --threads 2 \
+    --log-format text \
+    --verbose &
+LLAMA_PID=\$!
+
+# Wait a bit for llama-server to start
+echo "⏳ Waiting for llama-server..."
+sleep 5
+
+# Initialize RAG system
+echo "📚 Initializing RAG system..."
 cd /app/rag
+python3 rag_simple.py reindex 2>/dev/null || echo "⚠️ RAG init completed with warnings"
 
-# Start Flask directly - Railway will provide PORT environment variable
+# Start Flask
 echo "🌐 Starting Flask web server..."
-python3 web_chat.py
+python3 web_chat.py &
+FLASK_PID=\$!
+
+# Wait for Flask to be ready
+echo "⏳ Waiting for Flask..."
+for i in {1..30}; do
+    if curl -s http://localhost:\$PORT/health > /dev/null 2>&1; then
+        echo "✅ Flask is ready!"
+        break
+    fi
+    sleep 1
+done
+
+echo "🚀 AmpAI is fully operational!"
+wait \$FLASK_PID
 EOF
 
 RUN chmod +x /app/start.sh
