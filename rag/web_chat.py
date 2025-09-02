@@ -14,7 +14,7 @@ app = Flask(__name__, static_folder='static')
 app.secret_key = 'ampai-secret-key-2024'
 
 # Configuration - FIXED to match working scripts
-client = openai.OpenAI(base_url="http://127.0.0.1:8000/v1", api_key="not-needed")
+client = openai.OpenAI(base_url="http://127.0.0.1:8080/v1", api_key="not-needed")
 DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
 SOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sources")
 
@@ -474,7 +474,7 @@ def loading_status():
             # Try both health and models endpoints
             for endpoint in ['/health', '/v1/models']:
                 try:
-                    response = requests.get(f'http://localhost:8000{endpoint}', timeout=5)
+                    response = requests.get(f'http://localhost:8080{endpoint}', timeout=5)
                     if response.status_code == 200:
                         llama_status = "ready"
                         llama_details = "Ready"

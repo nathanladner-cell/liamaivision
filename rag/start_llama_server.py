@@ -30,7 +30,7 @@ def start_llama_server():
         "llama-server",
         "--model", model_path,
         "--host", "0.0.0.0",
-        "--port", "8000",
+        "--port", "8080",
         "--ctx-size", "4096",
         "--threads", str(threads),
         "--log-format", "text",
@@ -50,7 +50,7 @@ def start_llama_server():
         print("⏳ Waiting for server to start...")
         for i in range(60):  # Wait up to 60 seconds
             try:
-                response = requests.get("http://localhost:8000/v1/models", timeout=2)
+                response = requests.get("http://localhost:8080/v1/models", timeout=2)
                 if response.status_code == 200:
                     print("✅ llama.cpp server is ready!")
                     return True

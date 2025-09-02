@@ -105,13 +105,17 @@ if ! /usr/local/bin/llama-server --help > /dev/null 2>&1; then
 fi
 echo "✅ llama-server binary is working"
 
-# Start llama.cpp server in background with proper logging
+# Change to the correct working directory and start llama.cpp server
 echo "🤖 Starting llama.cpp server..."
-echo "📋 Command: /usr/local/bin/llama-server --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf --host 0.0.0.0 --port 8000 --ctx-size 2048 --threads 4 --log-format text --verbose"
+echo "📋 Working directory: $(pwd)"
+echo "📋 Model file exists: $(ls -la /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf)"
+echo "📋 Command: cd /app && /usr/local/bin/llama-server --model models/Llama-3.2-3B-Instruct-Q6_K.gguf --host 0.0.0.0 --port 8080 --ctx-size 2048 --threads 4 --log-format text --verbose"
+
+cd /app
 /usr/local/bin/llama-server \
-    --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf \
+    --model models/Llama-3.2-3B-Instruct-Q6_K.gguf \
     --host 0.0.0.0 \
-    --port 8000 \
+    --port 8080 \
     --ctx-size 2048 \
     --threads 4 \
     --log-format text \
@@ -123,7 +127,7 @@ echo "📋 Llama server PID: \$LLAMA_PID"
 # Wait for llama server to be ready with better checking
 echo "⏳ Waiting for llama server to start..."
 for i in {1..60}; do
-    if curl -s http://localhost:8000/health > /dev/null 2>&1 || curl -s http://localhost:8000/v1/models > /dev/null 2>&1; then
+    if curl -s http://localhost:8080/health > /dev/null 2>&1 || curl -s http://localhost:8080/v1/models > /dev/null 2>&1; then
         echo "✅ Llama server is ready!"
         break
     fi
