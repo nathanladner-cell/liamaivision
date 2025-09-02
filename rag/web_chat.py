@@ -124,21 +124,35 @@ def get_collection():
                 test_collection = chroma.get_collection(col.name)
                 if test_collection.count() > 0:
                     valid_collections.append((col, test_collection.count()))
-            except:
+            except Exception as e:
+                print(f"Error checking collection {col.name}: {e}")
                 continue
 
         if not valid_collections:
             print("No collections with documents found, creating new collection...")
             try:
-                from rag_simple import simple_reindex
-                simple_reindex()
+                # For Railway, we need to ensure sources exist
+                import os
+                sources_dir = os.path.join(os.path.dirname(DB_DIR), '..', 'sources')
+                if os.path.exists(sources_dir):
+                    print(f"Sources directory found at: {sources_dir}")
+                    from rag_simple import simple_reindex
+                    simple_reindex()
+                    print("RAG reindexing completed")
+                else:
+                    print(f"Sources directory not found at: {sources_dir}")
+                    return None
+
                 collections = chroma.list_collections()
                 ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
                 if ampai_collections:
                     latest_collection = max(ampai_collections, key=lambda x: x.name)
                     collection = chroma.get_collection(latest_collection.name)
+                    final_count = collection.count()
+                    print(f"New collection created with {final_count} documents")
                     return collection
                 else:
+                    print("No collections found after reindexing")
                     return None
             except Exception as e:
                 print(f"Failed to create new collection: {e}")

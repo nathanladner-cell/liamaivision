@@ -46,25 +46,18 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:$PORT/api/status || exit 1
 
-# Create startup script with vector database initialization
+# Create startup script with Railway-specific initialization
 RUN echo '#!/bin/bash\n\
-echo "🚀 Starting Liam AI Assistant..."\n\
+echo "🚀 Starting Liam AI Assistant on Railway..."\n\
 \n\
-# Initialize vector database\n\
+# Railway-specific vector database initialization\n\
 cd /app/rag\n\
-echo "📊 Initializing vector database..."\n\
-python3 -c "\n\
-import sys\n\
-sys.path.append('.')\n\
-try:\n\
-    from vector_db import init_vector_db\n\
-    if init_vector_db():\n\
-        print(\"✅ Vector database initialized successfully\")\n\
-    else:\n\
-        print(\"⚠️  Vector database initialization failed, using fallback\")\n\
-except Exception as e:\n\
-    print(f\"⚠️  Vector DB init error: {e}\")\n\
-" 2>/dev/null || echo "Vector DB init completed with warnings"\n\
+echo "📊 Running Railway database initialization..."\n\
+if python3 railway_init.py; then\n\
+    echo "✅ Railway initialization successful"\n\
+else\n\
+    echo "⚠️  Railway initialization had issues, but continuing..."\n\
+fi\n\
 \n\
 # Start the application\n\
 echo "🤖 Starting Flask application..."\n\
