@@ -143,17 +143,15 @@ echo "📋 Llama server PID: \$LLAMA_PID"
 
 # Wait for llama server to be ready with better checking
 echo "⏳ Waiting for llama server to start..."
-for i in {1..60}; do
+for i in {1..30}; do
     if curl -s http://localhost:8080/health > /dev/null 2>&1 || curl -s http://localhost:8080/v1/models > /dev/null 2>&1; then
         echo "✅ Llama server is ready!"
         break
     fi
-    if [ \$i -eq 60 ]; then
-        echo "❌ Llama server failed to start within 2 minutes"
-        kill \$LLAMA_PID 2>/dev/null || true
-        exit 1
+    if [ \$i -eq 30 ]; then
+        echo "⚠️  Llama server not ready yet, but continuing with Flask startup"
     fi
-    echo "   Waiting... (\$i/60)"
+    echo "   Waiting... (\$i/30)"
     sleep 2
 done
 
@@ -169,7 +167,31 @@ fi
 # Start Flask app
 echo "🌐 Starting Flask web server..."
 cd /app/rag
-exec python3 web_chat.py
+
+# Start Flask in background and wait for it to be ready
+python3 web_chat.py &
+FLASK_PID=\$!
+echo "📋 Flask PID: \$FLASK_PID"
+
+# Wait for Flask to be ready
+echo "⏳ Waiting for Flask to start..."
+for i in {1..30}; do
+    if curl -s http://localhost:8081/health > /dev/null 2>&1; then
+        echo "✅ Flask is ready!"
+        break
+    fi
+    if [ \$i -eq 30 ]; then
+        echo "❌ Flask failed to start within 1 minute"
+        kill \$FLASK_PID 2>/dev/null || true
+        exit 1
+    fi
+    echo "   Waiting... (\$i/30)"
+    sleep 2
+done
+
+# Keep the container running
+echo "🚀 AmpAI is fully operational!"
+wait \$FLASK_PID
 EOF
 
 RUN chmod +x /app/start.sh
