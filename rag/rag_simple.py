@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
+
+# CRITICAL: Disable ChromaDB telemetry BEFORE any imports
 import os
+os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
+os.environ['ANONYMIZED_TELEMETRY'] = 'false'
+os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
+os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
+os.environ['CHROMA_TELEMETRY'] = 'false'
+
 import json
 import chromadb
 from chromadb.config import Settings
@@ -13,8 +21,20 @@ def read_text(filepath):
         return f.read()
 
 def get_collection():
-    # ChromaDB 0.5.5+ compatibility - no tenant parameter needed
-    chroma = chromadb.PersistentClient(path=DB_DIR, settings=Settings(anonymized_telemetry=False))
+    # Disable ChromaDB telemetry completely
+    import os
+    os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
+    os.environ['ANONYMIZED_TELEMETRY'] = 'false'
+    os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
+    os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
+    
+    # ChromaDB 0.4.24 compatibility
+    settings = Settings(
+        anonymized_telemetry=False,
+        allow_reset=True,
+        is_persistent=True
+    )
+    chroma = chromadb.PersistentClient(path=DB_DIR, settings=settings)
 
     # Find existing ampai_sources collections and use the most recent one with data
     collections = chroma.list_collections()

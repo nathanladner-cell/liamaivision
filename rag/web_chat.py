@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
+
+# CRITICAL: Disable ChromaDB telemetry BEFORE any imports
+import os
+os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
+os.environ['ANONYMIZED_TELEMETRY'] = 'false'
+os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
+os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
+os.environ['CHROMA_TELEMETRY'] = 'false'
+
 from flask import Flask, render_template, request, jsonify, session
 import openai
-import os
 import chromadb
 from chromadb.config import Settings
 import uuid
@@ -78,10 +86,14 @@ Provide a direct, helpful response based on the context above."""
 
 def get_collection():
     try:
-        # Try to disable all ChromaDB telemetry
+        # Disable ChromaDB telemetry completely
         import os
         os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
         os.environ['ANONYMIZED_TELEMETRY'] = 'false'
+        
+        # Additional telemetry disabling for newer versions
+        os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
+        os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
 
         # Try to use database backend if available
         db_url = os.environ.get('DATABASE_URL')
@@ -89,11 +101,21 @@ def get_collection():
             print(f"Using PostgreSQL database for ChromaDB backend")
             # For ChromaDB with PostgreSQL, we need to use a different approach
             # Let's use a hybrid approach: keep local files but sync to database
-            settings = Settings(anonymized_telemetry=False)
+            settings = Settings(
+                anonymized_telemetry=False,
+                allow_reset=True,
+                is_persistent=True,
+                chroma_telemetry_impl="none"
+            )
             chroma = chromadb.PersistentClient(path=DB_DIR, settings=settings)
         else:
             print("Using local file storage for ChromaDB")
-            settings = Settings(anonymized_telemetry=False)
+            settings = Settings(
+                anonymized_telemetry=False,
+                allow_reset=True,
+                is_persistent=True,
+                chroma_telemetry_impl="none"
+            )
             chroma = chromadb.PersistentClient(path=DB_DIR, settings=settings)
         # Get all collections and find the most recent ampai_sources collection
         collections = chroma.list_collections()
@@ -110,12 +132,27 @@ def get_collection():
                 collections = chroma.list_collections()
                 ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
                 if not ampai_collections:
-                    # Reindex failed to create collections
-                    print("Warning: No collections found after reindexing")
-                    return None
+                    # Reindex failed to create collections - try creating empty collection
+                    print("Warning: No collections found after reindexing, creating empty collection")
+                    from datetime import datetime
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    collection_name = f"ampai_sources_{timestamp}"
+                    collection = chroma.get_or_create_collection(collection_name)
+                    print(f"Created empty collection: {collection_name}")
+                    return collection
             except Exception as reindex_error:
-                # Automatic reindex failed
-                return None
+                # Automatic reindex failed - create empty collection as fallback
+                print(f"Reindex failed: {reindex_error}, creating empty collection")
+                try:
+                    from datetime import datetime
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    collection_name = f"ampai_sources_{timestamp}"
+                    collection = chroma.get_or_create_collection(collection_name)
+                    print(f"Created fallback empty collection: {collection_name}")
+                    return collection
+                except Exception as fallback_error:
+                    print(f"Failed to create fallback collection: {fallback_error}")
+                    return None
 
         # Get the most recent collection (highest timestamp) that has documents
         valid_collections = []

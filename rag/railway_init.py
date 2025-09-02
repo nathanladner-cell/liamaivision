@@ -66,6 +66,8 @@ def initialize_for_railway():
     # Set environment variables for Railway
     os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
     os.environ['ANONYMIZED_TELEMETRY'] = 'false'
+    os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
+    os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
 
     try:
         # Check if sources directory exists
@@ -100,7 +102,12 @@ def initialize_for_railway():
 
         print(f"📊 Initializing ChromaDB at: {db_dir}")
 
-        settings = Settings(anonymized_telemetry=False)
+        settings = Settings(
+            anonymized_telemetry=False,
+            allow_reset=True,
+            is_persistent=True,
+            chroma_telemetry_impl="none"
+        )
         chroma = chromadb.PersistentClient(path=db_dir, settings=settings)
 
         # Check existing collections

@@ -213,8 +213,14 @@ class ChromaVectorDB(VectorDatabase):
             import os
             os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
             os.environ['ANONYMIZED_TELEMETRY'] = 'false'
-
-            settings = Settings(anonymized_telemetry=False)
+            os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
+            os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
+            
+            settings = Settings(
+                anonymized_telemetry=False,
+                allow_reset=True,
+                is_persistent=True
+            )
             self.client = chromadb.PersistentClient(path=self.persist_dir, settings=settings)
             print(f"✅ Connected to ChromaDB at {self.persist_dir}")
             return True

@@ -21,7 +21,11 @@
         "DATABASE_URL": "${DATABASE_URL}",
         "FLASK_ENV": "production",
         "PYTHONPATH": "/app",
-        "CHROMA_TELEMETRY_ENABLED": "false"
+        "CHROMA_TELEMETRY_ENABLED": "false",
+        "ANONYMIZED_TELEMETRY": "false",
+        "CHROMA_TELEMETRY_IMPL": "none",
+        "CHROMA_POSTHOG_DISABLED": "true",
+        "CHROMA_TELEMETRY": "false"
       }
     }
   }

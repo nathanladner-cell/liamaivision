@@ -1,13 +1,32 @@
 #!/usr/bin/env python3
+
+# CRITICAL: Disable ChromaDB telemetry BEFORE any imports
+import os
+os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
+os.environ['ANONYMIZED_TELEMETRY'] = 'false'
+os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
+os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
+os.environ['CHROMA_TELEMETRY'] = 'false'
+
 import chromadb
 from chromadb.config import Settings
-import os
 
 DB_DIR = os.path.join(os.path.dirname(__file__), 'chroma_db')
 print(f"Checking database at: {DB_DIR}")
 
 try:
-    chroma = chromadb.PersistentClient(path=DB_DIR, settings=Settings(anonymized_telemetry=True))
+    # Disable ChromaDB telemetry completely
+    os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
+    os.environ['ANONYMIZED_TELEMETRY'] = 'false'
+    os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
+    os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
+    
+    settings = Settings(
+        anonymized_telemetry=False,
+        allow_reset=True,
+        is_persistent=True
+    )
+    chroma = chromadb.PersistentClient(path=DB_DIR, settings=settings)
 
     collections = chroma.list_collections()
     print(f'Collections found: {len(collections)}')
