@@ -28,12 +28,12 @@ ENV FLASK_APP=rag/web_chat.py
 ENV FLASK_ENV=production
 ENV OPENAI_API_KEY=${OPENAI_API_KEY}
 
-# Expose port
-EXPOSE 8081
+# Expose port (Railway will set PORT environment variable)
+EXPOSE $PORT
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8081/api/status || exit 1
+    CMD curl -f http://localhost:$PORT/api/status || exit 1
 
 # Start the application
-CMD ["python3", "rag/web_chat.py"]
+CMD ["sh", "-c", "python3 rag/web_chat.py"]
