@@ -109,7 +109,6 @@ echo "✅ llama-server binary is working"
 echo "🤖 Starting llama.cpp server..."
 echo "📋 Working directory: $(pwd)"
 echo "📋 Model file exists: $(ls -la /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf)"
-echo "📋 Command: /usr/local/bin/llama-server --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf --host 0.0.0.0 --port 8080 --ctx-size 2048 --threads 4 --log-format text --verbose"
 echo "📋 Environment: MODEL_PATH=$MODEL_PATH LLAMA_MODEL=$LLAMA_MODEL LLAMA_MODEL_PATH=$LLAMA_MODEL_PATH"
 
 # Clear any llama.cpp environment variables that might interfere
@@ -117,12 +116,21 @@ unset LLAMA_MODEL_PATH
 unset LLAMA_MODEL
 unset MODEL_PATH
 
+# WORKAROUND: Copy model to expected path
+echo "🔧 Copying model to expected location..."
+mkdir -p models/7B
+cp /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf models/7B/ggml-model-f16.gguf
+echo "✅ Copied model to: models/7B/ggml-model-f16.gguf"
+ls -la models/7B/
+
 # Check for any llama.cpp config files that might override model path
 echo "🔍 Checking for config files..."
 find /usr/local -name "*.yaml" -o -name "*.yml" -o -name "*.json" -o -name "*.cfg" -o -name "*.conf" 2>/dev/null | head -10 || echo "No config files found"
 
+echo "📋 Command: /usr/local/bin/llama-server --model models/7B/ggml-model-f16.gguf --host 0.0.0.0 --port 8080 --ctx-size 2048 --threads 4 --log-format text --verbose"
+
 /usr/local/bin/llama-server \
-    --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf \
+    --model models/7B/ggml-model-f16.gguf \
     --host 0.0.0.0 \
     --port 8080 \
     --ctx-size 2048 \
