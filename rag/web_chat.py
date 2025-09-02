@@ -15,6 +15,8 @@ import socket
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'ampai-secret-key-2024'
 
+# Liam quirks system removed for simplicity
+
 # Configuration - FIXED to match working scripts
 client = openai.OpenAI(base_url="http://127.0.0.1:8080/v1", api_key="not-needed")
 DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
@@ -264,9 +266,9 @@ Instructions: Analyze the provided information intelligently. If the question is
                 max_tokens=200,
                 temperature=0.7
             )
-            
+
             ai_response = response.choices[0].message.content
-            
+
             # Add AI response to conversation history
             session['conversation_history'].append({"role": "assistant", "content": ai_response})
             
@@ -276,9 +278,12 @@ Instructions: Analyze the provided information intelligently. If the question is
             if "No relevant information found" in rag_content:
                 ai_response = "I'm having trouble connecting to my AI processing server right now. The system is still starting up - please try again in a few moments!"
             else:
-                # Provide a more intelligent fallback using the RAG content
-                ai_response = f"I found this relevant information: {rag_content[:300]}{'...' if len(rag_content) > 300 else ''}\n\n(Note: My AI processing is still starting up, so this is just the raw information from my knowledge base. Try again in a moment for a more detailed response!)"
-        
+                # Provide a fallback response based on RAG content
+            if "No relevant information found" in rag_content:
+                ai_response = "I don't have specific information about that in my sources, but I'd be happy to help with general questions!"
+            else:
+                ai_response = f"Based on your sources: {rag_content}\n\nNote: I couldn't generate a full response due to a server issue, but here's the relevant information I found."
+
         # Clean up the response to remove source mentions
         cleaned_response = ai_response
         if rag_content and "No relevant information found" not in rag_content:
@@ -786,47 +791,7 @@ if __name__ == '__main__':
     try:
         print("🌐 Starting Flask application...")
 
-        # Essential routes for the web interface
-        @app.route('/')
-        def index():
-            return render_template('loading.html')
-
-        @app.route('/loading')
-        def loading():
-            return render_template('loading.html')
-
-        @app.route('/chat')
-        def chat_interface():
-            if 'chat_id' not in session:
-                session['chat_id'] = str(uuid.uuid4())
-            return render_template('chat.html')
-
-        @app.route('/health')
-        def health():
-            return jsonify({
-                'status': 'ok',
-                'timestamp': datetime.now().isoformat(),
-                'message': 'AmpAI is running'
-            })
-
-        @app.route('/api/status')
-        def status():
-            return jsonify({
-                'llama_server': 'simplified_mode',
-                'rag_system': 'simplified_mode',
-                'overall_health': 'healthy',
-                'message': 'Running in simplified mode - basic functionality available'
-            })
-
-        @app.route('/api/loading-status')
-        def loading_status():
-            return jsonify({
-                'llama_server': 'simplified_mode',
-                'rag_system': 'simplified_mode',
-                'web_server': 'ready',
-                'overall_status': 'ready',
-                'message': 'Simplified mode - web interface available'
-            })
+        # Routes are already defined at the top level - no need to redefine here
 
         print(f"📋 Starting Flask on {host}:{port}...")
         app.run(host=host, port=port, debug=debug, threaded=False)
