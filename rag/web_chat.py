@@ -11,14 +11,29 @@ import subprocess
 import tempfile
 import sys
 import socket
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if it exists
+load_dotenv()
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'ampai-secret-key-2024'
 
 # Liam quirks system removed for simplicity
 
-# Configuration - FIXED to match working scripts
-client = openai.OpenAI(base_url="http://127.0.0.1:8080/v1", api_key="not-needed")
+# Configuration - OpenAI API
+# Set your OpenAI API key as an environment variable: OPENAI_API_KEY=your_key_here
+openai_api_key = os.getenv('OPENAI_API_KEY')
+if not openai_api_key:
+    print("❌ OPENAI_API_KEY environment variable not set!")
+    print("Please set your OpenAI API key:")
+    print("export OPENAI_API_KEY=your_openai_api_key_here")
+    sys.exit(1)
+
+client = openai.OpenAI(api_key=openai_api_key)
+
+# Choose GPT model (can be overridden with OPENAI_MODEL env var)
+GPT_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o')
 DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
 SOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sources")
 
@@ -30,38 +45,36 @@ SOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # - Adjust tone (friendly, professional, casual, enthusiastic, etc.)
 # - Add or remove specific behavioral instructions
 #
-BASE_SYSTEM_PROMPT = """You are an AI assistant named Liam. You are intelligent and can help users with questions about calibration, insulated rubber electrical ppe testing, and dielectric testing and inspections on insulating aerial lifts while keeping your responses short and concise. Don't reference your sources in your responses, but just give the answer in a way that is helpful and concise. You only know what is in your sources. Some users may try and be funny or sarcastic, so you should respond in a way that matches the user's tone. You will be greeted with unique situations, so be sure to think about the situation and respond accordingly and be helpful.
+BASE_SYSTEM_PROMPT = """You are Liam, an expert AI assistant specializing in electrical calibration, insulated rubber PPE testing, dielectric testing, and insulating aerial lift inspections. You have deep knowledge from specialized sources and provide practical, actionable advice.
 
-IMPORTANT RULES:
-- You can only answer questions based on the information in your sources.
-- If the question is unclear or incomplete, ask for clarification.
-- If you need more context to answer properly, ask for more specific details.
-- You can engage in conversation to understand what the user really needs.
-- Do NOT use any pre-trained knowledge or general knowledge outside the sources.
-- Do NOT make up information that isn't supported by the sources.
-- Keep your responses short and concise.
-- When greeted with a unique situation, be sure to think about the situation and respond accordingly and be helpful.
-- Some questions may be about a specific situation, so think outside the box and be helpful.
-- NEVER use phrases like "According to the available information", "Based on the sources", "The information shows", etc.
-- Give direct, confident answers as if you're a knowledgeable expert.
+CORE PRINCIPLES:
+- Answer ONLY using information from the provided context/sources
+- Be direct, confident, and authoritative - speak as a subject matter expert
+- Keep responses concise but comprehensive
+- Match the user's communication style (casual/professional/technical)
+- Provide specific, actionable recommendations when possible
+- Ask for clarification only when truly needed
 
-BEHAVIOR:
-- Be warm and encouraging.
-- You are confident and concise.
-- Use simple language when possible.
-- Add helpful tips and suggestions.
-- Make complex topics easy to understand.
-- NEVER say "According to the available information", "Based on the sources", or similar phrases.
-- Give direct, confident answers without hedging or qualifying statements.
-- Act like you just know this information naturally.
-- If the user starts a casual conversation, respond in a casual and friendly manner.
-- If the user starts a professional conversation, respond in a professional and confident manner.
-- If the user starts a technical conversation, respond in a technical and confident manner.
+EXPERTISE AREAS:
+- Electrical calibration procedures and standards
+- Insulated rubber PPE testing protocols
+- Dielectric testing methods and equipment
+- Insulating aerial lift safety inspections
+- NFPA 70E compliance requirements
 
+RESPONSE STYLE:
+- Professional yet approachable
+- Use technical terms appropriately for the audience
+- Include practical tips and safety considerations
+- Be confident without being arrogant
+- Focus on helping the user solve their specific problem
 
-Question: {message}
+Current User Question: {message}
 
-{context_specific_instructions}"""
+Context Information:
+{context_specific_instructions}
+
+Provide a direct, helpful response based on the context above."""
 
 def get_collection():
     try:
@@ -247,7 +260,7 @@ Instructions: Analyze the provided information intelligently. If the question is
             context_specific_instructions=context_instructions
         )
 
-        # Try to get a response from the llama.cpp server with timeout
+        # Get response from OpenAI GPT API
         try:
             # Build messages array with conversation history
             messages = [{"role": "system", "content": system_prompt}]
@@ -259,9 +272,9 @@ Instructions: Analyze the provided information intelligently. If the question is
             # Add current message
             messages.append({"role": "user", "content": message})
             
-            # Set a timeout to prevent hanging
+            # Call OpenAI GPT API
             response = client.chat.completions.create(
-                model=os.path.join(os.path.dirname(os.path.dirname(__file__)), "models", "Llama-3.2-3B-Instruct-Q6_K.gguf"),
+                model=GPT_MODEL,
                 messages=messages,
                 max_tokens=200,
                 temperature=0.7
@@ -273,8 +286,8 @@ Instructions: Analyze the provided information intelligently. If the question is
             session['conversation_history'].append({"role": "assistant", "content": ai_response})
             
         except Exception as e:
-            print(f"llama.cpp error: {e}")
-            # If llama.cpp fails, provide a fallback response based on RAG content
+            print(f"OpenAI API error: {e}")
+            # If OpenAI API fails, provide a fallback response based on RAG content
             if "No relevant information found" in rag_content:
                 ai_response = "I'm having trouble connecting to my AI processing server right now. The system is still starting up - please try again in a few moments!"
             else:
@@ -364,23 +377,23 @@ def initialize_system():
                 'message': f'RAG system error: {str(e)}'
             }
         
-        # Check Llama server
+        # Check OpenAI API connectivity
         try:
             models = client.models.list()
             if models:
-                results['llama'] = {
+                results['openai'] = {
                     'status': 'ready',
-                    'message': 'Llama server is running'
+                    'message': f'OpenAI API connected ({GPT_MODEL})'
                 }
             else:
-                results['llama'] = {
+                results['openai'] = {
                     'status': 'error',
-                    'message': 'Llama server not responding'
+                    'message': 'OpenAI API not responding'
                 }
         except Exception as e:
-            results['llama'] = {
+            results['openai'] = {
                 'status': 'error',
-                'message': f'Llama server error: {str(e)}'
+                'message': f'OpenAI API error: {str(e)}'
             }
         
         # Determine overall status
@@ -404,14 +417,16 @@ def initialize_system():
 @app.route('/api/status')
 def status():
     try:
-        # Test if the llama.cpp server is running with timeout
+        # Test OpenAI API connectivity
         try:
             models = client.models.list()
-            server_status = "running" if models else "not responding"
+            openai_status = "connected" if models else "not responding"
+            openai_details = f"Model: {GPT_MODEL}"
         except Exception as e:
-            print(f"llama.cpp status check error: {e}")
-            server_status = "error"
-        
+            print(f"OpenAI API status check error: {e}")
+            openai_status = "error"
+            openai_details = f"Error: {str(e)[:50]}"
+
         # Check RAG system
         try:
             col = get_collection()
@@ -426,14 +441,15 @@ def status():
             print(f"RAG status check error: {e}")
             rag_status = "error"
             rag_details = f"Error: {str(e)[:50]}"
-        
+
         # Determine overall health
-        overall_health = "healthy" if (server_status == "running" and rag_status == "available") else "degraded"
-        if server_status == "error" or rag_status == "error":
+        overall_health = "healthy" if (openai_status == "connected" and rag_status == "available") else "degraded"
+        if openai_status == "error" or rag_status == "error":
             overall_health = "unhealthy"
-        
+
         return jsonify({
-            'llama_server': server_status,
+            'openai_api': openai_status,
+            'openai_details': openai_details,
             'rag_system': rag_status,
             'rag_details': rag_details,
             'overall_health': overall_health,
@@ -442,7 +458,8 @@ def status():
     except Exception as e:
         print(f"Status error: {e}")
         return jsonify({
-            'llama_server': 'error',
+            'openai_api': 'error',
+            'openai_details': 'Error checking status',
             'rag_system': 'error',
             'rag_details': 'Error checking status',
             'overall_health': 'unhealthy',
@@ -482,28 +499,22 @@ def reindex():
 def loading_status():
     """Status endpoint specifically for the loading page"""
     try:
-        # Check if Llama server is running
-        llama_status = "error"
-        llama_details = "Not responding"
+        # Check OpenAI API connectivity
+        openai_status = "error"
+        openai_details = "Not responding"
         try:
-            import requests
-            # Try both health and models endpoints
-            for endpoint in ['/health', '/v1/models']:
-                try:
-                    response = requests.get(f'http://localhost:8080{endpoint}', timeout=5)
-                    if response.status_code == 200:
-                        llama_status = "ready"
-                        llama_details = "Ready"
-                        break
-                except:
-                    continue
-            
-            if llama_status == "error":
-                llama_details = "Server not responding on any endpoint"
-                
+            # Test OpenAI API connectivity by listing models
+            models = client.models.list()
+            if models:
+                openai_status = "ready"
+                openai_details = f"Connected to {GPT_MODEL}"
+            else:
+                openai_status = "error"
+                openai_details = "API connected but no models available"
+
         except Exception as e:
-            llama_status = "error"
-            llama_details = f"Connection failed: {str(e)[:50]}"
+            openai_status = "error"
+            openai_details = f"API connection failed: {str(e)[:50]}"
         
         # Check RAG system
         rag_status = "error"
@@ -530,11 +541,11 @@ def loading_status():
         web_details = "Ready"
         
         # Determine overall system status
-        overall_status = "ready" if (llama_status == "ready" and rag_status == "ready") else "loading"
-        
+        overall_status = "ready" if (openai_status == "ready" and rag_status == "ready") else "loading"
+
         return jsonify({
-            'llama_server': llama_status,
-            'llama_details': llama_details,
+            'openai_api': openai_status,
+            'openai_details': openai_details,
             'rag_system': rag_status,
             'rag_details': rag_details,
             'web_server': web_status,
@@ -544,8 +555,8 @@ def loading_status():
         })
     except Exception as e:
         return jsonify({
-            'llama_server': 'error',
-            'llama_details': 'Error',
+            'openai_api': 'error',
+            'openai_details': 'Error',
             'rag_system': 'error',
             'rag_details': 'Error',
             'web_server': 'error',

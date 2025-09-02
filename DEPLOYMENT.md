@@ -79,7 +79,7 @@ docker run -p 8081:8081 ampai
 - **Build timeout**: Model download can take time, be patient
 
 ### Runtime Issues
-- **llama.cpp server won't start**: Check model file exists and is valid
+- **OpenAI API errors**: Check API key is set and billing is enabled
 - **RAG system empty**: Sources may not have indexed properly
 - **Port binding issues**: Railway handles port assignment automatically
 

@@ -1,21 +1,22 @@
 # 🤖 AmpAI - AI-Powered Electrical Safety Assistant
 
-AmpAI is an intelligent RAG (Retrieval-Augmented Generation) system designed to provide expert guidance on electrical safety standards, calibration procedures, and insulated rubber PPE testing. Built with Flask, ChromaDB, and llama.cpp.
+AmpAI is an intelligent RAG (Retrieval-Augmented Generation) system designed to provide expert guidance on electrical safety standards, calibration procedures, and insulated rubber PPE testing. Powered by OpenAI's GPT models and ChromaDB for advanced semantic search.
 
 ## 🌟 Features
 
 - **🔍 Intelligent Q&A**: Ask questions about NFPA 70E, electrical safety, and calibration procedures
 - **📚 Knowledge Base**: Comprehensive database of electrical safety standards and procedures
-- **🚀 Real-time Responses**: Fast AI-powered responses using locally-hosted Llama 3.2 3B model
+- **🚀 Real-time Responses**: Fast AI-powered responses using OpenAI GPT-4o
 - **📱 Modern Web Interface**: Clean, responsive chat interface with loading animations
 - **📄 File Upload**: Upload PDF, TXT, or JSONL files to expand the knowledge base
 - **🔄 Auto-Reindexing**: Automatic knowledge base updates when new sources are added
+- **⚡ Cloud-Powered**: No local hardware requirements - uses OpenAI's infrastructure
 
 ## 🏗️ Architecture
 
 - **Frontend**: Modern HTML/CSS/JavaScript chat interface
 - **Backend**: Flask web server with REST API
-- **AI Model**: Llama 3.2 3B Instruct (GGUF format) via llama.cpp
+- **AI Model**: OpenAI GPT-4o (cloud-hosted)
 - **Vector Database**: ChromaDB for semantic search and retrieval
 - **Knowledge Sources**: JSONL files containing electrical safety standards
 
@@ -37,7 +38,8 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 ### Prerequisites
 - Python 3.8+
 - Git
-- 4GB+ RAM (for AI model)
+- OpenAI API key (get one at https://platform.openai.com/api-keys)
+- Internet connection (for OpenAI API)
 
 ### Setup
 ```bash
@@ -52,25 +54,15 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Download the AI model
-python3 download_model.py
-
-# Build llama.cpp (if not using Docker)
-git clone https://github.com/ggerganov/llama.cpp.git
-cd llama.cpp
-mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc) llama-server
-cd ../..
+# Set your OpenAI API key
+export OPENAI_API_KEY="your_openai_api_key_here"
+# Or create a .env file with: OPENAI_API_KEY=your_key_here
 
 # Initialize RAG system
 cd rag
 python3 rag_simple.py reindex
 
-# Start the llama.cpp server (in one terminal)
-python3 start_llama_server.py
-
-# Start the web interface (in another terminal)
+# Start the web interface
 python3 web_chat.py
 ```
 
@@ -90,7 +82,8 @@ The system includes knowledge about:
 ### Environment Variables
 - `PORT`: Web server port (default: 8081)
 - `FLASK_DEBUG`: Debug mode (default: false)
-- `MODEL_PATH`: Path to GGUF model file
+- `OPENAI_API_KEY`: Your OpenAI API key (required)
+- `OPENAI_MODEL`: GPT model to use (default: gpt-4o)
 - `SOURCES_DIR`: Directory containing knowledge sources
 - `SECRET_KEY`: Flask secret key for sessions
 
@@ -105,23 +98,25 @@ The system includes knowledge about:
 # Build the image
 docker build -t ampai .
 
-# Run the container
-docker run -p 8081:8081 ampai
+# Run the container (set your OpenAI API key)
+docker run -p 8081:8081 -e OPENAI_API_KEY="your_openai_api_key_here" ampai
 ```
+
+For production deployment, consider using Docker Compose with environment variables or secrets management.
 
 ## 📊 System Requirements
 
 ### Minimum
-- **RAM**: 4GB
-- **CPU**: 2 cores
-- **Storage**: 5GB
-- **Network**: 1GB (for model download)
+- **RAM**: 2GB
+- **CPU**: 1 core
+- **Storage**: 2GB
+- **Network**: Stable internet connection
 
 ### Recommended
-- **RAM**: 8GB
-- **CPU**: 4+ cores
-- **Storage**: 10GB
-- **Network**: Unlimited
+- **RAM**: 4GB
+- **CPU**: 2+ cores
+- **Storage**: 5GB
+- **Network**: High-speed internet
 
 ## 🔐 Security
 

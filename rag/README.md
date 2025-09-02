@@ -1,30 +1,29 @@
-# Liam RAG System
+# AmpAI RAG System
 
-A Retrieval-Augmented Generation (RAG) system for electrical safety and testing standards, built with ChromaDB, Flask, and llama.cpp.
+A Retrieval-Augmented Generation (RAG) system for electrical safety and testing standards, powered by OpenAI GPT and ChromaDB.
 
 ## 🚀 Quick Start
 
-### Option 1: Use the Start Script (Recommended)
-```bash
-# From the project root directory
-./scripts/start_ampai.command
-```
+### Prerequisites
+- OpenAI API key (get one at https://platform.openai.com/api-keys)
+- Python 3.8+
 
-### Option 2: Manual Setup
+### Setup
 ```bash
-# 1. Activate virtual environment
-source .venv/bin/activate
+# 1. Install dependencies
+pip install -r requirements.txt
 
-# 2. Index your sources
-cd rag
+# 2. Set your OpenAI API key
+export OPENAI_API_KEY="your_openai_api_key_here"
+
+# 3. Index your sources
 python3 rag_simple.py reindex
 
-# 3. Start the LLM server (in one terminal)
-python3 start_llama_server.py
-
-# 4. Start the web interface (in another terminal)
+# 4. Start the web interface
 python3 web_chat.py
 ```
+
+Visit `http://localhost:8081` to access the application.
 
 ## 🔧 System Components
 
@@ -36,11 +35,12 @@ python3 web_chat.py
 ### 2. **Web Interface** (`web_chat.py`)
 - Flask-based chat interface on port 8081
 - Integrates with RAG system for knowledge retrieval
-- Connects to llama.cpp server for AI responses
+- Connects to OpenAI API for AI responses
 
-### 3. **LLM Server** (`start_llama_server.py`)
-- Starts llama.cpp server on port 8000
-- Serves the AI model for chat completions
+### 3. **OpenAI Integration**
+- Uses OpenAI GPT-4o for advanced AI responses
+- Cloud-hosted - no local hardware requirements
+- Secure API key authentication
 
 ## 📁 Directory Structure
 
@@ -48,7 +48,6 @@ python3 web_chat.py
 rag/
 ├── rag_simple.py          # RAG engine and CLI
 ├── web_chat.py            # Web chat interface
-├── start_llama_server.py  # LLM server starter
 ├── requirements.txt       # Python dependencies
 ├── templates/             # HTML templates
 ├── static/                # CSS/JS assets
@@ -56,8 +55,6 @@ rag/
 
 ../sources/                # JSONL source files
 ../chroma_db/             # ChromaDB storage
-../models/                 # AI model files
-../llama.cpp/             # llama.cpp binaries
 ```
 
 ## 🛠️ Troubleshooting
@@ -67,10 +64,14 @@ rag/
 #### 1. **"Collection ampai_sources does not exist"**
 **Solution**: The collection name includes a timestamp. The system now automatically finds the latest collection.
 
-#### 2. **"llama.cpp status check error: Connection error"**
-**Solution**: The LLM server isn't running. Start it with:
+#### 2. **"OpenAI API error"**
+**Solution**: Check your API key and billing status:
 ```bash
-python3 start_llama_server.py
+# Test API connection
+python3 ../test_openai_integration.py
+
+# Check API key
+echo $OPENAI_API_KEY
 ```
 
 #### 3. **"RAG system not available"**
@@ -95,7 +96,7 @@ python3 rag_simple.py ask "What is NFPA 70E?"
 ```
 
 #### Test Web Interface
-1. Start both servers
+1. Start the web server
 2. Open http://localhost:8081
 3. Ask a question in the chat interface
 
@@ -104,8 +105,8 @@ python3 rag_simple.py ask "What is NFPA 70E?"
 # Check web server
 curl http://localhost:8081/api/status
 
-# Check LLM server
-curl http://localhost:8000/v1/models
+# Test OpenAI API connection
+python3 ../test_openai_integration.py
 ```
 
 ## 📚 Available Knowledge Sources
@@ -142,10 +143,12 @@ For issues or questions:
 
 ### Regular Tasks
 - **Reindex Sources**: Run `python3 rag_simple.py reindex` when sources change
-- **Update Model**: Replace model file in `../models/` directory
+- **Monitor API Usage**: Check OpenAI usage at https://platform.openai.com/usage
+- **Update API Key**: Rotate keys periodically for security
 - **Clean Database**: Delete `../chroma_db/` to start fresh (will reindex on next run)
 
 ### Performance Optimization
 - Adjust `n_results` in `query_rag()` function for different retrieval strategies
 - Modify distance thresholds for relevance filtering
-- Adjust document truncation lengths based on your LLM's context window
+- Adjust document truncation lengths based on GPT's context window (128K tokens)
+- Choose different GPT models (gpt-4o, gpt-4, gpt-3.5-turbo) for speed vs. quality trade-offs

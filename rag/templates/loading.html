@@ -544,12 +544,12 @@
         </div>
         
         <div class="component-status">
-            <div class="status-item loading" id="llamaStatus">
+            <div class="status-item loading" id="openaiStatus">
                 <div class="status-left">
-                    <div class="status-dot loading" id="llamaDot"></div>
+                    <div class="status-dot loading" id="openaiDot"></div>
                     <div>
-                        <div class="status-label">Llama Server</div>
-                        <div class="status-details" id="llamaDetails">Starting...</div>
+                        <div class="status-label">OpenAI API</div>
+                        <div class="status-details" id="openaiDetails">Connecting...</div>
                     </div>
                 </div>
             </div>
@@ -650,7 +650,7 @@
             }
             
             // Update step based on component status
-            if (component === 'llama' && status === 'ready') {
+            if (component === 'openai' && status === 'ready') {
                 updateStep(2);
             } else if (component === 'rag' && status === 'ready') {
                 updateStep(3);
@@ -698,8 +698,8 @@
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Update Llama server status
-                    updateComponentStatus('llama', data.llama_server, data.llama_details);
+                    // Update OpenAI API status
+                    updateComponentStatus('openai', data.openai_api, data.openai_details);
                     
                     // Update RAG system status
                     updateComponentStatus('rag', data.rag_system, data.rag_details);
@@ -728,12 +728,12 @@
                         }
                     }
                 } else {
-                    updateComponentStatus('llama', 'error', 'Connection failed');
+                    updateComponentStatus('openai', 'error', 'Connection failed');
                     updateComponentStatus('rag', 'error', 'Connection failed');
                     updateStatus('Waiting for servers...');
                 }
             } catch (error) {
-                updateComponentStatus('llama', 'error', 'Connection failed');
+                updateComponentStatus('openai', 'error', 'Connection failed');
                 updateComponentStatus('rag', 'error', 'Connection failed');
                 updateStatus('Waiting for servers...');
             }

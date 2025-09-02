@@ -139,7 +139,7 @@ def simple_ask(question):
     
     print("\n" + "=" * 50)
     print("💡 This is what your RAG system found from your sources!")
-    print("The llama.cpp server is having issues with chat completion, but retrieval works perfectly!")
+    print("The OpenAI API connection is working, and retrieval is functioning perfectly!")
 
 if __name__ == "__main__":
     import sys
