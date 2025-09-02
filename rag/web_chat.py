@@ -9,6 +9,7 @@ from datetime import datetime
 import time
 import subprocess
 import tempfile
+import sys
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'ampai-secret-key-2024'
@@ -754,13 +755,33 @@ def upload_sources():
         return jsonify({'success': False, 'error': f'Server error: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    # Production configuration
-    port = int(os.environ.get('PORT', 8081))
-    host = os.environ.get('HOST', '0.0.0.0')
-    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    
-    print(f"🚀 Starting AmpAI web server on {host}:{port}")
-    print(f"🔧 Debug mode: {debug}")
-    
-    # Start the RAG-enhanced web chat server
-    app.run(debug=debug, host=host, port=port, threaded=True)
+    try:
+        # Production configuration
+        port = int(os.environ.get('PORT', 8081))
+        host = os.environ.get('HOST', '0.0.0.0')
+        debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+
+        print(f"🚀 Starting AmpAI web server on {host}:{port}")
+        print(f"🔧 Debug mode: {debug}")
+        print(f"📋 Current working directory: {os.getcwd()}")
+        print(f"📋 Python path: {sys.path}")
+
+        # Test ChromaDB connection
+        print("🔍 Testing ChromaDB connection...")
+        try:
+            from chromadb.config import Settings
+            import chromadb
+            chroma = chromadb.PersistentClient(path="chroma_db", settings=Settings(anonymized_telemetry=True))
+            print("✅ ChromaDB connection successful")
+        except Exception as e:
+            print(f"⚠️  ChromaDB connection issue: {e}")
+
+        # Start the RAG-enhanced web chat server
+        print("🌐 Starting Flask application...")
+        app.run(debug=debug, host=host, port=port, threaded=True)
+
+    except Exception as e:
+        print(f"❌ Flask startup error: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

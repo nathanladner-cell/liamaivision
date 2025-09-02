@@ -160,10 +160,15 @@ done
 # Initialize RAG system
 echo "📚 Initializing RAG system..."
 cd /app/rag
-python3 rag_simple.py reindex
+if python3 rag_simple.py reindex; then
+    echo "✅ RAG system initialized successfully"
+else
+    echo "⚠️  RAG initialization failed, but continuing with Flask startup"
+fi
 
 # Start Flask app
 echo "🌐 Starting Flask web server..."
+cd /app/rag
 exec python3 web_chat.py
 EOF
 
