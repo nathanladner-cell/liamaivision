@@ -15,10 +15,26 @@ def read_text(filepath):
 def get_collection():
     # ChromaDB 0.5.5+ compatibility - no tenant parameter needed
     chroma = chromadb.PersistentClient(path=DB_DIR, settings=Settings(anonymized_telemetry=False))
-    # Use timestamp-based collection name to match web_chat.py
+
+    # Find existing ampai_sources collections and use the most recent one with data
+    collections = chroma.list_collections()
+    ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
+
+    if ampai_collections:
+        # Sort by name (which includes timestamp) and find the one with the most documents
+        ampai_collections.sort(key=lambda x: x.name, reverse=True)
+
+        for col in ampai_collections:
+            collection = chroma.get_collection(col.name)
+            if collection.count() > 0:
+                print(f"Using existing collection: {col.name} ({collection.count()} documents)")
+                return collection
+
+    # If no populated collection found, create a new one
     from datetime import datetime
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     collection_name = f"ampai_sources_{timestamp}"
+    print(f"Creating new collection: {collection_name}")
     return chroma.get_or_create_collection(collection_name)
 
 def simple_reindex():
