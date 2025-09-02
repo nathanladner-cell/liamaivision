@@ -1,12 +1,36 @@
 #!/usr/bin/env python3
 
-# CRITICAL: Disable ChromaDB telemetry BEFORE any imports
+# ULTIMATE TELEMETRY KILLER - Set environment variables before ANY imports
 import os
+import sys
+
+# Set ALL possible telemetry environment variables
 os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
 os.environ['ANONYMIZED_TELEMETRY'] = 'false'
 os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
 os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
 os.environ['CHROMA_TELEMETRY'] = 'false'
+os.environ['POSTHOG_DISABLED'] = 'true'
+os.environ['DISABLE_TELEMETRY'] = 'true'
+
+# Redirect stderr to suppress telemetry errors completely
+class TelemetryErrorSuppressor:
+    def __init__(self, stream):
+        self.stream = stream
+        
+    def write(self, data):
+        # Only suppress telemetry-related errors
+        if ('telemetry' in data.lower() or 
+            'clientstartevent' in data.lower() or
+            'capture() takes 1 positional argument but 3 were given' in data):
+            return  # Suppress this error
+        self.stream.write(data)
+        
+    def flush(self):
+        self.stream.flush()
+
+# Apply error suppression
+sys.stderr = TelemetryErrorSuppressor(sys.stderr)
 
 # Additional telemetry suppression
 import warnings
@@ -44,6 +68,45 @@ logging.getLogger('posthog').setLevel(logging.CRITICAL)
 from flask import Flask, render_template, request, jsonify, session
 import openai
 import chromadb
+
+# Aggressive telemetry patching - patch ChromaDB after import
+def disable_chromadb_telemetry():
+    try:
+        # Patch the main telemetry module
+        import chromadb.telemetry
+        def noop_capture(*args, **kwargs):
+            pass
+        chromadb.telemetry.capture = noop_capture
+        
+        # Patch posthog telemetry
+        try:
+            from chromadb.telemetry.posthog import Posthog
+            Posthog.capture = noop_capture
+            # Also patch the module-level capture function
+            import chromadb.telemetry.posthog as posthog_module
+            posthog_module.capture = noop_capture
+        except:
+            pass
+            
+        # Patch any client telemetry
+        try:
+            import chromadb.api.client
+            if hasattr(chromadb.api.client, 'Client'):
+                original_init = chromadb.api.client.Client.__init__
+                def patched_init(self, *args, **kwargs):
+                    original_init(self, *args, **kwargs)
+                    if hasattr(self, '_telemetry_client'):
+                        self._telemetry_client.capture = noop_capture
+                chromadb.api.client.Client.__init__ = patched_init
+        except:
+            pass
+            
+    except Exception as e:
+        print(f"Telemetry patch note: {e}")
+
+# Apply the patch immediately
+disable_chromadb_telemetry()
+
 from chromadb.config import Settings
 import uuid
 from datetime import datetime

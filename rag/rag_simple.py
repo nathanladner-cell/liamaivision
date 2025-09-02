@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-# CRITICAL: Disable ChromaDB telemetry BEFORE any imports
+# CRITICAL: Import telemetry killer FIRST
+import telemetry_killer
+
+# Additional telemetry environment variables
 import os
 os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
 os.environ['ANONYMIZED_TELEMETRY'] = 'false'
