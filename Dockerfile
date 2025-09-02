@@ -105,15 +105,24 @@ if ! /usr/local/bin/llama-server --help > /dev/null 2>&1; then
 fi
 echo "✅ llama-server binary is working"
 
-# Change to the correct working directory and start llama.cpp server
+# Use absolute path to avoid any path resolution issues
 echo "🤖 Starting llama.cpp server..."
 echo "📋 Working directory: $(pwd)"
 echo "📋 Model file exists: $(ls -la /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf)"
-echo "📋 Command: cd /app && /usr/local/bin/llama-server --model models/Llama-3.2-3B-Instruct-Q6_K.gguf --host 0.0.0.0 --port 8080 --ctx-size 2048 --threads 4 --log-format text --verbose"
+echo "📋 Command: /usr/local/bin/llama-server --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf --host 0.0.0.0 --port 8080 --ctx-size 2048 --threads 4 --log-format text --verbose"
+echo "📋 Environment: MODEL_PATH=$MODEL_PATH LLAMA_MODEL=$LLAMA_MODEL LLAMA_MODEL_PATH=$LLAMA_MODEL_PATH"
 
-cd /app
+# Clear any llama.cpp environment variables that might interfere
+unset LLAMA_MODEL_PATH
+unset LLAMA_MODEL
+unset MODEL_PATH
+
+# Check for any llama.cpp config files that might override model path
+echo "🔍 Checking for config files..."
+find /usr/local -name "*.yaml" -o -name "*.yml" -o -name "*.json" -o -name "*.cfg" -o -name "*.conf" 2>/dev/null | head -10 || echo "No config files found"
+
 /usr/local/bin/llama-server \
-    --model models/Llama-3.2-3B-Instruct-Q6_K.gguf \
+    --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf \
     --host 0.0.0.0 \
     --port 8080 \
     --ctx-size 2048 \
