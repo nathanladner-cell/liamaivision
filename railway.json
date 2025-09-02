@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python3 rag/web_chat.py",
+    "startCommand": "python3 rag/web_chat_cloud.py",
     "numReplicas": 1,
     "sleepApplication": false,
     "restartPolicyType": "ON_FAILURE",
@@ -17,15 +17,10 @@
     "production": {
       "variables": {
         "OPENAI_API_KEY": "${OPENAI_API_KEY}",
-        "QDRANT_URL": "${QDRANT_URL}",
-        "DATABASE_URL": "${DATABASE_URL}",
+        "PINECONE_API_KEY": "${PINECONE_API_KEY}",
         "FLASK_ENV": "production",
         "PYTHONPATH": "/app",
-        "CHROMA_TELEMETRY_ENABLED": "false",
-        "ANONYMIZED_TELEMETRY": "false",
-        "CHROMA_TELEMETRY_IMPL": "none",
-        "CHROMA_POSTHOG_DISABLED": "true",
-        "CHROMA_TELEMETRY": "false"
+        "SECRET_KEY": "${SECRET_KEY}"
       }
     }
   }
