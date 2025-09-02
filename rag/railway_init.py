@@ -63,11 +63,12 @@ def initialize_for_railway():
     print("🚂 Railway Vector Database Initialization")
     print("=" * 50)
 
-    # Set environment variables for Railway
+    # Set environment variables for Railway - DISABLE ALL TELEMETRY
     os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
     os.environ['ANONYMIZED_TELEMETRY'] = 'false'
     os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
     os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
+    os.environ['CHROMA_TELEMETRY'] = 'false'
 
     try:
         # Check if sources directory exists

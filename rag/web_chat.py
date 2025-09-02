@@ -8,6 +8,39 @@ os.environ['CHROMA_TELEMETRY_IMPL'] = 'none'
 os.environ['CHROMA_POSTHOG_DISABLED'] = 'true'
 os.environ['CHROMA_TELEMETRY'] = 'false'
 
+# Additional telemetry suppression
+import warnings
+warnings.filterwarnings("ignore", message=".*telemetry.*", category=UserWarning)
+warnings.filterwarnings("ignore", message=".*ClientStartEvent.*", category=UserWarning)
+
+# Monkey patch to suppress telemetry errors permanently
+import sys
+from io import StringIO
+import logging
+
+class TelemetryFilter:
+    def __init__(self, stream):
+        self.stream = stream
+        
+    def write(self, data):
+        # Filter out all telemetry-related messages
+        data_lower = data.lower()
+        if ('telemetry' not in data_lower and 
+            'clientstartevent' not in data_lower and
+            'capture() takes 1 positional argument but 3 were given' not in data):
+            self.stream.write(data)
+    
+    def flush(self):
+        self.stream.flush()
+
+# Apply permanent telemetry filter
+original_stderr = sys.stderr
+sys.stderr = TelemetryFilter(original_stderr)
+
+# Also suppress logging from ChromaDB telemetry
+logging.getLogger('chromadb.telemetry').setLevel(logging.CRITICAL)
+logging.getLogger('posthog').setLevel(logging.CRITICAL)
+
 from flask import Flask, render_template, request, jsonify, session
 import openai
 import chromadb
@@ -17,9 +50,11 @@ from datetime import datetime
 import time
 import subprocess
 import tempfile
-import sys
 import socket
 from dotenv import load_dotenv
+
+# Keep telemetry filter active throughout the application
+# sys.stderr = original_stderr  # Don't restore - keep filter active
 
 # Load environment variables from .env file if it exists
 load_dotenv()

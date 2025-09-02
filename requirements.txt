@@ -1,4 +1,4 @@
-chromadb==0.5.5
+chromadb==0.4.24
 flask==3.0.0
 openai>=1.50.0
 requests>=2.31.0

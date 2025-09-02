@@ -1,4 +1,4 @@
-chromadb==0.4.15
+chromadb==0.4.24
 flask==3.0.0
 openai>=1.50.0
 python-dotenv>=1.0.0
