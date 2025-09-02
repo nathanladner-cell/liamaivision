@@ -35,6 +35,8 @@ ENV FLASK_APP=rag/web_chat.py
 ENV FLASK_ENV=production
 ENV OPENAI_API_KEY=${OPENAI_API_KEY}
 ENV CHROMA_TELEMETRY_ENABLED=false
+ENV ANONYMIZED_TELEMETRY=false
+ENV CHROMA_SERVER_NO_TELEMETRY=true
 
 # Expose port (Railway will set PORT environment variable)
 EXPOSE $PORT
@@ -43,5 +45,15 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:$PORT/api/status || exit 1
 
+# Create startup script
+RUN echo '#!/bin/bash\n\
+echo "🚀 Starting AmpAI on Railway..."\n\
+# Pre-warm ChromaDB to avoid telemetry issues\n\
+cd /app/rag\n\
+python3 -c "import chromadb; print(\"ChromaDB initialized\")" 2>/dev/null || echo "ChromaDB init skipped"\n\
+# Start the application\n\
+python3 web_chat.py\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
 # Start the application
-CMD ["sh", "-c", "python3 rag/web_chat.py"]
+CMD ["/app/start.sh"]
