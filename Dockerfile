@@ -74,130 +74,28 @@ ENV PYTHONPATH=/app
 ENV FLASK_APP=rag/web_chat.py
 ENV FLASK_ENV=production
 
-# Expose port
+# Expose port (Railway will override this)
 EXPOSE 8081
 
-# Create startup script with better error handling
+# MINIMAL STARTUP - Focus on getting Flask running first
 COPY <<EOF /app/start.sh
 #!/bin/bash
 set -e
 
-echo "🚀 Starting AmpAI deployment..."
+echo "🚀 Starting AmpAI deployment (MINIMAL MODE)..."
 
-# Check if model exists
-echo "🔍 Checking for model file..."
-ls -la /app/models/
-if [ ! -f "/app/models/Llama-3.2-3B-Instruct-Q6_K.gguf" ]; then
-    echo "❌ Model file not found at /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf"
-    echo "📋 Available files in /app/models/:"
-    ls -la /app/models/ || echo "No models directory found"
-    exit 1
-fi
-echo "✅ Model file found!"
-
-# Check if llama-server binary works
-echo "🔍 Testing llama-server binary..."
-if ! /usr/local/bin/llama-server --help > /dev/null 2>&1; then
-    echo "❌ llama-server binary has dependency issues"
-    echo "📋 Checking dependencies:"
-    ldd /usr/local/bin/llama-server || true
-    exit 1
-fi
-echo "✅ llama-server binary is working"
-
-# Use absolute path to avoid any path resolution issues
-echo "🤖 Starting llama.cpp server..."
-echo "📋 Working directory: $(pwd)"
-echo "📋 Model file exists: $(ls -la /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf)"
-echo "📋 Environment: MODEL_PATH=$MODEL_PATH LLAMA_MODEL=$LLAMA_MODEL LLAMA_MODEL_PATH=$LLAMA_MODEL_PATH"
-
-# Clear any llama.cpp environment variables that might interfere
-unset LLAMA_MODEL_PATH
-unset LLAMA_MODEL
-unset MODEL_PATH
-
-# WORKAROUND: Copy model to expected path
-echo "🔧 Copying model to expected location..."
-mkdir -p models/7B
-cp /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf models/7B/ggml-model-f16.gguf
-echo "✅ Copied model to: models/7B/ggml-model-f16.gguf"
-ls -la models/7B/
-
-# Check for any llama.cpp config files that might override model path
-echo "🔍 Checking for config files..."
-find /usr/local -name "*.yaml" -o -name "*.yml" -o -name "*.json" -o -name "*.cfg" -o -name "*.conf" 2>/dev/null | head -10 || echo "No config files found"
-
-echo "📋 Command: /usr/local/bin/llama-server --model models/7B/ggml-model-f16.gguf --host 0.0.0.0 --port 8080 --ctx-size 2048 --threads 4 --log-format text --verbose"
-
-/usr/local/bin/llama-server \
-    --model models/7B/ggml-model-f16.gguf \
-    --host 0.0.0.0 \
-    --port 8080 \
-    --ctx-size 2048 \
-    --threads 4 \
-    --log-format text \
-    --verbose &
-
-LLAMA_PID=\$!
-echo "📋 Llama server PID: \$LLAMA_PID"
-
-# Wait for llama server to be ready with better checking
-echo "⏳ Waiting for llama server to start..."
-for i in {1..30}; do
-    if curl -s http://localhost:8080/health > /dev/null 2>&1 || curl -s http://localhost:8080/v1/models > /dev/null 2>&1; then
-        echo "✅ Llama server is ready!"
-        break
-    fi
-    if [ \$i -eq 30 ]; then
-        echo "⚠️  Llama server not ready yet, but continuing with Flask startup"
-    fi
-    echo "   Waiting... (\$i/30)"
-    sleep 2
-done
-
-# Initialize RAG system
-echo "📚 Initializing RAG system..."
+# Go to the Flask app directory
 cd /app/rag
-if python3 rag_simple.py reindex; then
-    echo "✅ RAG system initialized successfully"
-else
-    echo "⚠️  RAG initialization failed, but continuing with Flask startup"
-fi
 
-# Start Flask app
+# Start Flask directly - Railway will provide PORT environment variable
 echo "🌐 Starting Flask web server..."
-cd /app/rag
-
-# Start Flask in background and wait for it to be ready
-python3 web_chat.py &
-FLASK_PID=\$!
-echo "📋 Flask PID: \$FLASK_PID"
-
-# Wait for Flask to be ready
-echo "⏳ Waiting for Flask to start..."
-for i in {1..30}; do
-    if curl -s http://localhost:8081/health > /dev/null 2>&1; then
-        echo "✅ Flask is ready!"
-        break
-    fi
-    if [ \$i -eq 30 ]; then
-        echo "❌ Flask failed to start within 1 minute"
-        kill \$FLASK_PID 2>/dev/null || true
-        exit 1
-    fi
-    echo "   Waiting... (\$i/30)"
-    sleep 2
-done
-
-# Keep the container running
-echo "🚀 AmpAI is fully operational!"
-wait \$FLASK_PID
+python3 web_chat.py
 EOF
 
 RUN chmod +x /app/start.sh
 
-# Health check
+# Health check - will use Railway's PORT environment variable
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8081/api/status || exit 1
+    CMD curl -f http://localhost:$PORT/health || exit 1
 
 CMD ["/app/start.sh"]

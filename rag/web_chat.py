@@ -765,65 +765,37 @@ def upload_sources():
         return jsonify({'success': False, 'error': f'Server error: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    # Basic startup logging - this should always print
+    # ULTIMATE DEBUGGING - Railway assigns PORT automatically
+    railway_port = os.environ.get('PORT')
+    if railway_port:
+        print(f"🎯 Railway assigned PORT: {railway_port}")
+        port = int(railway_port)
+        print(f"🎯 Using Railway port: {port}")
+    else:
+        print("⚠️  No PORT environment variable from Railway, using default 8081")
+        port = 8081
+
+    host = '0.0.0.0'
+    debug = False
+
     print("🚀 AmpAI Flask application starting...")
     print(f"📋 Python version: {sys.version}")
     print(f"📋 Current working directory: {os.getcwd()}")
-    print(f"📋 Environment PORT: {os.environ.get('PORT', 'Not set')}")
-    print(f"📋 Environment variables: {[k for k in os.environ.keys() if 'PORT' in k or 'HOST' in k or 'FLASK' in k]}")
+    print(f"📋 Final configuration: host={host}, port={port}")
 
+    # Minimal test - just start Flask with one route
     try:
-        # Production configuration
-        port = int(os.environ.get('PORT', 8081))
-        host = os.environ.get('HOST', '0.0.0.0')
-        debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+        print("🌐 Starting minimal Flask application...")
 
-        print(f"🎯 Final configuration: host={host}, port={port}, debug={debug}")
+        @app.route('/')
+        def home():
+            return "AmpAI is running! Flask is working."
 
-        # Test basic imports before ChromaDB
-        print("🔍 Testing basic imports...")
-        try:
-            import flask
-            print(f"✅ Flask imported: {flask.__version__}")
-        except Exception as e:
-            print(f"❌ Flask import failed: {e}")
-            raise
-
-        try:
-            import chromadb
-            print(f"✅ ChromaDB imported: {chromadb.__version__}")
-        except Exception as e:
-            print(f"❌ ChromaDB import failed: {e}")
-            raise
-
-        # Test ChromaDB connection
-        print("🔍 Testing ChromaDB connection...")
-        try:
-            from chromadb.config import Settings
-            chroma = chromadb.PersistentClient(path="chroma_db", settings=Settings(anonymized_telemetry=True))
-            print("✅ ChromaDB connection successful")
-        except Exception as e:
-            print(f"⚠️  ChromaDB connection issue: {e}")
-            # Don't raise here - let Flask start anyway
-
-        # Test port binding before starting
-        print(f"🔍 Testing port {port} availability...")
-        import socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            sock.bind((host, port))
-            sock.close()
-            print(f"✅ Port {port} is available")
-        except Exception as e:
-            print(f"⚠️  Port {port} binding test failed: {e}")
-
-        # Start the RAG-enhanced web chat server
-        print("🌐 Starting Flask application...")
-        print("📋 If you see this message, Flask is about to start...")
-        app.run(debug=debug, host=host, port=port, threaded=True)
+        print(f"📋 Starting Flask on {host}:{port}...")
+        app.run(host=host, port=port, debug=debug, threaded=False)
 
     except Exception as e:
-        print(f"❌ Flask startup error: {e}")
+        print(f"❌ CRITICAL: Flask failed to start: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
