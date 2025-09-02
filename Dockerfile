@@ -19,12 +19,16 @@ RUN git clone https://github.com/ggerganov/llama.cpp.git
 WORKDIR /build/llama.cpp
 RUN mkdir build
 WORKDIR /build/llama.cpp/build
+# Use simpler build configuration to avoid library issues
 RUN cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DLLAMA_CURL=OFF \
     -DGGML_CCACHE=OFF \
     -DLLAMA_BUILD_TESTS=OFF \
-    -DLLAMA_BUILD_EXAMPLES=OFF
+    -DLLAMA_BUILD_EXAMPLES=OFF \
+    -DGGML_NATIVE=OFF \
+    -DGGML_OPENMP=ON \
+    -DGGML_BLAS=OFF
 RUN make -j$(nproc) llama-server
 
 # Final runtime image
@@ -36,6 +40,9 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     poppler-utils \
     curl \
+    libgomp1 \
+    libopenblas0 \
+    libomp5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
@@ -80,6 +87,16 @@ if [ ! -f "/app/models/Llama-3.2-3B-Instruct-Q6_K.gguf" ]; then
     echo "❌ Model file not found!"
     exit 1
 fi
+
+# Check if llama-server binary works
+echo "🔍 Testing llama-server binary..."
+if ! /usr/local/bin/llama-server --help > /dev/null 2>&1; then
+    echo "❌ llama-server binary has dependency issues"
+    echo "📋 Checking dependencies:"
+    ldd /usr/local/bin/llama-server || true
+    exit 1
+fi
+echo "✅ llama-server binary is working"
 
 # Start llama.cpp server in background with proper logging
 echo "🤖 Starting llama.cpp server..."
