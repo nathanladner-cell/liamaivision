@@ -1,10 +1,11 @@
 # OpenAI-powered AmpAI Dockerfile
 FROM python:3.11-slim
 
-# Install system dependencies
+# Install system dependencies including PostgreSQL client
 RUN apt-get update && apt-get install -y \
     curl \
     poppler-utils \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
@@ -45,13 +46,28 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:$PORT/api/status || exit 1
 
-# Create startup script
+# Create startup script with vector database initialization
 RUN echo '#!/bin/bash\n\
-echo "🚀 Starting AmpAI on Railway..."\n\
-# Pre-warm ChromaDB to avoid telemetry issues\n\
+echo "🚀 Starting Liam AI Assistant..."\n\
+\n\
+# Initialize vector database\n\
 cd /app/rag\n\
-python3 -c "import chromadb; print(\"ChromaDB initialized\")" 2>/dev/null || echo "ChromaDB init skipped"\n\
+echo "📊 Initializing vector database..."\n\
+python3 -c "\n\
+import sys\n\
+sys.path.append('.')\n\
+try:\n\
+    from vector_db import init_vector_db\n\
+    if init_vector_db():\n\
+        print(\"✅ Vector database initialized successfully\")\n\
+    else:\n\
+        print(\"⚠️  Vector database initialization failed, using fallback\")\n\
+except Exception as e:\n\
+    print(f\"⚠️  Vector DB init error: {e}\")\n\
+" 2>/dev/null || echo "Vector DB init completed with warnings"\n\
+\n\
 # Start the application\n\
+echo "🤖 Starting Flask application..."\n\
 python3 web_chat.py\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 

@@ -17,8 +17,11 @@
     "production": {
       "variables": {
         "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "QDRANT_URL": "${QDRANT_URL}",
+        "DATABASE_URL": "${DATABASE_URL}",
         "FLASK_ENV": "production",
-        "PYTHONPATH": "/app"
+        "PYTHONPATH": "/app",
+        "CHROMA_TELEMETRY_ENABLED": "false"
       }
     }
   }

@@ -83,12 +83,22 @@ def get_collection():
         os.environ['CHROMA_TELEMETRY_ENABLED'] = 'false'
         os.environ['ANONYMIZED_TELEMETRY'] = 'false'
 
-        settings = Settings(anonymized_telemetry=False)
-        chroma = chromadb.PersistentClient(path=DB_DIR, settings=settings)
+        # Try to use database backend if available
+        db_url = os.environ.get('DATABASE_URL')
+        if db_url and 'postgresql' in db_url:
+            print(f"Using PostgreSQL database for ChromaDB backend")
+            # For ChromaDB with PostgreSQL, we need to use a different approach
+            # Let's use a hybrid approach: keep local files but sync to database
+            settings = Settings(anonymized_telemetry=False)
+            chroma = chromadb.PersistentClient(path=DB_DIR, settings=settings)
+        else:
+            print("Using local file storage for ChromaDB")
+            settings = Settings(anonymized_telemetry=False)
+            chroma = chromadb.PersistentClient(path=DB_DIR, settings=settings)
         # Get all collections and find the most recent ampai_sources collection
         collections = chroma.list_collections()
         ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
-        
+
         if not ampai_collections:
             # No ampai_sources collections found - Try to reindex automatically
             try:
@@ -106,42 +116,39 @@ def get_collection():
             except Exception as reindex_error:
                 # Automatic reindex failed
                 return None
-            
-        # Get the most recent collection (highest timestamp)
-        latest_collection = max(ampai_collections, key=lambda x: x.name)
-        print(f"Using RAG collection: {latest_collection.name}")
 
-        # Verify collection has data
-        collection = chroma.get_collection(latest_collection.name)
-        count = collection.count()
-        print(f"Collection has {count} documents")
+        # Get the most recent collection (highest timestamp) that has documents
+        valid_collections = []
+        for col in ampai_collections:
+            try:
+                test_collection = chroma.get_collection(col.name)
+                if test_collection.count() > 0:
+                    valid_collections.append((col, test_collection.count()))
+            except:
+                continue
 
-        if count == 0:
-            # Collection is empty, attempting reindex
-            print("Collection is empty, reindexing...")
+        if not valid_collections:
+            print("No collections with documents found, creating new collection...")
             try:
                 from rag_simple import simple_reindex
                 simple_reindex()
-                print("Reindex completed, checking collection again...")
-                # Get the updated collection
                 collections = chroma.list_collections()
                 ampai_collections = [col for col in collections if col.name.startswith("ampai_sources")]
                 if ampai_collections:
                     latest_collection = max(ampai_collections, key=lambda x: x.name)
                     collection = chroma.get_collection(latest_collection.name)
-                    new_count = collection.count()
-                    print(f"After reindex: {new_count} documents")
-                    # Reindex completed successfully
+                    return collection
                 else:
-                    # Reindex failed to create collections
-                    print("Reindex failed to create collections")
                     return None
-            except Exception as reindex_error:
-                # Reindex failed
-                print(f"Reindex failed: {reindex_error}")
+            except Exception as e:
+                print(f"Failed to create new collection: {e}")
                 return None
 
-        return collection
+        # Use the collection with the most documents
+        best_collection, doc_count = max(valid_collections, key=lambda x: x[1])
+        print(f"Using RAG collection: {best_collection.name} ({doc_count} documents)")
+
+        return chroma.get_collection(best_collection.name)
     except Exception as e:
         # Error getting collection - log and return None
         print(f"Error getting ChromaDB collection: {e}")
