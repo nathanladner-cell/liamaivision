@@ -85,10 +85,15 @@ set -e
 echo "🚀 Starting AmpAI deployment..."
 
 # Check if model exists
+echo "🔍 Checking for model file..."
+ls -la /app/models/
 if [ ! -f "/app/models/Llama-3.2-3B-Instruct-Q6_K.gguf" ]; then
-    echo "❌ Model file not found!"
+    echo "❌ Model file not found at /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf"
+    echo "📋 Available files in /app/models/:"
+    ls -la /app/models/ || echo "No models directory found"
     exit 1
 fi
+echo "✅ Model file found!"
 
 # Check if llama-server binary works
 echo "🔍 Testing llama-server binary..."
@@ -102,12 +107,13 @@ echo "✅ llama-server binary is working"
 
 # Start llama.cpp server in background with proper logging
 echo "🤖 Starting llama.cpp server..."
+echo "📋 Command: /usr/local/bin/llama-server --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf --host 0.0.0.0 --port 8000 --ctx-size 2048 --threads 4 --log-format text --verbose"
 /usr/local/bin/llama-server \
     --model /app/models/Llama-3.2-3B-Instruct-Q6_K.gguf \
     --host 0.0.0.0 \
     --port 8000 \
     --ctx-size 2048 \
-    --threads \$(nproc) \
+    --threads 4 \
     --log-format text \
     --verbose &
 
