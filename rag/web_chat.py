@@ -279,10 +279,10 @@ Instructions: Analyze the provided information intelligently. If the question is
                 ai_response = "I'm having trouble connecting to my AI processing server right now. The system is still starting up - please try again in a few moments!"
             else:
                 # Provide a fallback response based on RAG content
-            if "No relevant information found" in rag_content:
-                ai_response = "I don't have specific information about that in my sources, but I'd be happy to help with general questions!"
-            else:
-                ai_response = f"Based on your sources: {rag_content}\n\nNote: I couldn't generate a full response due to a server issue, but here's the relevant information I found."
+                if "No relevant information found" in rag_content:
+                    ai_response = "I don't have specific information about that in my sources, but I'd be happy to help with general questions!"
+                else:
+                    ai_response = f"Based on your sources: {rag_content}\n\nNote: I couldn't generate a full response due to a server issue, but here's the relevant information I found."
 
         # Clean up the response to remove source mentions
         cleaned_response = ai_response
