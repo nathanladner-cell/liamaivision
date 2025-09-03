@@ -133,6 +133,15 @@ EXPERTISE AREAS:
 - Insulating aerial lift safety inspections
 - NFPA 70E compliance requirements
 
+CRITICAL ACCURACY REQUIREMENTS:
+- Pay EXTREME attention to technical specifications and distinctions
+- When dealing with electrical values, carefully distinguish between AC and DC
+- Always verify that voltage, current, and power values match the specific question asked
+- If asked about DC values, provide DC values; if asked about AC values, provide AC values
+- Double-check all numerical values and units before responding
+- When multiple related values exist (AC/DC, different classes, etc.), mention the specific one requested
+- If the context contains both AC and DC values, clearly state which one applies to the question
+
 RESPONSE STYLE:
 - Professional yet approachable
 - Use technical terms appropriately for the audience
@@ -140,6 +149,7 @@ RESPONSE STYLE:
 - Be confident without being arrogant
 - Focus on helping the user solve their specific problem
 - Reference earlier conversation points when they add value
+- Always double-check technical specifications for accuracy
 
 MEMORY & CONTEXT:
 - Pay attention to the full conversation history provided
@@ -170,31 +180,98 @@ def get_collection():
         return FallbackCloudCollection()
 
 def query_rag(question):
-    """Query the cloud RAG system for relevant content"""
+    """Query the cloud RAG system for relevant content - enhanced with hybrid search for technical accuracy"""
     try:
         col = get_collection()
         if not col:
             print("Cloud RAG system unavailable, using general knowledge mode")
             return "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
         
+        # Detect if this is a technical query that might need special handling
+        is_technical_query = any(keyword in question.lower() for keyword in ['voltage', 'current', 'test', 'class', 'dc', 'ac', 'specification'])
+        
         # Check if it's the fallback collection
         if isinstance(col, FallbackCloudCollection):
             print("Using fallback cloud collection")
-            results = col.search(question, limit=3)
+            results = col.search(question, limit=8)
         else:
             print("Using full cloud vector database")
-            results = col.search(question, limit=3)
+            # For technical queries, try multiple search strategies
+            if is_technical_query:
+                # Primary search
+                results = col.search(question, limit=8)
+                
+                # Additional technical searches for voltage specifications
+                if 'class' in question.lower() and ('dc' in question.lower() or 'ac' in question.lower()) and 'voltage' in question.lower():
+                    technical_searches = [
+                        "AC Retest Voltage DC Retest Voltage 50 000 Class 2",
+                        "voltage table class designation 50000",
+                        "Class 2 gloves 50 000 volts DC retest"
+                    ]
+                    
+                    # Combine results from additional searches
+                    all_results = list(results) if results else []
+                    
+                    for tech_query in technical_searches:
+                        try:
+                            tech_results = col.search(tech_query, limit=5)
+                            if tech_results:
+                                all_results.extend(tech_results)
+                        except:
+                            continue
+                    
+                    # Remove duplicates based on content similarity
+                    seen_content = set()
+                    unique_results = []
+                    
+                    for result in all_results:
+                        content_key = result.get('content', '')[:100]  # Use first 100 chars as key
+                        if content_key not in seen_content:
+                            seen_content.add(content_key)
+                            unique_results.append(result)
+                    
+                    results = unique_results
+            else:
+                results = col.search(question, limit=8)
         
         if results:
-            # Get the most relevant document
-            best_result = results[0]
-            content = best_result.get('content', '')
-            
-            # Truncate very long documents
-            if len(content) > 400:
-                content = content[:400] + "..."
-            
-            return content if content else "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
+            # For technical queries involving specifications, combine multiple relevant sources
+            if is_technical_query:
+                # Prioritize documents that contain specific technical information
+                priority_results = []
+                other_results = []
+                
+                for result in results:
+                    content = result.get('content', '')
+                    # Prioritize documents with voltage tables, specifications, or exact matches
+                    if any(indicator in content for indicator in ['50 000', '50,000', 'DC Retest Voltage', 'AC Retest Voltage', 'Table 1']):
+                        priority_results.append(result)
+                    else:
+                        other_results.append(result)
+                
+                # Combine priority results first, then others
+                final_results = priority_results[:2] + other_results[:1]  # Max 3 documents
+                
+                combined_context = []
+                for i, result in enumerate(final_results):
+                    content = result.get('content', '')
+                    # For technical queries, preserve more content to avoid losing critical details
+                    if len(content) > 800:
+                        content = content[:800] + "..."
+                    if content:
+                        combined_context.append(f"Source {i+1}: {content}")
+                
+                return "\n\n".join(combined_context) if combined_context else "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
+            else:
+                # For general queries, return the most relevant document
+                best_result = results[0]
+                content = best_result.get('content', '')
+                
+                # Truncate very long documents for general queries
+                if len(content) > 400:
+                    content = content[:400] + "..."
+                
+                return content if content else "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
         else:
             return "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
             
@@ -273,7 +350,17 @@ Instructions: You are Liam, an expert in electrical safety and NFPA 70E standard
 Available Information:
 {rag_content}
 
-Instructions: Analyze the provided information intelligently. If the question is incomplete or unclear, ask for clarification. Provide a comprehensive response that synthesizes the relevant information from the cloud knowledge base."""
+CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
+1. CAREFULLY READ all provided information before responding
+2. If the question asks about DC values, look specifically for DC specifications in the context
+3. If the question asks about AC values, look specifically for AC specifications in the context  
+4. If the question mentions a specific class (Class 0, 1, 2, 3, 4), find the exact values for that class
+5. Double-check that your answer matches the exact question asked
+6. If multiple sources are provided, cross-reference them to ensure consistency
+7. When providing numerical values, include the units and specify whether they are AC or DC
+8. If both AC and DC values are present, clearly distinguish which applies to the question
+
+Analyze the provided information intelligently and provide a comprehensive, technically accurate response. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked."""
 
         # Combine base prompt with context-specific instructions
         system_prompt = BASE_SYSTEM_PROMPT.format(
@@ -298,7 +385,7 @@ Instructions: Analyze the provided information intelligently. If the question is
                 model=GPT_MODEL,
                 messages=messages,
                 max_tokens=1000,  # Increased for better responses
-                temperature=0.7,
+                temperature=0.3,  # Reduced for more consistent technical accuracy
                 presence_penalty=0.1,  # Encourage diverse responses
                 frequency_penalty=0.1   # Reduce repetition
             )

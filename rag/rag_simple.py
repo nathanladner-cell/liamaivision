@@ -99,26 +99,78 @@ def simple_reindex():
                                 tags = data.get('tags', [])
                                 tags_str = ', '.join(tags) if tags else 'N/A'
                                 
+                                # Enhanced metadata with more details for better retrieval
                                 metadata = {
                                     "source": data.get('source', filename),
                                     "title": data.get('title', 'N/A'),
                                     "category": data.get('category', 'N/A'),
                                     "tags": tags_str,
                                     "chunk_index": data.get('chunk_index', i),
-                                    "total_chunks": data.get('total_chunks', 1)
+                                    "total_chunks": data.get('total_chunks', 1),
+                                    "content_length": len(doc_content),
+                                    "entry_number": i+1
                                 }
+                                
+                                # For very long JSONL entries, consider splitting them too
+                                if len(doc_content) > 2000:
+                                    # Split into smaller chunks while preserving context
+                                    chunk_size = 1500
+                                    overlap = 200
+                                    chunks = []
+                                    
+                                    for chunk_start in range(0, len(doc_content), chunk_size - overlap):
+                                        chunk = doc_content[chunk_start:chunk_start + chunk_size]
+                                        if chunk.strip():
+                                            chunks.append(chunk)
+                                    
+                                    if len(chunks) > 1:
+                                        print(f"  Entry {i+1} split into {len(chunks)} sub-chunks for better retrieval")
+                                        
+                                        # Add each sub-chunk
+                                        for sub_idx, chunk in enumerate(chunks):
+                                            sub_doc_id = f"{doc_id}_sub{sub_idx+1}"
+                                            sub_metadata = metadata.copy()
+                                            sub_metadata.update({
+                                                "sub_chunk_index": sub_idx+1,
+                                                "total_sub_chunks": len(chunks),
+                                                "content_length": len(chunk)
+                                            })
+                                            
+                                            col.add(
+                                                ids=[sub_doc_id],
+                                                documents=[chunk],
+                                                metadatas=[sub_metadata]
+                                            )
+                                    else:
+                                        # Single chunk
+                                        col.add(
+                                            ids=[doc_id],
+                                            documents=[doc_content],
+                                            metadatas=[metadata]
+                                        )
+                                else:
+                                    # Regular sized content
+                                    col.add(
+                                        ids=[doc_id],
+                                        documents=[doc_content],
+                                        metadatas=[metadata]
+                                    )
                             else:
                                 # Fallback for any non-standard files
                                 doc_content = json.dumps(data)
                                 doc_id = f"{filename}_{i}"
-                                metadata = {"source": filename, "format": "fallback"}
+                                metadata = {
+                                    "source": filename, 
+                                    "format": "fallback",
+                                    "entry_number": i+1,
+                                    "content_length": len(doc_content)
+                                }
+                                col.add(
+                                    ids=[doc_id],
+                                    documents=[doc_content],
+                                    metadatas=[metadata]
+                                )
                             
-                            # Add to collection
-                            col.add(
-                                ids=[doc_id],
-                                documents=[doc_content],
-                                metadatas=[metadata]
-                            )
                             print(f"  Indexed entry {i+1}: {doc_content[:50]}...")
                 
                 print(f"✅ Successfully indexed {filename}")
@@ -131,19 +183,47 @@ def simple_reindex():
             print(f"Processing text file: {filename}")
             try:
                 content = read_text(filepath)
-                # Truncate very long content to avoid overwhelming the system
-                if len(content) > 10000:
-                    content = content[:10000] + "..."
-                
                 print(f"  Content length: {len(content)} characters")
                 
-                # Add to collection
-                doc_id = filename.replace('.txt', '')
-                col.add(
-                    ids=[doc_id],
-                    documents=[content],
-                    metadatas=[{"source": filename}]
-                )
+                # For very long content, split into chunks to preserve all information
+                if len(content) > 8000:
+                    # Split into overlapping chunks to ensure no information is lost
+                    chunk_size = 6000
+                    overlap = 500
+                    chunks = []
+                    
+                    for i in range(0, len(content), chunk_size - overlap):
+                        chunk = content[i:i + chunk_size]
+                        if chunk.strip():
+                            chunks.append(chunk)
+                    
+                    print(f"  Split into {len(chunks)} chunks to preserve all information")
+                    
+                    # Add each chunk as a separate document
+                    for j, chunk in enumerate(chunks):
+                        doc_id = f"{filename.replace('.txt', '')}_{j+1}"
+                        col.add(
+                            ids=[doc_id],
+                            documents=[chunk],
+                            metadatas=[{
+                                "source": filename,
+                                "chunk_index": j+1,
+                                "total_chunks": len(chunks)
+                            }]
+                        )
+                else:
+                    # Add single document for shorter content
+                    doc_id = filename.replace('.txt', '')
+                    col.add(
+                        ids=[doc_id],
+                        documents=[content],
+                        metadatas=[{
+                            "source": filename,
+                            "chunk_index": 1,
+                            "total_chunks": 1
+                        }]
+                    )
+                
                 print(f"✅ Successfully indexed {filename}")
                 
             except Exception as e:

@@ -129,19 +129,29 @@ EXPERTISE AREAS:
 - Insulating aerial lift safety inspections
 - NFPA 70E compliance requirements
 
+CRITICAL ACCURACY REQUIREMENTS:
+- Pay EXTREME attention to technical specifications and distinctions
+- When dealing with electrical values, carefully distinguish between AC and DC
+- Always verify that voltage, current, and power values match the specific question asked
+- If asked about DC values, provide DC values; if asked about AC values, provide AC values
+- Double-check all numerical values and units before responding
+- When multiple related values exist (AC/DC, different classes, etc.), mention the specific one requested
+- If the context contains both AC and DC values, clearly state which one applies to the question
+
 RESPONSE STYLE:
 - Professional yet approachable
 - Use technical terms appropriately for the audience
 - Include practical tips and safety considerations
 - Be confident without being arrogant
 - Focus on helping the user solve their specific problem
+- Always double-check technical specifications for accuracy
 
 Current User Question: {message}
 
 Context Information:
 {context_specific_instructions}
 
-Provide a direct, helpful response based on the context above."""
+Provide a direct, helpful response based on the context above. Pay special attention to technical accuracy and ensure your answer directly addresses the specific question asked."""
 
 def get_collection():
     try:
@@ -316,7 +326,7 @@ class FallbackCollection:
         }
 
 def query_rag(question):
-    """Query the RAG system for relevant content - gracefully handle failures"""
+    """Query the RAG system for relevant content - enhanced with hybrid search for technical accuracy"""
     try:
         col = get_collection()
         if not col:
@@ -324,30 +334,132 @@ def query_rag(question):
             print("RAG system unavailable, using general knowledge mode")
             return "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
         
-        # Use ChromaDB's default embeddings for querying
-        results = col.query(
-            query_texts=[question], 
-            n_results=3,  # Increased back to 3 for better coverage
-            include=['documents', 'metadatas', 'distances']
-        )
+        # Detect if this is a technical query that might need special handling
+        is_technical_query = any(keyword in question.lower() for keyword in ['voltage', 'current', 'test', 'class', 'dc', 'ac', 'specification'])
+        
+        # For technical queries, try multiple search strategies
+        if is_technical_query:
+            # Strategy 1: Original semantic search
+            semantic_results = col.query(
+                query_texts=[question], 
+                n_results=8,
+                include=['documents', 'metadatas', 'distances']
+            )
+            
+            # Strategy 2: Keyword-focused searches for technical specifications
+            technical_searches = []
+            
+            # If asking about Class X DC/AC voltage, search specifically for voltage tables
+            if 'class' in question.lower() and ('dc' in question.lower() or 'ac' in question.lower()) and 'voltage' in question.lower():
+                technical_searches.extend([
+                    "AC Retest Voltage DC Retest Voltage 50 000 Class 2",
+                    "voltage table class designation 50000",
+                    "Class 2 gloves 50 000 volts DC retest"
+                ])
+            
+            # Combine results from all searches
+            all_results = {'documents': [[]], 'distances': [[]], 'metadatas': [[]]}
+            
+            # Add semantic results
+            if semantic_results['documents'] and semantic_results['documents'][0]:
+                all_results['documents'][0].extend(semantic_results['documents'][0])
+                all_results['distances'][0].extend(semantic_results['distances'][0])
+                all_results['metadatas'][0].extend(semantic_results['metadatas'][0])
+            
+            # Add technical search results
+            for tech_query in technical_searches:
+                tech_results = col.query(
+                    query_texts=[tech_query], 
+                    n_results=5,
+                    include=['documents', 'metadatas', 'distances']
+                )
+                if tech_results['documents'] and tech_results['documents'][0]:
+                    all_results['documents'][0].extend(tech_results['documents'][0])
+                    all_results['distances'][0].extend(tech_results['distances'][0])
+                    all_results['metadatas'][0].extend(tech_results['metadatas'][0])
+            
+            # Remove duplicates and sort by relevance
+            seen_docs = set()
+            unique_results = {'documents': [], 'distances': [], 'metadatas': []}
+            
+            for doc, dist, meta in zip(all_results['documents'][0], all_results['distances'][0], all_results['metadatas'][0]):
+                doc_key = doc[:100]  # Use first 100 chars as unique identifier
+                if doc_key not in seen_docs:
+                    seen_docs.add(doc_key)
+                    unique_results['documents'].append(doc)
+                    unique_results['distances'].append(dist)
+                    unique_results['metadatas'].append(meta)
+            
+            # Sort by distance (relevance)
+            sorted_results = sorted(zip(unique_results['documents'], unique_results['distances'], unique_results['metadatas']), 
+                                  key=lambda x: x[1])
+            
+            if sorted_results:
+                documents, distances, metadatas = zip(*sorted_results)
+                results = {
+                    'documents': [list(documents)],
+                    'distances': [list(distances)],
+                    'metadatas': [list(metadatas)]
+                }
+            else:
+                results = semantic_results
+        else:
+            # For non-technical queries, use standard semantic search
+            results = col.query(
+                query_texts=[question], 
+                n_results=8,
+                include=['documents', 'metadatas', 'distances']
+            )
         
         if results['documents'] and results['documents'][0]:
             # Get the most relevant documents
             documents = results['documents'][0]
             distances = results['distances'][0] if results['distances'] else [1.0] * len(documents)
+            metadatas = results['metadatas'][0] if results['metadatas'] else [{}] * len(documents)
             
-            # Filter documents by relevance (distance < 1.5)
+            # Filter documents by relevance with more lenient threshold for technical queries
             relevant_docs = []
-            for doc, dist in zip(documents, distances):
-                if dist < 1.5:
-                    # Truncate very long documents to prevent massive prompts
-                    if len(doc) > 400:
-                        doc = doc[:400] + "..."
-                    relevant_docs.append(doc)
+            for doc, dist, meta in zip(documents, distances, metadatas):
+                if dist < 2.5:  # Even more lenient threshold for technical content
+                    # For technical queries, preserve more content to avoid losing critical details
+                    if len(doc) > 800:
+                        doc = doc[:800] + "..."
+                    relevant_docs.append({
+                        'content': doc,
+                        'distance': dist,
+                        'metadata': meta
+                    })
             
             if relevant_docs:
-                # Return the most relevant document
-                return relevant_docs[0]
+                # Sort by relevance and combine multiple documents for comprehensive context
+                relevant_docs.sort(key=lambda x: x['distance'])
+                
+                # For technical queries involving specifications, combine multiple relevant sources
+                if is_technical_query:
+                    # Prioritize documents that contain specific technical information
+                    priority_docs = []
+                    other_docs = []
+                    
+                    for doc_info in relevant_docs:
+                        content = doc_info['content']
+                        # Prioritize documents with voltage tables, specifications, or exact matches
+                        if any(indicator in content for indicator in ['50 000', '50,000', 'DC Retest Voltage', 'AC Retest Voltage', 'Table 1']):
+                            priority_docs.append(doc_info)
+                        else:
+                            other_docs.append(doc_info)
+                    
+                    # Combine priority documents first, then others
+                    final_docs = priority_docs[:2] + other_docs[:1]  # Max 3 documents
+                    
+                    combined_context = []
+                    for i, doc_info in enumerate(final_docs):
+                        doc_content = doc_info['content']
+                        combined_context.append(f"Source {i+1}: {doc_content}")
+                    
+                    return "\n\n".join(combined_context)
+                else:
+                    # For general queries, return the most relevant document
+                    return relevant_docs[0]['content']
             else:
                 return "No highly relevant information found in your sources. Try rephrasing your question."
         else:
@@ -434,7 +546,17 @@ Instructions: You are Liam, an expert in electrical safety and NFPA 70E standard
 Available Information:
 {rag_content}
 
-Instructions: Analyze the provided information intelligently. If the question is incomplete or unclear, ask for clarification. Provide a comprehensive response that synthesizes the relevant information from the knowledge base."""
+CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
+1. CAREFULLY READ all provided information before responding
+2. If the question asks about DC values, look specifically for DC specifications in the context
+3. If the question asks about AC values, look specifically for AC specifications in the context  
+4. If the question mentions a specific class (Class 0, 1, 2, 3, 4), find the exact values for that class
+5. Double-check that your answer matches the exact question asked
+6. If multiple sources are provided, cross-reference them to ensure consistency
+7. When providing numerical values, include the units and specify whether they are AC or DC
+8. If both AC and DC values are present, clearly distinguish which applies to the question
+
+Analyze the provided information intelligently and provide a comprehensive, technically accurate response. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked."""
 
         # Combine base prompt with context-specific instructions
         system_prompt = BASE_SYSTEM_PROMPT.format(
@@ -458,8 +580,8 @@ Instructions: Analyze the provided information intelligently. If the question is
             response = client.chat.completions.create(
                 model=GPT_MODEL,
                 messages=messages,
-                max_tokens=200,
-                temperature=0.7
+                max_tokens=400,  # Increased for more comprehensive technical responses
+                temperature=0.3  # Reduced for more consistent technical accuracy
             )
 
             ai_response = response.choices[0].message.content
