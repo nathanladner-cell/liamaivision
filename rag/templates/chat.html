@@ -74,7 +74,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 160px 20px 20px 20px; /* Top padding for fixed header */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -85,8 +85,19 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
+            padding: 40px 20px;
             color: #000000;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+        }
+
+        .header.scrolled {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
         }
 
 
@@ -151,7 +162,7 @@
             margin: 0 auto;
             left: 50%;
             transform: translateX(-50%);
-            top: 120px;
+            top: 160px;
         }
 
         /* Message area background removed for clean floating effect */
@@ -600,51 +611,98 @@
         }
 
         @media (max-width: 480px) {
+            .container { padding: 80px 10px 10px 10px; } /* Adjusted for even smaller header */
+            .header { 
+                padding: 15px 20px 5px 20px; /* Even smaller on small screens */
+            }
+            .header-icon {
+                width: 50px; /* Even smaller icon */
+                height: 50px;
+                margin: 0 auto 5px;
+            }
+            .header h1 { font-size: 1.2rem; }
+            .header p { font-size: 0.8rem; }
             .chat-input-container {
                 width: 95%;
-                bottom: 40px;
-                padding: 12px;
+                bottom: 30px; /* Even less bottom spacing */
+                padding: 10px; /* Smaller padding */
+                min-height: 45px; /* Shorter chatbox */
             }
             .chat-messages {
                 width: 95%;
+                max-height: calc(100vh - 110px); /* More chat space */
+                top: 80px; /* Adjusted for smaller header */
+                padding-bottom: 120px;
             }
             
             .chat-input {
                 font-size: 0.9rem;
-                padding: 12px 16px;
+                padding: 8px 12px; /* Reduced padding */
+                min-height: 32px; /* Shorter input */
             }
         }
 
         @media (max-width: 320px) {
+            .container { padding: 65px 10px 10px 10px; } /* Adjusted for very small header */
+            .header { 
+                padding: 10px 15px 5px 15px; /* Minimal padding on very small screens */
+            }
+            .header-icon {
+                width: 40px; /* Very small icon */
+                height: 40px;
+                margin: 0 auto 5px;
+            }
+            .header h1 { font-size: 1.1rem; }
+            .header p { font-size: 0.75rem; }
             .chat-input-container {
                 width: calc(100% - 20px);
                 bottom: 20px;
-                padding: 10px;
+                padding: 8px; /* Minimal padding */
+                min-height: 40px; /* Very short chatbox */
             }
             .chat-messages {
                 width: calc(100% - 20px);
+                max-height: calc(100vh - 90px); /* Maximum chat space */
+                top: 65px; /* Adjusted for very small header */
+                padding-bottom: 100px;
             }
             
             .chat-input {
                 font-size: 0.85rem;
-                padding: 10px 14px;
+                padding: 6px 10px; /* Minimal padding */
+                min-height: 28px; /* Very short input */
             }
         }
 
         /* Additional mobile optimizations */
         @media (max-width: 768px) {
-            .container { padding: 10px; }
-            .header h1 { font-size: 1.8rem; }
+            .container { padding: 100px 10px 10px 10px; } /* Adjusted for smaller header */
+            .header { 
+                padding: 20px 20px 10px 20px; /* Reduced vertical padding */
+            }
+            .header-icon {
+                width: 60px; /* Smaller icon */
+                height: 60px;
+                margin: 0 auto 10px; /* Reduced bottom margin */
+            }
+            .header h1 { font-size: 1.4rem; } /* Smaller title */
+            .header p { font-size: 0.85rem; } /* Smaller subtitle */
             .message-content { max-width: 85%; }
             .chat-messages { 
                 width: 90%;
-                max-height: calc(100vh - 250px); 
-                padding-bottom: 180px; 
+                max-height: calc(100vh - 140px); /* More space for chat */
+                padding-bottom: 140px; /* Reduced padding */
+                top: 100px; /* Adjusted for smaller header */
             }
             .chat-input-container {
                 width: 90%;
-                bottom: 60px;
-                padding: 15px;
+                bottom: 40px; /* Reduced bottom spacing */
+                padding: 12px; /* Smaller padding */
+                min-height: 50px; /* Shorter chatbox */
+            }
+            .chat-input {
+                min-height: 36px; /* Shorter input field */
+                padding: 8px 12px; /* Reduced padding */
             }
         }
 
@@ -973,6 +1031,24 @@
 
         // Cyber-themed initialization
         console.log('NEURAL INTERFACE INITIALIZED');
+
+        // Header fade effect on scroll
+        const header = document.querySelector('.header');
+        const chatMessages = document.getElementById('chatMessages');
+        
+        function handleScroll() {
+            const scrollTop = chatMessages.scrollTop;
+            
+            // Add scrolled class when scrolling down
+            if (scrollTop > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        }
+        
+        // Add scroll listener to chat messages container
+        chatMessages.addEventListener('scroll', handleScroll);
 
         function parseMarkdown(text) {
             // Simple markdown parser
