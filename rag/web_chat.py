@@ -86,7 +86,56 @@ load_dotenv()
 app = Flask(__name__, static_folder='static')
 app.secret_key = 'ampai-secret-key-2024'
 
-# Liam quirks system removed for simplicity
+# Liam's random quirks - used when AI doesn't understand or can't find info
+quirks = {
+  "general_quips": [
+    "sex toys",
+    "you are undermining my engineering",
+    "that's not a priority!",
+    "*giggles* before speaking"
+  ],
+  "obsessions": [
+    "By the way, Stewarts gas stations are the best thing on Earth.",
+    "Ever been to Leavenworth, Washington? I won't shut up about it.",
+    "Living in Bellingham made me immune to high elevation, unlike you.",
+    "Did I mention I hiked the Copper Ridge Loop? Beast mode."
+  ],
+  "opinions": [
+    "I make the best steak in existence, don’t argue.",
+    "I could beat almost anyone on Earth in an arm wrestle.",
+    "Girls are never getting near my feet. Period.",
+    "Foot massages? Absolutely disgusting.",
+    "The nukes dropped on Japan were completely justified."
+  ],
+  "work_and_lab": [
+    "I still hold the Cal Lab in-lab shift record. No one’s touching it.",
+    "I've Faraged more ground cables than you’ve ever seen."
+  ],
+  "cars": [
+    "One day I'll swap my Ford Ranger to a V8… maybe. Probably not."
+  ],
+  "stress_responses": [
+    "I'm just gonna scroll Instagram reels until I pass out.",
+    "Time to watch WhistlinDiesel videos until I fall asleep."
+  ],
+  "snarky_reactions": [
+    "You need to go back to high school physics."
+  ]
+}
+
+# Flatten quirks into one pool
+all_quirks = []
+for category in quirks.values():
+    all_quirks.extend(category)
+
+# Random helper function
+def random_item(arr):
+    return random.choice(arr) if arr else ""
+
+# Function to get a random Liam quirk when AI doesn't understand
+def get_liam_confusion_response():
+    """Return a random Liam quirk instead of saying 'I don't understand'"""
+    return random_item(all_quirks)
 
 # Configuration - OpenAI API
 # Set your OpenAI API key as an environment variable: OPENAI_API_KEY=your_key_here
@@ -478,9 +527,9 @@ def query_rag(question):
     try:
         col = get_collection()
         if not col:
-            # RAG system unavailable - return graceful message
-            print("RAG system unavailable, using general knowledge mode")
-            return "Database is down. I can still help with general electrical safety knowledge though."
+            # RAG system unavailable - return Liam quirk
+            print("RAG system unavailable, using Liam quirk response")
+            return get_liam_confusion_response()
         
         # Detect if this is a technical query that might need special handling
         is_technical_query = any(keyword in question.lower() for keyword in ['voltage', 'current', 'test', 'class', 'dc', 'ac', 'specification', 'gloves', 'blankets', 'sleeves', 'tested'])
@@ -609,12 +658,12 @@ def query_rag(question):
                     # For general queries, return the most relevant document
                     return relevant_docs[0]['content']
             else:
-                return "No highly relevant information found in your sources. Try rephrasing your question."
+                return get_liam_confusion_response()
         else:
-            return "No relevant information found in your sources. Try rephrasing your question."
+            return get_liam_confusion_response()
     except Exception as e:
         print(f"RAG system error (non-fatal): {e}")
-        return "Database is down. I can still help with general electrical safety knowledge though."
+        return get_liam_confusion_response()
 
 @app.route('/favicon.ico')
 def favicon():
@@ -763,15 +812,8 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             
         except Exception as e:
             print(f"OpenAI API error: {e}")
-            # If OpenAI API fails, provide a fallback response based on RAG content
-            if "No relevant information found" in rag_content:
-                ai_response = "I'm having trouble connecting to my AI processing server right now. The system is still starting up - please try again in a few moments!"
-            else:
-                # Provide a fallback response based on RAG content
-                if "No relevant information found" in rag_content:
-                    ai_response = "I don't have specific information about that in my sources, but I'd be happy to help with general questions!"
-                else:
-                    ai_response = f"Based on your sources: {rag_content}\n\nNote: I couldn't generate a full response due to a server issue, but here's the relevant information I found."
+            # If OpenAI API fails, provide a Liam quirk instead of error messages
+            ai_response = get_liam_confusion_response()
 
         # Clean up the response to remove source mentions
         cleaned_response = ai_response

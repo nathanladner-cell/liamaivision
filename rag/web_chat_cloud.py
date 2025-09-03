@@ -40,7 +40,7 @@ GPT_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o')
 
 # Liam's AI assistant configuration - REMOVED PROMOTIONAL CONTENT
 
-# Liam's random quirks
+# Liam's random quirks - used when AI doesn't understand or can't find info
 quirks = {
   "general_quips": [
     "sex toys",
@@ -85,6 +85,11 @@ for category in quirks.values():
 # Random helper function
 def random_item(arr):
     return random.choice(arr) if arr else ""
+
+# Function to get a random Liam quirk when AI doesn't understand
+def get_liam_confusion_response():
+    """Return a random Liam quirk instead of saying 'I don't understand'"""
+    return random_item(all_quirks)
 
 # Base system prompt
 BASE_SYSTEM_PROMPT = """You are Liam, an expert AI assistant. You have deep knowledge from specialized sources and provide practical, actionable advice.
@@ -417,8 +422,8 @@ def query_rag(question):
     try:
         col = get_collection()
         if not col:
-            print("Cloud RAG system unavailable, using general knowledge mode")
-            return "Database is down. I can still help with general electrical safety knowledge though."
+            print("Cloud RAG system unavailable, using Liam quirk response")
+            return get_liam_confusion_response()
         
         # Detect if this is a technical query that might need special handling
         is_technical_query = any(keyword in question.lower() for keyword in ['voltage', 'current', 'test', 'class', 'dc', 'ac', 'specification', 'gloves', 'blankets', 'sleeves', 'tested'])
@@ -494,7 +499,7 @@ def query_rag(question):
                     if content:
                         combined_context.append(f"Source {i+1}: {content}")
                 
-                return "\n\n".join(combined_context) if combined_context else "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
+                return "\n\n".join(combined_context) if combined_context else get_liam_confusion_response()
             else:
                 # For general queries, return the most relevant document
                 best_result = results[0]
@@ -504,13 +509,13 @@ def query_rag(question):
                 if len(content) > 400:
                     content = content[:400] + "..."
                 
-                return content if content else "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
+                return content if content else get_liam_confusion_response()
         else:
-            return "Database is down. I can still help with general electrical safety knowledge though."
-            
+            return get_liam_confusion_response()
+
     except Exception as e:
         print(f"Cloud RAG system error (non-fatal): {e}")
-        return "Database is down. I can still help with general electrical safety knowledge though."
+        return get_liam_confusion_response()
 
 @app.route('/favicon.ico')
 def favicon():
