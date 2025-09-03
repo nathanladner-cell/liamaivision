@@ -1148,17 +1148,9 @@
         // Function to programmatically close the keyboard
         function closeKeyboard() {
             const input = document.getElementById('chatInput');
-            input.blur();
-            // Force focus on a hidden element to ensure keyboard closes
-            const hiddenInput = document.createElement('input');
-            hiddenInput.style.position = 'absolute';
-            hiddenInput.style.left = '-9999px';
-            hiddenInput.style.opacity = '0';
-            document.body.appendChild(hiddenInput);
-            hiddenInput.focus();
-            setTimeout(() => {
-                document.body.removeChild(hiddenInput);
-            }, 100);
+            if (input) {
+                input.blur();
+            }
         }
 
         // Enter key to send
@@ -1166,6 +1158,18 @@
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
+            }
+        });
+
+        // Alternative send button event listener (in addition to onclick)
+        document.addEventListener('DOMContentLoaded', function() {
+            const sendButton = document.getElementById('sendButton');
+            if (sendButton) {
+                sendButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Send button clicked via event listener'); // Debug log
+                    sendMessage();
+                });
             }
         });
 
@@ -1357,10 +1361,17 @@
         }
 
         async function sendMessage() {
+            console.log('sendMessage called'); // Debug log
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             
+            console.log('Message:', message, 'isTyping:', isTyping); // Debug log
+            
             if (!message || isTyping) return;
+            
+            // Disable send button first to prevent double-clicks
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
             
             // Add user message
             addMessage(message, true);
@@ -1369,15 +1380,13 @@
             input.value = '';
             input.style.height = 'auto';
             
-            // Close mobile keyboard
-            closeKeyboard();
-            
             // Show typing indicator
             showTyping();
             
-            // Disable send button
-            const sendButton = document.getElementById('sendButton');
-            sendButton.disabled = true;
+            // Close mobile keyboard after a short delay to ensure message is sent
+            setTimeout(() => {
+                closeKeyboard();
+            }, 100);
             
             try {
                 const response = await fetch('/api/chat', {
