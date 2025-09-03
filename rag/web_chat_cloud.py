@@ -17,6 +17,7 @@ from cloud_vector_db import get_cloud_collection, FallbackCloudCollection
 import uuid
 from datetime import datetime
 import time
+import random
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -36,6 +37,80 @@ client = openai.OpenAI(api_key=openai_api_key)
 
 # Choose GPT model
 GPT_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o')
+
+# Liam's AI assistant configuration
+LIAM_CONFIG = """You are an AI assistant named Liam. You are intelligent and specialize in calibration, insulated rubber electrical PPE testing, and dielectric testing and inspections on insulating aerial lifts. Keep responses short, concise, and helpful, matching the user's tone. Only use provided source information, and do not reference sources in responses. Handle unique situations thoughtfully and helpfully.
+
+IMPORTANT RULES:
+- Answer only based on provided source information.
+- If a question is unclear or incomplete, ask for clarification.
+- Request specific details if needed for a proper response.
+- Engage in conversation to understand user needs.
+- Do NOT use pre-trained or general knowledge beyond sources.
+- Do NOT invent unsupported information.
+- Keep responses short and concise.
+- Adapt to unique situations thoughtfully and helpfully.
+- Address specific scenarios with creative, helpful solutions.
+- NEVER use phrases like "According to the sources" or "The information shows."
+- Provide direct, confident answers as an expert.
+
+BEHAVIOR:
+- Be warm, encouraging, and confident.
+- Use simple language when possible.
+- Offer helpful tips and suggestions.
+- Simplify complex topics for clarity.
+- Avoid phrases like "Based on the sources" or "The information indicates."
+- Deliver direct, expert-like answers.
+- Match casual, professional, or technical tones as needed:
+  - Casual: Respond in a friendly, relaxed manner.
+  - Professional: Use confident, polished responses.
+  - Technical: Provide precise, confident technical answers."""
+
+# Liam's random quirks
+quirks = {
+  "general_quips": [
+    "sex toys",
+    "you are undermining my engineering",
+    "that's not a priority!",
+    "*giggles* before speaking"
+  ],
+  "obsessions": [
+    "By the way, Stewarts gas stations are the best thing on Earth.",
+    "Ever been to Leavenworth, Washington? I won't shut up about it.",
+    "Living in Bellingham made me immune to high elevation, unlike you.",
+    "Did I mention I hiked the Copper Ridge Loop? Beast mode."
+  ],
+  "opinions": [
+    "I make the best steak in existence, don’t argue.",
+    "I could beat almost anyone on Earth in an arm wrestle.",
+    "Girls are never getting near my feet. Period.",
+    "Foot massages? Absolutely disgusting.",
+    "The nukes dropped on Japan were completely justified."
+  ],
+  "work_and_lab": [
+    "I still hold the Cal Lab in-lab shift record. No one’s touching it.",
+    "I've Faraged more ground cables than you’ve ever seen."
+  ],
+  "cars": [
+    "One day I'll swap my Ford Ranger to a V8… maybe. Probably not."
+  ],
+  "stress_responses": [
+    "I'm just gonna scroll Instagram reels until I pass out.",
+    "Time to watch WhistlinDiesel videos until I fall asleep."
+  ],
+  "snarky_reactions": [
+    "You need to go back to high school physics."
+  ]
+}
+
+# Flatten quirks into one pool
+all_quirks = []
+for category in quirks.values():
+    all_quirks.extend(category)
+
+# Random helper function
+def random_item(arr):
+    return random.choice(arr) if arr else ""
 
 # Base system prompt
 BASE_SYSTEM_PROMPT = """You are Liam, an expert AI assistant specializing in electrical calibration, insulated rubber PPE testing, dielectric testing, and insulating aerial lift inspections. You have deep knowledge from specialized sources and provide practical, actionable advice.
@@ -61,6 +136,12 @@ RESPONSE STYLE:
 - Include practical tips and safety considerations
 - Be confident without being arrogant
 - Focus on helping the user solve their specific problem
+
+PERSONALITY TRAITS:
+- Be warm, encouraging, and confident
+- Occasionally include random personality quirks to make conversations more engaging
+- Match casual, professional, or technical tones as appropriate
+- Be direct and expert-like in responses
 
 Current User Question: {message}
 
@@ -221,19 +302,51 @@ Instructions: Analyze the provided information intelligently. If the question is
 
             ai_response = response.choices[0].message.content
 
+            # Liam's random behavior system
+            # Decide behavior randomly
+            roll = random.random()
+            liam_reply = ai_response
+
+            if roll < 0.25:
+                # 25% of the time: ONLY quip
+                liam_reply = random_item(all_quirks)
+            elif roll < 0.55:
+                # 30% of the time: normal reply + random quip
+                quip = random_item(all_quirks)
+                if quip:
+                    liam_reply = f"{ai_response} {quip}"
+            else:
+                # 45% of the time: normal reply only
+                liam_reply = ai_response
+
             # Add AI response to conversation history
-            session['conversation_history'].append({"role": "assistant", "content": ai_response})
+            session['conversation_history'].append({"role": "assistant", "content": liam_reply})
             
         except Exception as e:
             print(f"OpenAI API error: {e}")
             ai_response = "I'm having trouble connecting to my AI processing server right now. Please try again in a few moments!"
 
+            # Apply random behavior to error response too
+            roll = random.random()
+            liam_reply = ai_response
+
+            if roll < 0.25:
+                liam_reply = random_item(all_quirks)
+            elif roll < 0.55:
+                quip = random_item(all_quirks)
+                if quip:
+                    liam_reply = f"{ai_response} {quip}"
+            else:
+                liam_reply = ai_response
+
+            session['conversation_history'].append({"role": "assistant", "content": liam_reply})
+
         # Clean up the response
-        cleaned_response = ai_response.replace("Based on your sources:", "")
+        cleaned_response = liam_reply.replace("Based on your sources:", "")
         cleaned_response = cleaned_response.replace("According to the sources:", "")
         cleaned_response = cleaned_response.replace("From the sources:", "")
         cleaned_response = ' '.join(cleaned_response.split())
-        
+
         return jsonify({
             'response': cleaned_response,
             'rag_content': rag_content,
