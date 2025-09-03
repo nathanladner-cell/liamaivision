@@ -418,6 +418,11 @@
             backdrop-filter: blur(15px) saturate(150%);
             -webkit-backdrop-filter: blur(15px) saturate(150%);
             clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
+            /* Mobile touch improvements */
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .send-button::before {
@@ -1072,7 +1077,7 @@
                         placeholder="Hi, *giggles* I'm Liam"
                         rows="1"
                     ></textarea>
-                    <button id="sendButton" class="send-button" onclick="sendMessage()">
+                    <button id="sendButton" class="send-button">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m22 2-7 20-4-9-9-4 20-7z"/>
                             <path d="M22 2 11 13"/>
@@ -1161,15 +1166,30 @@
             }
         });
 
-        // Alternative send button event listener (in addition to onclick)
+        // Mobile-friendly send button event handling
         document.addEventListener('DOMContentLoaded', function() {
             const sendButton = document.getElementById('sendButton');
             if (sendButton) {
-                sendButton.addEventListener('click', function(e) {
+                // Remove the onclick attribute to prevent conflicts
+                sendButton.removeAttribute('onclick');
+                
+                // Simple, reliable click handler
+                sendButton.onclick = function(e) {
                     e.preventDefault();
-                    console.log('Send button clicked via event listener'); // Debug log
+                    e.stopPropagation();
+                    console.log('Send button clicked via onclick handler'); // Debug log
                     sendMessage();
-                });
+                    return false;
+                };
+                
+                // Touch event handler for mobile
+                sendButton.ontouchstart = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Send button touched via ontouchstart handler'); // Debug log
+                    sendMessage();
+                    return false;
+                };
             }
         });
 
