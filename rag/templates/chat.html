@@ -369,17 +369,7 @@
             transition: bottom 0.3s ease, transform 0.3s ease;
         }
 
-        /* Mobile keyboard adjustments */
-        .chat-input-container.keyboard-open {
-            bottom: 20px;
-            transform: translateX(-50%) translateY(-10px);
-        }
-
-        /* Adjust chat messages when keyboard is open */
-        .chat-messages.keyboard-open {
-            max-height: calc(100vh - 200px);
-            padding-bottom: 120px;
-        }
+        /* Mobile keyboard adjustments removed to restore basic functionality */
 
 
 
@@ -1077,7 +1067,7 @@
                         placeholder="Hi, *giggles* I'm Liam"
                         rows="1"
                     ></textarea>
-                    <button id="sendButton" class="send-button">
+                    <button id="sendButton" class="send-button" onclick="sendMessage()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m22 2-7 20-4-9-9-4 20-7z"/>
                             <path d="M22 2 11 13"/>
@@ -1097,66 +1087,7 @@
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
 
-        // Mobile keyboard detection and handling
-        let initialViewportHeight = window.innerHeight;
-        let isKeyboardOpen = false;
-        const chatInputContainer = document.querySelector('.chat-input-container');
-        const chatMessages = document.getElementById('chatMessages');
-
-        function handleKeyboardToggle() {
-            const currentHeight = window.innerHeight;
-            const heightDifference = initialViewportHeight - currentHeight;
-            
-            // Consider keyboard open if viewport height decreased by more than 150px
-            const keyboardThreshold = 150;
-            
-            if (heightDifference > keyboardThreshold && !isKeyboardOpen) {
-                // Keyboard opened
-                isKeyboardOpen = true;
-                chatInputContainer.classList.add('keyboard-open');
-                chatMessages.classList.add('keyboard-open');
-                
-                // Scroll to bottom to show the input
-                setTimeout(() => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 100);
-                
-            } else if (heightDifference <= keyboardThreshold && isKeyboardOpen) {
-                // Keyboard closed
-                isKeyboardOpen = false;
-                chatInputContainer.classList.remove('keyboard-open');
-                chatMessages.classList.remove('keyboard-open');
-            }
-        }
-
-        // Listen for viewport changes (keyboard open/close)
-        window.addEventListener('resize', handleKeyboardToggle);
-        window.addEventListener('orientationchange', () => {
-            // Reset initial height after orientation change
-            setTimeout(() => {
-                initialViewportHeight = window.innerHeight;
-                handleKeyboardToggle();
-            }, 500);
-        });
-
-        // Focus/blur events as backup detection
-        chatInput.addEventListener('focus', () => {
-            // Small delay to allow keyboard to open
-            setTimeout(handleKeyboardToggle, 300);
-        });
-
-        chatInput.addEventListener('blur', () => {
-            // Small delay to allow keyboard to close
-            setTimeout(handleKeyboardToggle, 300);
-        });
-
-        // Function to programmatically close the keyboard
-        function closeKeyboard() {
-            const input = document.getElementById('chatInput');
-            if (input) {
-                input.blur();
-            }
-        }
+        // Basic mobile keyboard handling removed to restore functionality
 
         // Enter key to send
         chatInput.addEventListener('keydown', function(e) {
@@ -1166,62 +1097,7 @@
             }
         });
 
-        // Mobile-friendly send button event handling
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, looking for send button...');
-            const sendButton = document.getElementById('sendButton');
-            console.log('Send button found:', !!sendButton);
-
-            if (sendButton) {
-                console.log('Attaching event handlers to send button');
-
-                // Remove the onclick attribute to prevent conflicts
-                sendButton.removeAttribute('onclick');
-
-                // Simple test click handler first
-                sendButton.onclick = function(e) {
-                    console.log('BUTTON CLICKED! Preventing default and calling sendMessage');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    sendMessage();
-                    return false;
-                };
-
-                // Touch event handler for mobile
-                sendButton.ontouchstart = function(e) {
-                    console.log('BUTTON TOUCHED! Preventing default and calling sendMessage');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    sendMessage();
-                    return false;
-                };
-
-                // Add a visual feedback
-                sendButton.addEventListener('touchstart', function() {
-                    this.style.background = 'rgba(255, 255, 255, 0.3)';
-                });
-
-                sendButton.addEventListener('touchend', function() {
-                    this.style.background = 'rgba(255, 255, 255, 0.15)';
-                });
-
-                // Add temporary visual indicator that button is active
-                sendButton.style.border = '2px solid red';
-                setTimeout(() => {
-                    sendButton.style.border = '1px solid rgba(255, 255, 255, 0.25)';
-                }, 2000);
-
-                console.log('Event handlers attached successfully');
-            } else {
-                console.error('Send button not found!');
-            }
-        });
-
-        // Test sendMessage function directly
-        window.testSendMessage = function() {
-            console.log('Testing sendMessage function directly...');
-            sendMessage();
-        };
+                // Simple button event handling - let HTML onclick handle it
 
         // Cyber-themed initialization
         console.log('NEURAL INTERFACE INITIALIZED');
@@ -1411,38 +1287,26 @@
         }
 
         async function sendMessage() {
-            console.log('sendMessage called'); // Debug log
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
-            
-            console.log('Message:', message, 'isTyping:', isTyping); // Debug log
-            
-            if (!message) {
-                console.log('No message to send'); // Debug log
-                return;
-            }
-            
-            if (isTyping) {
-                console.log('Already typing, ignoring send'); // Debug log
-                return;
-            }
-            
-            // Disable send button first to prevent double-clicks
-            const sendButton = document.getElementById('sendButton');
-            sendButton.disabled = true;
-            
+
+            if (!message || isTyping) return;
+
             // Add user message
             addMessage(message, true);
-            
+
             // Clear input
             input.value = '';
             input.style.height = 'auto';
-            
+
             // Show typing indicator
             showTyping();
-            
+
+            // Disable send button
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+
             try {
-                console.log('Sending message to API:', message); // Debug log
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
@@ -1450,21 +1314,14 @@
                     },
                     body: JSON.stringify({ message: message })
                 });
-                
-                console.log('API response status:', response.status); // Debug log
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     addMessage(data.response, false);
-                    
-                    // Close mobile keyboard after successful message send
-                    setTimeout(() => {
-                        closeKeyboard();
-                    }, 500);
-                    
+
                     // Check if this is a video trigger response
                     if (data.trigger_video) {
-                        // Small delay to let the message appear first
                         setTimeout(() => {
                             showVideo();
                         }, 500);
@@ -1475,11 +1332,10 @@
             } catch (error) {
                 addMessage(`Network error: ${error.message}`, false);
             } finally {
-                // Small delay to ensure smooth transition
                 setTimeout(() => {
                     hideTyping();
                     sendButton.disabled = false;
-                    // Don't refocus input to keep keyboard closed
+                    input.focus(); // Refocus input
                 }, 100);
             }
         }
