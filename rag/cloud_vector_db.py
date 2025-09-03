@@ -46,7 +46,7 @@ class CloudVectorDB:
             return False
             
         try:
-            # Initialize Pinecone
+            # Initialize Pinecone using the standard pattern
             self.pc = Pinecone(api_key=pinecone_api_key)
             
             # Initialize OpenAI for embeddings
@@ -67,8 +67,12 @@ class CloudVectorDB:
                     )
                 )
                 print(f"✅ Created Pinecone index: {self.index_name}")
+                
+                # Wait a moment for index to be ready
+                import time
+                time.sleep(5)
             
-            # Connect to index
+            # Connect to index using the standard pattern
             self.index = self.pc.Index(self.index_name)
             print(f"✅ Connected to Pinecone index: {self.index_name}")
             
