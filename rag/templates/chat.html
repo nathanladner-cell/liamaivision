@@ -1147,7 +1147,8 @@
 
         // Function to programmatically close the keyboard
         function closeKeyboard() {
-            chatInput.blur();
+            const input = document.getElementById('chatInput');
+            input.blur();
             // Force focus on a hidden element to ensure keyboard closes
             const hiddenInput = document.createElement('input');
             hiddenInput.style.position = 'absolute';
