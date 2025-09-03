@@ -178,7 +178,6 @@
         }
 
         .message.user {
-            flex-direction: row-reverse;
             justify-content: flex-end;
         }
 
@@ -757,15 +756,8 @@
             }
         }
 
-        /* Gentle floating for message logos */
-        @keyframes messageFloat {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-4px) rotate(1deg);
-            }
-        }
+        /* Gentle floating for message logos (disabled) */
+        @keyframes messageFloat {}
 
         /* Header logo during swimming animation */
         .header-icon.swimming-to-message {
@@ -788,7 +780,7 @@
             background: transparent !important;
             box-shadow: none;
             border: none;
-            animation: messageFloat 3s ease-in-out infinite;
+            animation: none;
             position: absolute;
             left: -60px;
             top: 5px;
@@ -950,18 +942,13 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
             
-            if (isUser) {
-                // Create user avatar with icon
-                const avatar = document.createElement('div');
-                avatar.className = 'message-avatar';
-                avatar.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                </svg>`;
-                messageDiv.appendChild(avatar);
-            } else {
-                // For assistant messages, create swimming logo animation
-                createSwimmingLogo(messageDiv);
+            if (!isUser) {
+                // For assistant messages, immediately show logo to the left of the bubble
+                const messageLogo = document.createElement('img');
+                messageLogo.src = '/static/liamai.png';
+                messageLogo.alt = 'Liam';
+                messageLogo.className = 'message-logo';
+                messageDiv.appendChild(messageLogo);
             }
             
             const messageContent = document.createElement('div');
