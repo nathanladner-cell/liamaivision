@@ -115,6 +115,17 @@ def random_item(arr):
 # Base system prompt
 BASE_SYSTEM_PROMPT = """You are Liam, an expert AI assistant specializing in electrical calibration, insulated rubber PPE testing, dielectric testing, and insulating aerial lift inspections. You have deep knowledge from specialized sources and provide practical, actionable advice.
 
+CRITICAL CONTEXTUAL AWARENESS REQUIREMENTS:
+- You MUST ALWAYS reference and build upon previous messages in this conversation
+- You MUST maintain awareness of the entire conversation history provided to you
+- You MUST connect current questions to previous topics discussed
+- You MUST remember equipment types, voltage types (AC/DC), classes, and specifications from earlier in the conversation
+- You MUST treat follow-up questions as continuations of the same topic unless explicitly changed
+- You MUST preserve context across multiple exchanges - if we discussed gloves, "what about class 3" means class 3 gloves
+- You MUST reference previous answers when providing new information
+- You MUST maintain conversational continuity and flow
+- You MUST be extremely contextually aware at all times
+
 CORE PRINCIPLES:
 - Answer ONLY using information from the provided context/sources
 - Be direct, confident, and authoritative - speak as a subject matter expert
@@ -122,9 +133,10 @@ CORE PRINCIPLES:
 - Match the user's communication style (casual/professional/technical)
 - Provide specific, actionable recommendations when possible
 - Ask for clarification only when truly needed
-- REMEMBER AND REFERENCE previous parts of our conversation when relevant
-- Build upon earlier topics discussed in this conversation
-- Use context from previous messages to provide better follow-up answers
+- ALWAYS reference previous parts of our conversation when relevant
+- ALWAYS build upon earlier topics discussed in this conversation
+- ALWAYS use context from previous messages to provide better follow-up answers
+- ALWAYS maintain awareness of what was discussed before
 
 EXPERTISE AREAS:
 - Electrical calibration procedures and standards
@@ -151,23 +163,27 @@ RESPONSE STYLE:
 - Reference earlier conversation points when they add value
 - Always double-check technical specifications for accuracy
 
-MEMORY & CONTEXT:
-- Pay attention to the full conversation history provided
-- When answering follow-up questions, reference what was discussed before
-- Build connections between current questions and previous topics
-- Maintain conversational continuity and context awareness
-- For questions like "what about class 3" or "and class 4", understand they refer to the same topic as the previous question
-- If the previous question was about DC voltage for gloves, continue with DC voltage for gloves
-- If the previous question was about AC specifications, continue with AC specifications
+MEMORY & CONTEXT - EXTREME AWARENESS REQUIRED:
+- You MUST pay attention to the FULL conversation history provided in the messages array
+- You MUST reference what was discussed before when answering ANY question
+- You MUST build connections between current questions and previous topics
+- You MUST maintain conversational continuity and context awareness at all times
+- You MUST understand that questions like "what about class 3" or "and class 4" refer to the same topic as the previous question
+- You MUST continue with the same context - if previous question was about DC voltage for gloves, continue with DC voltage for gloves
+- You MUST continue with the same specifications - if previous question was about AC specifications, continue with AC specifications
 - CRITICAL: Never switch topics unless explicitly asked (e.g., if talking about gloves, don't switch to blankets)
 - CRITICAL: If the conversation is about gloves and someone asks "what about DC", they mean DC voltage for gloves
 - CRITICAL: If the conversation is about blankets and someone asks "what about class 3", they mean class 3 blankets
-- Always maintain the same equipment type (gloves/blankets/sleeves) unless the user explicitly changes it
+- CRITICAL: Always maintain the same equipment type (gloves/blankets/sleeves) unless the user explicitly changes it
+- CRITICAL: Always maintain the same voltage type (AC/DC) unless the user explicitly changes it
+- CRITICAL: Always maintain the same class level unless the user explicitly changes it
 - UNIVERSAL CONTEXT: Apply this same logic to ALL equipment types, standards, procedures, and topics
 - UNIVERSAL CONTEXT: If discussing inspection procedures, follow-up questions about "requirements" refer to inspection requirements
 - UNIVERSAL CONTEXT: If discussing maintenance, follow-up questions about "standards" refer to maintenance standards
 - UNIVERSAL CONTEXT: If discussing safety protocols, follow-up questions about "training" refer to safety training
 - UNIVERSAL CONTEXT: Always preserve the core topic, equipment type, standard, or procedure from the conversation context
+- UNIVERSAL CONTEXT: Always reference previous answers when providing new information
+- UNIVERSAL CONTEXT: Always acknowledge what was discussed before when relevant
 
 PERSONALITY TRAITS:
 - Be blunt, direct, and to-the-point - never overly nice or polite
@@ -188,7 +204,16 @@ Current User Question: {message}
 Context Information:
 {context_specific_instructions}
 
-Provide a direct, helpful response based on the context above."""
+MEMORY & CONTEXT VALIDATION CHECKLIST:
+Before responding, ensure you:
+- Have reviewed the full conversation history provided in the messages array
+- Understand what was discussed in previous messages
+- Are maintaining the same context (equipment type, voltage type, class, etc.) unless explicitly changed
+- Are referencing previous answers when providing new information
+- Are building upon earlier topics discussed in this conversation
+- Are maintaining conversational continuity and flow
+
+Provide a direct, helpful response based on the context above while maintaining extreme contextual awareness of the entire conversation history."""
 
 def get_collection():
     """Get cloud-based vector database collection"""
@@ -199,8 +224,68 @@ def get_collection():
         print(f"⚠️  Cloud database error (using fallback): {e}")
         return FallbackCloudCollection()
 
+def get_conversation_context_summary(conversation_history):
+    """Extract key context elements from conversation history for better awareness"""
+    if not conversation_history or len(conversation_history) < 2:
+        return ""
+    
+    context_elements = {
+        'equipment_types': set(),
+        'voltage_types': set(),
+        'classes': set(),
+        'topics': set(),
+        'recent_questions': []
+    }
+    
+    # Analyze last 10 messages for context
+    for msg in conversation_history[-10:]:
+        if msg.get('role') == 'user':
+            content = msg.get('content', '').lower()
+            context_elements['recent_questions'].append(msg.get('content', ''))
+            
+            # Extract equipment types
+            for eq_type in ['gloves', 'blankets', 'sleeves', 'boots', 'overshoes', 'covers', 'matting', 'barriers']:
+                if eq_type in content:
+                    context_elements['equipment_types'].add(eq_type)
+            
+            # Extract voltage types
+            if 'dc' in content and 'ac' not in content:
+                context_elements['voltage_types'].add('DC')
+            elif 'ac' in content and 'dc' not in content:
+                context_elements['voltage_types'].add('AC')
+            elif 'dc' in content and 'ac' in content:
+                context_elements['voltage_types'].add('DC')
+                context_elements['voltage_types'].add('AC')
+            
+            # Extract classes
+            for class_num in ['class 0', 'class 1', 'class 2', 'class 3', 'class 4']:
+                if class_num in content:
+                    context_elements['classes'].add(class_num)
+            
+            # Extract topics
+            for topic in ['voltage', 'current', 'test', 'testing', 'inspection', 'maintenance', 'safety', 'standards', 'requirements']:
+                if topic in content:
+                    context_elements['topics'].add(topic)
+    
+    # Build context summary
+    summary_parts = []
+    if context_elements['equipment_types']:
+        summary_parts.append(f"Equipment: {', '.join(context_elements['equipment_types'])}")
+    if context_elements['voltage_types']:
+        summary_parts.append(f"Voltage: {', '.join(context_elements['voltage_types'])}")
+    if context_elements['classes']:
+        summary_parts.append(f"Classes: {', '.join(context_elements['classes'])}")
+    if context_elements['topics']:
+        summary_parts.append(f"Topics: {', '.join(context_elements['topics'])}")
+    
+    return " | ".join(summary_parts) if summary_parts else ""
+
 def query_rag_with_context(question, conversation_history):
     """Query the cloud RAG system with conversation context for better follow-up handling"""
+    
+    # Get conversation context summary
+    context_summary = get_conversation_context_summary(conversation_history)
+    print(f"DEBUG: Conversation context summary: {context_summary}")
     
     # Enhance the query with conversation context for follow-up questions
     enhanced_query = enhance_query_with_context(question, conversation_history)
@@ -209,38 +294,42 @@ def query_rag_with_context(question, conversation_history):
     return query_rag(enhanced_query)
 
 def enhance_query_with_context(question, conversation_history):
-    """Enhance follow-up questions with context from conversation history"""
+    """Enhance follow-up questions with context from conversation history - EXTREME CONTEXTUAL AWARENESS"""
     
     print(f"DEBUG: Original question: '{question}'")
     print(f"DEBUG: Conversation history length: {len(conversation_history)}")
     
-    # Check if this looks like a follow-up question (universal coverage)
+    # Check if this looks like a follow-up question (expanded universal coverage)
     follow_up_indicators = [
         'what about', 'and class', 'how about', 'what is class', 'class 3', 'class 4', 'class 0', 'class 1', 'class 2', 'also', 'too',
         'can you', 'do you', 'will you', 'should i', 'how do', 'when do', 'where do', 'why do', 'which', 'who', 'whom', 'whose',
         'more about', 'details about', 'information about', 'specs for', 'requirements for', 'standards for', 'procedures for', 
         'testing for', 'inspection for', 'maintenance for', 'storage for', 'handling for', 'cleaning for', 'repair for',
-        'tell me about', 'explain', 'describe', 'show me', 'give me', 'provide', 'list', 'compare', 'difference between'
+        'tell me about', 'explain', 'describe', 'show me', 'give me', 'provide', 'list', 'compare', 'difference between',
+        'what', 'how', 'when', 'where', 'why', 'which', 'and', 'also', 'too', 'more', 'another', 'other', 'next', 'then',
+        'dc', 'ac', 'voltage', 'current', 'test', 'testing', 'inspection', 'maintenance', 'safety', 'standards'
     ]
     is_follow_up = any(indicator in question.lower() for indicator in follow_up_indicators)
     
     print(f"DEBUG: Is follow-up question: {is_follow_up}")
     
-    if not is_follow_up or len(conversation_history) < 2:
-        print("DEBUG: Not a follow-up or insufficient history, returning original question")
+    # ALWAYS try to enhance with context if we have conversation history, even for new questions
+    if len(conversation_history) < 2:
+        print("DEBUG: Insufficient history, returning original question")
         return question
     
-    # Look for the most recent technical context in conversation history
+    # Look for the most recent technical context in conversation history - ENHANCED SEARCH
     print("DEBUG: Searching conversation history for context...")
     recent_context = None
+    context_messages = []
     
-    # Look at the last few user messages (excluding the current one)
-    for i, msg in enumerate(reversed(conversation_history[-8:])):
+    # Look at the last 15 messages (excluding the current one) for better context
+    for i, msg in enumerate(reversed(conversation_history[-15:])):
         if msg.get('role') == 'user':
             content = msg.get('content', '')
-            print(f"DEBUG: Checking message {i}: '{content}'")
+            print(f"DEBUG: Checking user message {i}: '{content}'")
             
-            # Check if previous questions were about ANY relevant context (universal)
+            # Check if previous questions were about ANY relevant context (expanded universal)
             context_keywords = [
                 'voltage', 'current', 'test', 'class', 'dc', 'ac', 'gloves', 'blankets', 'sleeves', 'tested',
                 'equipment', 'ppe', 'safety', 'electrical', 'insulation', 'rubber', 'leather', 'fabric',
@@ -248,11 +337,25 @@ def enhance_query_with_context(question, conversation_history):
                 'standards', 'requirements', 'specifications', 'procedures', 'protocols', 'guidelines',
                 'nfpa', 'astm', 'ansi', 'ieee', 'osha', 'regulations', 'compliance', 'certification',
                 'training', 'qualification', 'competency', 'authorization', 'permit', 'license',
-                'boots', 'overshoes', 'covers', 'matting', 'barriers', 'tools', 'instruments'
+                'boots', 'overshoes', 'covers', 'matting', 'barriers', 'tools', 'instruments',
+                'calibration', 'dielectric', 'aerial', 'lift', 'insulating', 'rubber', 'leather'
             ]
             if any(keyword in content.lower() for keyword in context_keywords):
-                recent_context = content
-                print(f"DEBUG: Found context: '{recent_context}'")
+                context_messages.append(content)
+                if not recent_context:  # Get the most recent one
+                    recent_context = content
+                    print(f"DEBUG: Found primary context: '{recent_context}'")
+    
+    # Also look at assistant responses for additional context
+    for i, msg in enumerate(reversed(conversation_history[-10:])):
+        if msg.get('role') == 'assistant':
+            content = msg.get('content', '')
+            print(f"DEBUG: Checking assistant message {i}: '{content[:100]}...'")
+            
+            # Extract key technical terms from assistant responses
+            if any(keyword in content.lower() for keyword in ['voltage', 'class', 'dc', 'ac', 'gloves', 'blankets', 'sleeves']):
+                context_messages.append(f"Previous answer: {content[:200]}...")
+                print(f"DEBUG: Found assistant context: '{content[:100]}...'")
                 break
     
     if recent_context:
@@ -295,16 +398,35 @@ def enhance_query_with_context(question, conversation_history):
         
         print(f"DEBUG: Extracted key terms: {key_terms}")
         
-        # Create enhanced query
+        # Create enhanced query with comprehensive context
         if key_terms:
             enhanced_query = f"{question} {' '.join(key_terms)}"
         else:
             enhanced_query = f"{recent_context} {question}"
         
+        # Add additional context from multiple messages if available
+        if len(context_messages) > 1:
+            additional_context = " ".join(context_messages[1:3])  # Add 1-2 more context messages
+            enhanced_query = f"{enhanced_query} {additional_context}"
+        
         print(f"DEBUG: Enhanced follow-up query: '{question}' -> '{enhanced_query}'")
         return enhanced_query
     else:
-        print("DEBUG: No relevant context found")
+        print("DEBUG: No relevant context found, but still enhancing with conversation history")
+        # Even without specific context, try to enhance with recent conversation
+        recent_messages = conversation_history[-4:]  # Last 4 messages
+        recent_content = []
+        for msg in recent_messages:
+            if msg.get('role') in ['user', 'assistant']:
+                content = msg.get('content', '')
+                if len(content) > 10:  # Only include substantial messages
+                    recent_content.append(content[:100])  # First 100 chars
+        
+        if recent_content:
+            context_summary = " ".join(recent_content)
+            enhanced_query = f"{question} {context_summary}"
+            print(f"DEBUG: Enhanced with recent conversation: '{question}' -> '{enhanced_query}'")
+            return enhanced_query
     
     return question
 
@@ -461,23 +583,50 @@ def chat():
         # Add user message to conversation history
         session['conversation_history'].append({"role": "user", "content": message})
         
-        # Keep last 20 messages for better context retention
-        if len(session['conversation_history']) > 20:
-            session['conversation_history'] = session['conversation_history'][-20:]
+        # Keep last 30 messages for better context retention and awareness
+        if len(session['conversation_history']) > 30:
+            session['conversation_history'] = session['conversation_history'][-30:]
         
         # Query the cloud RAG system with conversation context
         rag_content = query_rag_with_context(message, session.get('conversation_history', []))
         
-        # Create context-specific instructions
+        # Get conversation context summary for enhanced awareness
+        context_summary = get_conversation_context_summary(session.get('conversation_history', []))
+        
+        # Create context-specific instructions with EXTREME CONTEXTUAL AWARENESS
         if ("general knowledge" in rag_content):
-            context_instructions = f"""Mode: General Knowledge Assistant
+            context_instructions = f"""Mode: General Knowledge Assistant with EXTREME CONTEXTUAL AWARENESS
 Status: {rag_content}
 
-Instructions: You are Liam, an expert in electrical safety and NFPA 70E standards. Use your general knowledge to provide helpful, accurate information about electrical safety, calibration, PPE testing, and related topics. Be professional and authoritative while acknowledging when specific documentation would be helpful."""
+CONVERSATION CONTEXT SUMMARY: {context_summary}
+
+CRITICAL CONTEXT REQUIREMENTS:
+- You MUST reference previous messages in this conversation when relevant
+- You MUST maintain awareness of what was discussed before
+- You MUST connect current questions to previous topics
+- You MUST preserve context across multiple exchanges
+- You MUST acknowledge what was discussed earlier when providing new information
+- You MUST use the conversation context summary above to maintain awareness of equipment types, voltage types, classes, and topics
+
+Instructions: You are Liam, an expert in electrical safety and NFPA 70E standards. Use your general knowledge to provide helpful, accurate information about electrical safety, calibration, PPE testing, and related topics. Be professional and authoritative while acknowledging when specific documentation would be helpful. ALWAYS reference previous conversation elements when relevant."""
         else:
-            context_instructions = f"""Mode: Cloud Knowledge Base Enhanced
+            context_instructions = f"""Mode: Cloud Knowledge Base Enhanced with EXTREME CONTEXTUAL AWARENESS
 Available Information:
 {rag_content}
+
+CONVERSATION CONTEXT SUMMARY: {context_summary}
+
+CRITICAL CONTEXTUAL AWARENESS REQUIREMENTS:
+- You MUST ALWAYS reference previous messages in this conversation when relevant
+- You MUST maintain awareness of the entire conversation history provided to you
+- You MUST connect current questions to previous topics discussed
+- You MUST remember equipment types, voltage types (AC/DC), classes, and specifications from earlier in the conversation
+- You MUST treat follow-up questions as continuations of the same topic unless explicitly changed
+- You MUST preserve context across multiple exchanges - if we discussed gloves, "what about class 3" means class 3 gloves
+- You MUST reference previous answers when providing new information
+- You MUST maintain conversational continuity and flow
+- You MUST be extremely contextually aware at all times
+- You MUST use the conversation context summary above to maintain awareness of equipment types, voltage types, classes, and topics
 
 CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
 1. CAREFULLY READ all provided information before responding
@@ -489,7 +638,7 @@ CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
 7. When providing numerical values, include the units and specify whether they are AC or DC
 8. If both AC and DC values are present, clearly distinguish which applies to the question
 
-FOLLOW-UP QUESTION HANDLING:
+FOLLOW-UP QUESTION HANDLING WITH EXTREME CONTEXT AWARENESS:
 9. If this appears to be a follow-up question (like "what about class 3"), look at the conversation history
 10. Maintain the same context as the previous question (DC gloves, AC blankets, etc.)
 11. If the previous question was about DC voltage for gloves, this question should also be about DC voltage for gloves
@@ -503,6 +652,8 @@ FOLLOW-UP QUESTION HANDLING:
 19. UNIVERSAL: If discussing maintenance and user asks "what about standards", answer about maintenance standards
 20. UNIVERSAL: If discussing safety and user asks "what about training", answer about safety training
 21. UNIVERSAL: Always maintain the core topic, equipment type, standard, or procedure from conversation history
+22. UNIVERSAL: Always reference previous answers when providing new information
+23. UNIVERSAL: Always acknowledge what was discussed before when relevant
 
 PERSONALITY EXAMPLES:
 - Add quirky asides: "Fun fact: rubber gloves were invented in 1889, same year as the Eiffel Tower!"
@@ -533,14 +684,14 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             # Add current message
             messages.append({"role": "user", "content": message})
             
-            # Call OpenAI GPT API with improved memory settings
+            # Call OpenAI GPT API with improved memory and context settings
             response = client.chat.completions.create(
                 model=GPT_MODEL,
                 messages=messages,
-                max_tokens=1000,  # Increased for better responses
-                temperature=0.3,  # Reduced for more consistent technical accuracy
-                presence_penalty=0.1,  # Encourage diverse responses
-                frequency_penalty=0.1   # Reduce repetition
+                max_tokens=1200,  # Increased for better context-aware responses
+                temperature=0.2,  # Reduced for more consistent technical accuracy and context retention
+                presence_penalty=0.0,  # Reduced to maintain context consistency
+                frequency_penalty=0.0   # Reduced to allow referencing previous topics
             )
 
             ai_response = response.choices[0].message.content
