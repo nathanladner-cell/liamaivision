@@ -183,7 +183,7 @@
 
         .message.assistant {
             justify-content: flex-start;
-            padding-left: 70px; /* Reserve space for the swimming logo */
+            align-items: flex-start;
         }
 
         .message-avatar {
@@ -781,10 +781,9 @@
             box-shadow: none;
             border: none;
             animation: none;
-            position: absolute;
-            left: -60px;
-            top: 5px;
-            z-index: 10;
+            margin-right: 15px;
+            margin-top: 5px;
+            flex-shrink: 0;
         }
 
         /* Hide header logo during animation */
@@ -892,7 +891,7 @@
                     <textarea
                         id="chatInput"
                         class="chat-input"
-                        placeholder="hi, i'm liam. how can i help?"
+                        placeholder="Hi, *giggles* I'm Liam"
                         rows="1"
                     ></textarea>
                     <button id="sendButton" class="send-button" onclick="sendMessage()">
