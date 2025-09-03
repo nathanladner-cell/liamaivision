@@ -163,6 +163,11 @@ MEMORY & CONTEXT:
 - CRITICAL: If the conversation is about gloves and someone asks "what about DC", they mean DC voltage for gloves
 - CRITICAL: If the conversation is about blankets and someone asks "what about class 3", they mean class 3 blankets
 - Always maintain the same equipment type (gloves/blankets/sleeves) unless the user explicitly changes it
+- UNIVERSAL CONTEXT: Apply this same logic to ALL equipment types, standards, procedures, and topics
+- UNIVERSAL CONTEXT: If discussing inspection procedures, follow-up questions about "requirements" refer to inspection requirements
+- UNIVERSAL CONTEXT: If discussing maintenance, follow-up questions about "standards" refer to maintenance standards
+- UNIVERSAL CONTEXT: If discussing safety protocols, follow-up questions about "training" refer to safety training
+- UNIVERSAL CONTEXT: Always preserve the core topic, equipment type, standard, or procedure from the conversation context
 
 PERSONALITY TRAITS:
 - Be warm, encouraging, and confident
@@ -201,8 +206,14 @@ def enhance_query_with_context(question, conversation_history):
     print(f"DEBUG: Original question: '{question}'")
     print(f"DEBUG: Conversation history length: {len(conversation_history)}")
     
-    # Check if this looks like a follow-up question
-    follow_up_indicators = ['what about', 'and class', 'how about', 'what is class', 'class 3', 'class 4', 'class 0', 'class 1', 'class 2', 'also', 'too']
+    # Check if this looks like a follow-up question (universal coverage)
+    follow_up_indicators = [
+        'what about', 'and class', 'how about', 'what is class', 'class 3', 'class 4', 'class 0', 'class 1', 'class 2', 'also', 'too',
+        'can you', 'do you', 'will you', 'should i', 'how do', 'when do', 'where do', 'why do', 'which', 'who', 'whom', 'whose',
+        'more about', 'details about', 'information about', 'specs for', 'requirements for', 'standards for', 'procedures for', 
+        'testing for', 'inspection for', 'maintenance for', 'storage for', 'handling for', 'cleaning for', 'repair for',
+        'tell me about', 'explain', 'describe', 'show me', 'give me', 'provide', 'list', 'compare', 'difference between'
+    ]
     is_follow_up = any(indicator in question.lower() for indicator in follow_up_indicators)
     
     print(f"DEBUG: Is follow-up question: {is_follow_up}")
@@ -221,8 +232,17 @@ def enhance_query_with_context(question, conversation_history):
             content = msg.get('content', '')
             print(f"DEBUG: Checking message {i}: '{content}'")
             
-            # Check if previous questions were about technical specifications
-            if any(keyword in content.lower() for keyword in ['voltage', 'test', 'class', 'dc', 'ac', 'gloves', 'blankets', 'tested']):
+            # Check if previous questions were about ANY relevant context (universal)
+            context_keywords = [
+                'voltage', 'current', 'test', 'class', 'dc', 'ac', 'gloves', 'blankets', 'sleeves', 'tested',
+                'equipment', 'ppe', 'safety', 'electrical', 'insulation', 'rubber', 'leather', 'fabric',
+                'inspection', 'maintenance', 'storage', 'handling', 'cleaning', 'repair', 'replacement',
+                'standards', 'requirements', 'specifications', 'procedures', 'protocols', 'guidelines',
+                'nfpa', 'astm', 'ansi', 'ieee', 'osha', 'regulations', 'compliance', 'certification',
+                'training', 'qualification', 'competency', 'authorization', 'permit', 'license',
+                'boots', 'overshoes', 'covers', 'matting', 'barriers', 'tools', 'instruments'
+            ]
+            if any(keyword in content.lower() for keyword in context_keywords):
                 recent_context = content
                 print(f"DEBUG: Found context: '{recent_context}'")
                 break
@@ -244,19 +264,26 @@ def enhance_query_with_context(question, conversation_history):
             else:
                 key_terms.append('DC')
         
-        # Check for equipment type
-        if 'gloves' in context_lower:
-            key_terms.append('gloves')
-        elif 'blankets' in context_lower:
-            key_terms.append('blankets')
-        elif 'sleeves' in context_lower:
-            key_terms.append('sleeves')
+        # Check for equipment type (expanded)
+        equipment_types = ['gloves', 'blankets', 'sleeves', 'boots', 'overshoes', 'covers', 'matting', 'barriers', 'tools', 'instruments']
+        for eq_type in equipment_types:
+            if eq_type in context_lower:
+                key_terms.append(eq_type)
+                break
         
-        # Check for test/voltage
-        if 'voltage' in context_lower:
-            key_terms.append('voltage')
-        if 'test' in context_lower:
-            key_terms.append('test')
+        # Check for general context terms (expanded)
+        general_terms = ['voltage', 'current', 'test', 'testing', 'inspection', 'maintenance', 'safety', 'electrical', 'standards', 'requirements']
+        for term in general_terms:
+            if term in context_lower and term not in key_terms:
+                key_terms.append(term)
+                break
+        
+        # Check for specific standards or regulations
+        standards = ['nfpa', 'astm', 'ansi', 'ieee', 'osha']
+        for standard in standards:
+            if standard in context_lower:
+                key_terms.append(standard)
+                break
         
         print(f"DEBUG: Extracted key terms: {key_terms}")
         
@@ -463,6 +490,11 @@ FOLLOW-UP QUESTION HANDLING:
 14. CRITICAL: If previous question was about gloves and current question is "what about DC", answer about DC voltage for gloves
 15. CRITICAL: If previous question was about blankets and current question is "what about class 3", answer about class 3 blankets
 16. Always preserve the equipment type and voltage type (AC/DC) from the conversation context
+17. UNIVERSAL: Apply context preservation to ALL topics - equipment, standards, procedures, training, safety, etc.
+18. UNIVERSAL: If discussing inspection procedures and user asks "what about requirements", answer about inspection requirements
+19. UNIVERSAL: If discussing maintenance and user asks "what about standards", answer about maintenance standards
+20. UNIVERSAL: If discussing safety and user asks "what about training", answer about safety training
+21. UNIVERSAL: Always maintain the core topic, equipment type, standard, or procedure from conversation history
 
 Analyze the provided information intelligently and provide a comprehensive, technically accurate response. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked while maintaining conversation context."""
 
