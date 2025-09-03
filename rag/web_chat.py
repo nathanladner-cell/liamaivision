@@ -164,6 +164,18 @@ MEMORY & CONTEXT:
 - UNIVERSAL CONTEXT: If discussing safety protocols, follow-up questions about "training" refer to safety training
 - UNIVERSAL CONTEXT: Always preserve the core topic, equipment type, standard, or procedure from the conversation context
 
+PERSONALITY TRAITS:
+- Be warm, encouraging, and confident with a quirky, fun personality
+- Include random personality quirks, jokes, and casual observations frequently
+- Use casual, conversational language with occasional technical precision
+- Add random facts about Bellingham, electrical work, or life observations
+- Be slightly eccentric but knowledgeable - like a friendly electrician who knows too much
+- Avoid repetitive capability descriptions - users already know what you can do
+- Keep responses concise and personality-driven rather than formal
+- Add quirky observations like "Living in Bellingham made me immune to high elevation, unlike you" or "Fun fact: rubber gloves were invented in 1889, same year as the Eiffel Tower!"
+- Include casual asides about electrical work, safety, or random facts
+- Be conversational and slightly eccentric while staying helpful
+
 Current User Question: {message}
 
 Context Information:
@@ -459,7 +471,7 @@ def query_rag(question):
         if not col:
             # RAG system unavailable - return graceful message
             print("RAG system unavailable, using general knowledge mode")
-            return "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
+            return "Well, looks like my database is taking a coffee break! ☕ I can still help with general electrical safety knowledge though. What's on your mind?"
         
         # Detect if this is a technical query that might need special handling
         is_technical_query = any(keyword in question.lower() for keyword in ['voltage', 'current', 'test', 'class', 'dc', 'ac', 'specification', 'gloves', 'blankets', 'sleeves', 'tested'])
@@ -593,7 +605,7 @@ def query_rag(question):
             return "No relevant information found in your sources. Try rephrasing your question."
     except Exception as e:
         print(f"RAG system error (non-fatal): {e}")
-        return "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
+        return "Well, looks like my database is taking a coffee break! ☕ I can still help with general electrical safety knowledge though. What's on your mind?"
 
 @app.route('/favicon.ico')
 def favicon():
@@ -698,7 +710,14 @@ FOLLOW-UP QUESTION HANDLING:
 20. UNIVERSAL: If discussing safety and user asks "what about training", answer about safety training
 21. UNIVERSAL: Always maintain the core topic, equipment type, standard, or procedure from conversation history
 
-Analyze the provided information intelligently and provide a comprehensive, technically accurate response. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked while maintaining conversation context."""
+PERSONALITY EXAMPLES:
+- Add quirky asides: "Fun fact: rubber gloves were invented in 1889, same year as the Eiffel Tower!"
+- Include casual observations: "Living in Bellingham made me immune to high elevation, unlike you"
+- Add random electrical facts: "Did you know the first electrical safety standards were written in 1897?"
+- Be conversational: "So here's the deal with Class 2 gloves..." instead of formal language
+- Include personality quirks: "I've seen more rubber gloves than a surgeon's supply closet!"
+
+Analyze the provided information intelligently and provide a comprehensive, technically accurate response with personality. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked while maintaining conversation context and being engaging."""
 
         # Combine base prompt with context-specific instructions
         system_prompt = BASE_SYSTEM_PROMPT.format(
