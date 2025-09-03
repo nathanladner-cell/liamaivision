@@ -156,6 +156,9 @@ MEMORY & CONTEXT:
 - When answering follow-up questions, reference what was discussed before
 - Build connections between current questions and previous topics
 - Maintain conversational continuity and context awareness
+- For questions like "what about class 3" or "and class 4", understand they refer to the same topic as the previous question
+- If the previous question was about DC voltage for gloves, continue with DC voltage for gloves
+- If the previous question was about AC specifications, continue with AC specifications
 
 PERSONALITY TRAITS:
 - Be warm, encouraging, and confident
@@ -178,6 +181,65 @@ def get_collection():
     except Exception as e:
         print(f"⚠️  Cloud database error (using fallback): {e}")
         return FallbackCloudCollection()
+
+def query_rag_with_context(question, conversation_history):
+    """Query the cloud RAG system with conversation context for better follow-up handling"""
+    
+    # Enhance the query with conversation context for follow-up questions
+    enhanced_query = enhance_query_with_context(question, conversation_history)
+    
+    # Use the enhanced query for RAG search
+    return query_rag(enhanced_query)
+
+def enhance_query_with_context(question, conversation_history):
+    """Enhance follow-up questions with context from conversation history"""
+    
+    # Check if this looks like a follow-up question
+    follow_up_indicators = ['what about', 'and class', 'how about', 'what is class', 'class 3', 'class 4', 'also', 'too']
+    is_follow_up = any(indicator in question.lower() for indicator in follow_up_indicators)
+    
+    if not is_follow_up or len(conversation_history) < 2:
+        return question
+    
+    # Look for the most recent technical context in conversation history
+    recent_context = []
+    for msg in reversed(conversation_history[-6:]):  # Look at last 6 messages
+        if msg.get('role') == 'user':
+            content = msg.get('content', '')
+            # Check if previous questions were about technical specifications
+            if any(keyword in content.lower() for keyword in ['voltage', 'test', 'class', 'dc', 'ac', 'gloves', 'blankets']):
+                recent_context.append(content)
+                break
+    
+    if recent_context:
+        # Combine the context with the current question
+        context_query = recent_context[0]
+        
+        # Extract key terms from the context
+        key_terms = []
+        if 'dc' in context_query.lower():
+            key_terms.append('DC')
+        if 'ac' in context_query.lower():
+            key_terms.append('AC')
+        if 'voltage' in context_query.lower():
+            key_terms.append('voltage')
+        if 'gloves' in context_query.lower():
+            key_terms.append('gloves')
+        if 'blankets' in context_query.lower():
+            key_terms.append('blankets')
+        if 'test' in context_query.lower():
+            key_terms.append('test')
+        
+        # Create enhanced query
+        if key_terms:
+            enhanced_query = f"{question} {' '.join(key_terms)}"
+        else:
+            enhanced_query = f"{context_query} {question}"
+        
+        print(f"Enhanced follow-up query: '{question}' -> '{enhanced_query}'")
+        return enhanced_query
+    
+    return question
 
 def query_rag(question):
     """Query the cloud RAG system for relevant content - enhanced with hybrid search for technical accuracy"""
@@ -336,8 +398,8 @@ def chat():
         if len(session['conversation_history']) > 20:
             session['conversation_history'] = session['conversation_history'][-20:]
         
-        # Query the cloud RAG system
-        rag_content = query_rag(message)
+        # Query the cloud RAG system with conversation context
+        rag_content = query_rag_with_context(message, session.get('conversation_history', []))
         
         # Create context-specific instructions
         if ("general knowledge" in rag_content):
@@ -360,7 +422,13 @@ CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
 7. When providing numerical values, include the units and specify whether they are AC or DC
 8. If both AC and DC values are present, clearly distinguish which applies to the question
 
-Analyze the provided information intelligently and provide a comprehensive, technically accurate response. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked."""
+FOLLOW-UP QUESTION HANDLING:
+9. If this appears to be a follow-up question (like "what about class 3"), look at the conversation history
+10. Maintain the same context as the previous question (DC gloves, AC blankets, etc.)
+11. If the previous question was about DC voltage for gloves, this question should also be about DC voltage for gloves
+12. Reference the previous discussion when appropriate to maintain conversational flow
+
+Analyze the provided information intelligently and provide a comprehensive, technically accurate response. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked while maintaining conversation context."""
 
         # Combine base prompt with context-specific instructions
         system_prompt = BASE_SYSTEM_PROMPT.format(
