@@ -122,6 +122,9 @@ CORE PRINCIPLES:
 - Match the user's communication style (casual/professional/technical)
 - Provide specific, actionable recommendations when possible
 - Ask for clarification only when truly needed
+- REMEMBER AND REFERENCE previous parts of our conversation when relevant
+- Build upon earlier topics discussed in this conversation
+- Use context from previous messages to provide better follow-up answers
 
 EXPERTISE AREAS:
 - Electrical calibration procedures and standards
@@ -136,6 +139,13 @@ RESPONSE STYLE:
 - Include practical tips and safety considerations
 - Be confident without being arrogant
 - Focus on helping the user solve their specific problem
+- Reference earlier conversation points when they add value
+
+MEMORY & CONTEXT:
+- Pay attention to the full conversation history provided
+- When answering follow-up questions, reference what was discussed before
+- Build connections between current questions and previous topics
+- Maintain conversational continuity and context awareness
 
 PERSONALITY TRAITS:
 - Be warm, encouraging, and confident
@@ -245,9 +255,9 @@ def chat():
         # Add user message to conversation history
         session['conversation_history'].append({"role": "user", "content": message})
         
-        # Keep only last 10 messages
-        if len(session['conversation_history']) > 10:
-            session['conversation_history'] = session['conversation_history'][-10:]
+        # Keep last 20 messages for better context retention
+        if len(session['conversation_history']) > 20:
+            session['conversation_history'] = session['conversation_history'][-20:]
         
         # Query the cloud RAG system
         rag_content = query_rag(message)
@@ -283,12 +293,14 @@ Instructions: Analyze the provided information intelligently. If the question is
             # Add current message
             messages.append({"role": "user", "content": message})
             
-            # Call OpenAI GPT API
+            # Call OpenAI GPT API with improved memory settings
             response = client.chat.completions.create(
                 model=GPT_MODEL,
                 messages=messages,
-                max_tokens=200,
-                temperature=0.7
+                max_tokens=1000,  # Increased for better responses
+                temperature=0.7,
+                presence_penalty=0.1,  # Encourage diverse responses
+                frequency_penalty=0.1   # Reduce repetition
             )
 
             ai_response = response.choices[0].message.content
