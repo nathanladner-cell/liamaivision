@@ -92,13 +92,13 @@
             left: 0;
             right: 0;
             z-index: 100;
-            background: transparent; /* Transparent by default */
-            transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+            background: transparent !important; /* Always transparent */
+            backdrop-filter: none !important; /* No blur effect */
         }
 
         .header.scrolled {
-            background: transparent;
-            backdrop-filter: none;
+            background: transparent !important; /* Always transparent when scrolled */
+            backdrop-filter: none !important; /* No blur effect when scrolled */
         }
 
 
@@ -1299,6 +1299,9 @@
             input.value = '';
             input.style.height = 'auto';
 
+            // Close mobile keyboard
+            input.blur();
+
             // Show typing indicator
             showTyping();
 
@@ -1335,7 +1338,7 @@
                 setTimeout(() => {
                     hideTyping();
                     sendButton.disabled = false;
-                    input.focus(); // Refocus input
+                    // Don't refocus input - keep keyboard closed
                 }, 100);
             }
         }
