@@ -1367,7 +1367,15 @@
             
             console.log('Message:', message, 'isTyping:', isTyping); // Debug log
             
-            if (!message || isTyping) return;
+            if (!message) {
+                console.log('No message to send'); // Debug log
+                return;
+            }
+            
+            if (isTyping) {
+                console.log('Already typing, ignoring send'); // Debug log
+                return;
+            }
             
             // Disable send button first to prevent double-clicks
             const sendButton = document.getElementById('sendButton');
@@ -1383,12 +1391,8 @@
             // Show typing indicator
             showTyping();
             
-            // Close mobile keyboard after a short delay to ensure message is sent
-            setTimeout(() => {
-                closeKeyboard();
-            }, 100);
-            
             try {
+                console.log('Sending message to API:', message); // Debug log
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
@@ -1397,10 +1401,16 @@
                     body: JSON.stringify({ message: message })
                 });
                 
+                console.log('API response status:', response.status); // Debug log
                 const data = await response.json();
                 
                 if (response.ok) {
                     addMessage(data.response, false);
+                    
+                    // Close mobile keyboard after successful message send
+                    setTimeout(() => {
+                        closeKeyboard();
+                    }, 500);
                     
                     // Check if this is a video trigger response
                     if (data.trigger_video) {
