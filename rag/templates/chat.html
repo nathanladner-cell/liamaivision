@@ -1145,6 +1145,21 @@
             setTimeout(handleKeyboardToggle, 300);
         });
 
+        // Function to programmatically close the keyboard
+        function closeKeyboard() {
+            chatInput.blur();
+            // Force focus on a hidden element to ensure keyboard closes
+            const hiddenInput = document.createElement('input');
+            hiddenInput.style.position = 'absolute';
+            hiddenInput.style.left = '-9999px';
+            hiddenInput.style.opacity = '0';
+            document.body.appendChild(hiddenInput);
+            hiddenInput.focus();
+            setTimeout(() => {
+                document.body.removeChild(hiddenInput);
+            }, 100);
+        }
+
         // Enter key to send
         chatInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -1353,6 +1368,9 @@
             input.value = '';
             input.style.height = 'auto';
             
+            // Close mobile keyboard
+            closeKeyboard();
+            
             // Show typing indicator
             showTyping();
             
@@ -1391,7 +1409,7 @@
                 setTimeout(() => {
                     hideTyping();
                     sendButton.disabled = false;
-                    input.focus();
+                    // Don't refocus input to keep keyboard closed
                 }, 100);
             }
         }
