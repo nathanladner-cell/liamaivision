@@ -194,50 +194,78 @@ def query_rag_with_context(question, conversation_history):
 def enhance_query_with_context(question, conversation_history):
     """Enhance follow-up questions with context from conversation history"""
     
+    print(f"DEBUG: Original question: '{question}'")
+    print(f"DEBUG: Conversation history length: {len(conversation_history)}")
+    
     # Check if this looks like a follow-up question
-    follow_up_indicators = ['what about', 'and class', 'how about', 'what is class', 'class 3', 'class 4', 'also', 'too']
+    follow_up_indicators = ['what about', 'and class', 'how about', 'what is class', 'class 3', 'class 4', 'class 0', 'class 1', 'class 2', 'also', 'too']
     is_follow_up = any(indicator in question.lower() for indicator in follow_up_indicators)
     
+    print(f"DEBUG: Is follow-up question: {is_follow_up}")
+    
     if not is_follow_up or len(conversation_history) < 2:
+        print("DEBUG: Not a follow-up or insufficient history, returning original question")
         return question
     
     # Look for the most recent technical context in conversation history
-    recent_context = []
-    for msg in reversed(conversation_history[-6:]):  # Look at last 6 messages
+    print("DEBUG: Searching conversation history for context...")
+    recent_context = None
+    
+    # Look at the last few user messages (excluding the current one)
+    for i, msg in enumerate(reversed(conversation_history[-8:])):
         if msg.get('role') == 'user':
             content = msg.get('content', '')
+            print(f"DEBUG: Checking message {i}: '{content}'")
+            
             # Check if previous questions were about technical specifications
-            if any(keyword in content.lower() for keyword in ['voltage', 'test', 'class', 'dc', 'ac', 'gloves', 'blankets']):
-                recent_context.append(content)
+            if any(keyword in content.lower() for keyword in ['voltage', 'test', 'class', 'dc', 'ac', 'gloves', 'blankets', 'tested']):
+                recent_context = content
+                print(f"DEBUG: Found context: '{recent_context}'")
                 break
     
     if recent_context:
-        # Combine the context with the current question
-        context_query = recent_context[0]
-        
-        # Extract key terms from the context
+        # Extract key terms from the context with more comprehensive matching
         key_terms = []
-        if 'dc' in context_query.lower():
-            key_terms.append('DC')
-        if 'ac' in context_query.lower():
+        context_lower = recent_context.lower()
+        
+        # Check for AC/DC
+        if 'ac' in context_lower and 'dc' not in context_lower:
             key_terms.append('AC')
-        if 'voltage' in context_query.lower():
-            key_terms.append('voltage')
-        if 'gloves' in context_query.lower():
+        elif 'dc' in context_lower and 'ac' not in context_lower:
+            key_terms.append('DC')
+        elif 'ac' in context_lower and 'dc' in context_lower:
+            # If both are mentioned, try to determine which is more relevant
+            if context_lower.find('ac') < context_lower.find('dc'):
+                key_terms.append('AC')
+            else:
+                key_terms.append('DC')
+        
+        # Check for equipment type
+        if 'gloves' in context_lower:
             key_terms.append('gloves')
-        if 'blankets' in context_query.lower():
+        elif 'blankets' in context_lower:
             key_terms.append('blankets')
-        if 'test' in context_query.lower():
+        elif 'sleeves' in context_lower:
+            key_terms.append('sleeves')
+        
+        # Check for test/voltage
+        if 'voltage' in context_lower:
+            key_terms.append('voltage')
+        if 'test' in context_lower:
             key_terms.append('test')
+        
+        print(f"DEBUG: Extracted key terms: {key_terms}")
         
         # Create enhanced query
         if key_terms:
             enhanced_query = f"{question} {' '.join(key_terms)}"
         else:
-            enhanced_query = f"{context_query} {question}"
+            enhanced_query = f"{recent_context} {question}"
         
-        print(f"Enhanced follow-up query: '{question}' -> '{enhanced_query}'")
+        print(f"DEBUG: Enhanced follow-up query: '{question}' -> '{enhanced_query}'")
         return enhanced_query
+    else:
+        print("DEBUG: No relevant context found")
     
     return question
 
