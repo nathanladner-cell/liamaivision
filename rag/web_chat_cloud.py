@@ -205,15 +205,6 @@ def health():
         'message': 'AmpAI Cloud is running'
     })
 
-@app.route('/video/liamaicreepy.mp4')
-def serve_video():
-    """Serve the video file"""
-    video_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'liamaicreepy.mp4')
-    if os.path.exists(video_path):
-        from flask import send_file
-        return send_file(video_path, mimetype='video/mp4')
-    else:
-        return "Video not found", 404
 
 @app.route('/')
 def index():
