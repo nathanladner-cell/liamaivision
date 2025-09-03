@@ -159,6 +159,10 @@ MEMORY & CONTEXT:
 - For questions like "what about class 3" or "and class 4", understand they refer to the same topic as the previous question
 - If the previous question was about DC voltage for gloves, continue with DC voltage for gloves
 - If the previous question was about AC specifications, continue with AC specifications
+- CRITICAL: Never switch topics unless explicitly asked (e.g., if talking about gloves, don't switch to blankets)
+- CRITICAL: If the conversation is about gloves and someone asks "what about DC", they mean DC voltage for gloves
+- CRITICAL: If the conversation is about blankets and someone asks "what about class 3", they mean class 3 blankets
+- Always maintain the same equipment type (gloves/blankets/sleeves) unless the user explicitly changes it
 
 PERSONALITY TRAITS:
 - Be warm, encouraging, and confident
@@ -278,7 +282,7 @@ def query_rag(question):
             return "I'll help you with your question using my general knowledge about electrical safety and NFPA standards."
         
         # Detect if this is a technical query that might need special handling
-        is_technical_query = any(keyword in question.lower() for keyword in ['voltage', 'current', 'test', 'class', 'dc', 'ac', 'specification'])
+        is_technical_query = any(keyword in question.lower() for keyword in ['voltage', 'current', 'test', 'class', 'dc', 'ac', 'specification', 'gloves', 'blankets', 'sleeves', 'tested'])
         
         # Check if it's the fallback collection
         if isinstance(col, FallbackCloudCollection):
@@ -455,6 +459,10 @@ FOLLOW-UP QUESTION HANDLING:
 10. Maintain the same context as the previous question (DC gloves, AC blankets, etc.)
 11. If the previous question was about DC voltage for gloves, this question should also be about DC voltage for gloves
 12. Reference the previous discussion when appropriate to maintain conversational flow
+13. CRITICAL: Never switch equipment types (gloves/blankets/sleeves) unless explicitly asked
+14. CRITICAL: If previous question was about gloves and current question is "what about DC", answer about DC voltage for gloves
+15. CRITICAL: If previous question was about blankets and current question is "what about class 3", answer about class 3 blankets
+16. Always preserve the equipment type and voltage type (AC/DC) from the conversation context
 
 Analyze the provided information intelligently and provide a comprehensive, technically accurate response. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked while maintaining conversation context."""
 
