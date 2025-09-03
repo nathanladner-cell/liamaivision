@@ -23,7 +23,7 @@ class CloudVectorDB:
     def __init__(self):
         self.pc = None
         self.index = None
-        self.index_name = "ampai-knowledge"
+        self.index_name = "liamai-knowledge"
         self.dimension = 1536  # OpenAI ada-002 embedding dimension
         self.openai_client = None
         
