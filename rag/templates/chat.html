@@ -1168,30 +1168,60 @@
 
         // Mobile-friendly send button event handling
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, looking for send button...');
             const sendButton = document.getElementById('sendButton');
+            console.log('Send button found:', !!sendButton);
+
             if (sendButton) {
+                console.log('Attaching event handlers to send button');
+
                 // Remove the onclick attribute to prevent conflicts
                 sendButton.removeAttribute('onclick');
-                
-                // Simple, reliable click handler
+
+                // Simple test click handler first
                 sendButton.onclick = function(e) {
+                    console.log('BUTTON CLICKED! Preventing default and calling sendMessage');
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Send button clicked via onclick handler'); // Debug log
                     sendMessage();
                     return false;
                 };
-                
+
                 // Touch event handler for mobile
                 sendButton.ontouchstart = function(e) {
+                    console.log('BUTTON TOUCHED! Preventing default and calling sendMessage');
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Send button touched via ontouchstart handler'); // Debug log
                     sendMessage();
                     return false;
                 };
+
+                // Add a visual feedback
+                sendButton.addEventListener('touchstart', function() {
+                    this.style.background = 'rgba(255, 255, 255, 0.3)';
+                });
+
+                sendButton.addEventListener('touchend', function() {
+                    this.style.background = 'rgba(255, 255, 255, 0.15)';
+                });
+
+                // Add temporary visual indicator that button is active
+                sendButton.style.border = '2px solid red';
+                setTimeout(() => {
+                    sendButton.style.border = '1px solid rgba(255, 255, 255, 0.25)';
+                }, 2000);
+
+                console.log('Event handlers attached successfully');
+            } else {
+                console.error('Send button not found!');
             }
         });
+
+        // Test sendMessage function directly
+        window.testSendMessage = function() {
+            console.log('Testing sendMessage function directly...');
+            sendMessage();
+        };
 
         // Cyber-themed initialization
         console.log('NEURAL INTERFACE INITIALIZED');
