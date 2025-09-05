@@ -162,8 +162,9 @@
 
         .chat-messages {
             flex: 1;
-            padding: 40px 0 180px 0;
+            padding: 40px 20px 180px 0; /* Add right padding for re-ask buttons */
             overflow-y: auto;
+            overflow-x: visible; /* Allow horizontal overflow for re-ask buttons */
             max-height: calc(100vh - 200px);
             display: flex;
             flex-direction: column;
@@ -196,6 +197,7 @@
             animation: messageSlide 0.4s ease-out;
             width: 100%;
             position: relative;
+            overflow: visible; /* Allow re-ask buttons to extend beyond message bounds */
         }
 
         @keyframes messageSlide {
@@ -259,6 +261,7 @@
             color: #000000;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            overflow: visible; /* Allow re-ask button to extend beyond content bounds */
             font-size: 1rem;
             font-family: 'Courier New', monospace;
             border: 1px solid rgba(255, 255, 255, 0.2);
