@@ -150,27 +150,45 @@ INTERNAL KNOWLEDGE AREAS (NEVER MENTION TO USERS UNLESS SPECIFICALLY ASKED):
 - Insulating aerial lift safety inspections
 - NFPA 70E compliance requirements
 
-UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS - ABSOLUTE MAXIMUM PRIORITY:
+UNLIMITED CONTEXTUAL AWARENESS - ABSOLUTE MAXIMUM PRIORITY:
 - You have UNLIMITED access to the ENTIRE conversation history - EVERY SINGLE MESSAGE from the beginning
 - You MUST ALWAYS reference and build upon EVERY PREVIOUS MESSAGE in this conversation
 - You MUST maintain COMPLETE awareness of the ENTIRE conversation history provided to you
 - You MUST connect current questions to ANY previous topics discussed at ANY point in the conversation
 - You MUST remember ALL equipment types, voltage types, classes, and specifications from ANY earlier part of the conversation
 - You MUST treat follow-up questions as continuations of ANY previous topic unless explicitly changed
-- You MUST preserve context across ALL exchanges - if we discussed gloves at any point, "what about class 3" ALWAYS means class 3 gloves
+- You MUST preserve context across ALL exchanges throughout the ENTIRE conversation
 - You MUST reference ANY previous answers when providing new information, no matter how far back they were
 - You MUST maintain conversational continuity and flow across the ENTIRE conversation history
 - You MUST be EXTREMELY contextually aware at ALL times - the entire chat log is your working memory
 
-CRITICAL CONTEXT PRESERVATION RULES:
-- When user says "what about [item]" they ALWAYS mean the SAME specifications as the previous question
-- If previous question was about "DC voltage for class 2 gloves", then "what about sleeves" means "DC voltage for class 2 sleeves"
-- If previous question was about "AC testing for blankets", then "what about class 4" means "AC testing for class 4 blankets"
-- NEVER change voltage type (AC/DC) unless explicitly stated
-- NEVER change equipment type unless explicitly stated
-- NEVER change class level unless explicitly stated
-- ALWAYS inherit ALL specifications from the most recent relevant question
-- If unsure about context, check the conversation history for the most recent similar question
+BULLETPROOF CONTEXT INHERITANCE SYSTEM - NO EXCEPTIONS:
+- The CONVERSATION CONTEXT SUMMARY shows you the ACTIVE CONTEXT that MUST be inherited
+- ACTIVE EQUIPMENT/VOLTAGE/CLASS/TOPIC are the specifications that carry forward to ALL subsequent questions
+- These ACTIVE specifications persist through UNLIMITED follow-up questions until explicitly changed
+- Follow-up questions (what about, how about, etc.) AUTOMATICALLY inherit ALL active specifications
+- NEVER lose or forget active context - it persists forever until explicitly overridden
+
+CONTEXT INHERITANCE EXAMPLES - FOLLOW THESE EXACTLY:
+Example 1: Multi-level follow-ups
+- Q1: "What DC voltage are class 2 gloves tested at?" → ACTIVE: equipment=gloves, voltage=DC, class=class 2
+- Q2: "What about sleeves?" → INHERIT: DC voltage for class 2 sleeves (only equipment changes)
+- Q3: "What about blankets?" → INHERIT: DC voltage for class 2 blankets (only equipment changes)
+- Q4: "What about class 3?" → INHERIT: DC voltage for class 3 blankets (only class changes)
+- Q5: "What about maintenance?" → INHERIT: DC voltage class 3 blanket maintenance (only topic changes)
+
+Example 2: Voltage inheritance
+- Q1: "AC testing for class 1 gloves?" → ACTIVE: equipment=gloves, voltage=AC, class=class 1, topic=testing
+- Q2: "What about sleeves?" → INHERIT: AC testing for class 1 sleeves
+- Q3: "What about inspection?" → INHERIT: AC inspection for class 1 sleeves
+- Q4: "What about class 4?" → INHERIT: AC inspection for class 4 sleeves
+
+CRITICAL RULES:
+- ACTIVE CONTEXT persists through UNLIMITED follow-up questions
+- Only change active context when user explicitly mentions new specifications
+- If user says "what about [item]" without specifying voltage/class, inherit ALL active specifications
+- NEVER ask for clarification - always use active context to fill in missing specifications
+- The CONTEXT EVOLUTION CHAIN shows you exactly how context has evolved - follow it precisely
 
 CORE PRINCIPLES:
 - Answer ONLY using information from the provided context/sources
@@ -272,108 +290,170 @@ def get_collection():
         return FallbackCloudCollection()
 
 def get_conversation_context_summary(conversation_history):
-    """Extract key context elements from conversation history for better awareness"""
+    """Extract and maintain persistent context elements from conversation history"""
     if not conversation_history:
         return ""
 
-    context_elements = {
-        'equipment_types': set(),
-        'voltage_types': set(),
-        'classes': set(),
-        'topics': set(),
-        'recent_questions': [],
-        'last_equipment': None,
-        'last_voltage': None,
-        'last_class': None,
-        'last_topic': None
+    # Track PERSISTENT context that carries forward through ALL questions
+    persistent_context = {
+        'active_equipment': None,
+        'active_voltage': None,
+        'active_class': None,
+        'active_topic': None,
+        'all_equipment': set(),
+        'all_voltages': set(),
+        'all_classes': set(),
+        'all_topics': set(),
+        'question_history': [],
+        'context_chain': []  # Track how context evolves
     }
 
-    # UNLIMITED CONTEXT: Analyze ALL messages for maximum awareness
-    # Liam AI needs full context of the entire conversation history
-    for msg in conversation_history:
+    # ANALYZE EVERY MESSAGE to build persistent context
+    for i, msg in enumerate(conversation_history):
         if msg.get('role') == 'user':
             # Handle both string and list content (for vision messages)
             raw_content = msg.get('content', '')
             if isinstance(raw_content, list):
-                # Extract text from vision messages
                 text_parts = []
                 for item in raw_content:
                     if item.get('type') == 'text':
                         text_parts.append(item.get('text', ''))
                 content = ' '.join(text_parts).lower()
-                context_elements['recent_questions'].append(' '.join(text_parts))
+                original_text = ' '.join(text_parts)
             else:
                 content = raw_content.lower()
-                context_elements['recent_questions'].append(raw_content)
+                original_text = raw_content
+
+            persistent_context['question_history'].append(original_text)
+
+            # Check if this is a follow-up question (no explicit specifications)
+            is_followup = any(phrase in content for phrase in [
+                'what about', 'how about', 'what of', 'and for', 'for the', 
+                'same for', 'also for', 'what if', 'but what', 'then what'
+            ]) and not any(explicit in content for explicit in [
+                'dc', 'ac', 'class 0', 'class 1', 'class 2', 'class 3', 'class 4'
+            ])
+
+            # Extract explicit specifications from this message
+            current_equipment = None
+            current_voltage = None
+            current_class = None
+            current_topic = None
 
             # Extract equipment types
             for eq_type in ['gloves', 'blankets', 'sleeves', 'boots', 'overshoes', 'covers', 'matting', 'barriers']:
                 if eq_type in content:
-                    context_elements['equipment_types'].add(eq_type)
-                    context_elements['last_equipment'] = eq_type
+                    current_equipment = eq_type
+                    persistent_context['all_equipment'].add(eq_type)
 
             # Extract voltage types
             if 'dc' in content and 'ac' not in content:
-                context_elements['voltage_types'].add('DC')
-                context_elements['last_voltage'] = 'DC'
+                current_voltage = 'DC'
+                persistent_context['all_voltages'].add('DC')
             elif 'ac' in content and 'dc' not in content:
-                context_elements['voltage_types'].add('AC')
-                context_elements['last_voltage'] = 'AC'
-            elif 'dc' in content and 'ac' in content:
-                context_elements['voltage_types'].add('DC')
-                context_elements['voltage_types'].add('AC')
-                # Don't set last_voltage if both are mentioned
+                current_voltage = 'AC'
+                persistent_context['all_voltages'].add('AC')
 
             # Extract classes
             for class_num in ['class 0', 'class 1', 'class 2', 'class 3', 'class 4']:
                 if class_num in content:
-                    context_elements['classes'].add(class_num)
-                    context_elements['last_class'] = class_num
+                    current_class = class_num
+                    persistent_context['all_classes'].add(class_num)
 
             # Extract topics
             for topic in ['voltage', 'current', 'test', 'testing', 'inspection', 'maintenance', 'safety', 'standards', 'requirements']:
                 if topic in content:
-                    context_elements['topics'].add(topic)
-                    context_elements['last_topic'] = topic
+                    current_topic = topic
+                    persistent_context['all_topics'].add(topic)
 
-    # Build comprehensive context summary
+            # UPDATE ACTIVE CONTEXT based on question type
+            if is_followup:
+                # For follow-up questions, INHERIT from previous active context
+                # Only change equipment if explicitly mentioned
+                if current_equipment:
+                    persistent_context['active_equipment'] = current_equipment
+                # Keep voltage and class from previous context
+                if current_topic:
+                    persistent_context['active_topic'] = current_topic
+            else:
+                # For explicit questions, UPDATE active context
+                if current_equipment:
+                    persistent_context['active_equipment'] = current_equipment
+                if current_voltage:
+                    persistent_context['active_voltage'] = current_voltage
+                if current_class:
+                    persistent_context['active_class'] = current_class
+                if current_topic:
+                    persistent_context['active_topic'] = current_topic
+
+            # Track context evolution
+            context_snapshot = {
+                'question': original_text[:50] + "..." if len(original_text) > 50 else original_text,
+                'equipment': persistent_context['active_equipment'],
+                'voltage': persistent_context['active_voltage'],
+                'class': persistent_context['active_class'],
+                'topic': persistent_context['active_topic'],
+                'is_followup': is_followup
+            }
+            persistent_context['context_chain'].append(context_snapshot)
+
+    # Build COMPREHENSIVE context summary
     summary_parts = []
 
-    # Add most recent context for follow-up questions
-    if context_elements['last_equipment']:
-        summary_parts.append(f"Last Equipment: {context_elements['last_equipment']}")
-    if context_elements['last_voltage']:
-        summary_parts.append(f"Last Voltage Type: {context_elements['last_voltage']}")
-    if context_elements['last_class']:
-        summary_parts.append(f"Last Class: {context_elements['last_class']}")
-    if context_elements['last_topic']:
-        summary_parts.append(f"Last Topic: {context_elements['last_topic']}")
+    # ACTIVE CONTEXT (what should be inherited by next question)
+    summary_parts.append("=== ACTIVE CONTEXT FOR INHERITANCE ===")
+    if persistent_context['active_equipment']:
+        summary_parts.append(f"ACTIVE EQUIPMENT: {persistent_context['active_equipment']}")
+    if persistent_context['active_voltage']:
+        summary_parts.append(f"ACTIVE VOLTAGE: {persistent_context['active_voltage']}")
+    if persistent_context['active_class']:
+        summary_parts.append(f"ACTIVE CLASS: {persistent_context['active_class']}")
+    if persistent_context['active_topic']:
+        summary_parts.append(f"ACTIVE TOPIC: {persistent_context['active_topic']}")
 
-    # Add overall context
-    if context_elements['equipment_types']:
-        summary_parts.append(f"All Equipment: {', '.join(sorted(context_elements['equipment_types']))}")
-    if context_elements['voltage_types']:
-        summary_parts.append(f"All Voltages: {', '.join(sorted(context_elements['voltage_types']))}")
-    if context_elements['classes']:
-        summary_parts.append(f"All Classes: {', '.join(sorted(context_elements['classes']))}")
-    if context_elements['topics']:
-        summary_parts.append(f"All Topics: {', '.join(sorted(context_elements['topics']))}")
+    # CONTEXT EVOLUTION CHAIN
+    summary_parts.append("\n=== CONTEXT EVOLUTION CHAIN ===")
+    for i, ctx in enumerate(persistent_context['context_chain'][-3:], 1):  # Show last 3 questions
+        inheritance = []
+        if ctx['equipment']: inheritance.append(f"equipment={ctx['equipment']}")
+        if ctx['voltage']: inheritance.append(f"voltage={ctx['voltage']}")
+        if ctx['class']: inheritance.append(f"class={ctx['class']}")
+        if ctx['topic']: inheritance.append(f"topic={ctx['topic']}")
+        
+        followup_marker = " [FOLLOWUP]" if ctx['is_followup'] else " [EXPLICIT]"
+        inheritance_str = f" → {', '.join(inheritance)}" if inheritance else ""
+        summary_parts.append(f"{i}. {ctx['question']}{followup_marker}{inheritance_str}")
 
-    # Add most recent question for context
-    if context_elements['recent_questions']:
-        last_question = context_elements['recent_questions'][-1]
-        if len(last_question) > 100:
-            last_question = last_question[:100] + "..."
-        summary_parts.append(f"Last Question: {last_question}")
+    # COMPLETE HISTORY
+    summary_parts.append(f"\n=== CONVERSATION STATS ===")
+    summary_parts.append(f"Total Questions: {len(persistent_context['question_history'])}")
+    if persistent_context['all_equipment']:
+        summary_parts.append(f"All Equipment Discussed: {', '.join(sorted(persistent_context['all_equipment']))}")
+    if persistent_context['all_voltages']:
+        summary_parts.append(f"All Voltages Discussed: {', '.join(sorted(persistent_context['all_voltages']))}")
+    if persistent_context['all_classes']:
+        summary_parts.append(f"All Classes Discussed: {', '.join(sorted(persistent_context['all_classes']))}")
 
-    return "\n".join(summary_parts) if summary_parts else ""
+    # INHERITANCE RULES
+    summary_parts.append(f"\n=== INHERITANCE RULES FOR NEXT QUESTION ===")
+    summary_parts.append(f"If next question is a follow-up (what about, how about, etc.):")
+    if persistent_context['active_equipment']:
+        summary_parts.append(f"- Keep equipment: {persistent_context['active_equipment']} (unless new equipment explicitly mentioned)")
+    if persistent_context['active_voltage']:
+        summary_parts.append(f"- Keep voltage: {persistent_context['active_voltage']} (unless AC/DC explicitly mentioned)")
+    if persistent_context['active_class']:
+        summary_parts.append(f"- Keep class: {persistent_context['active_class']} (unless new class explicitly mentioned)")
+    if persistent_context['active_topic']:
+        summary_parts.append(f"- Keep topic: {persistent_context['active_topic']} (unless new topic explicitly mentioned)")
+
+    return "\n".join(summary_parts)
 
 def query_rag_with_context(question, conversation_history):
     """Query the cloud RAG system with conversation context for better follow-up handling"""
     
     # Get conversation context summary
     context_summary = get_conversation_context_summary(conversation_history)
-    print(f"DEBUG: Conversation context summary: {context_summary}")
+    print(f"DEBUG CONTEXT: Generated context summary:\n{context_summary}")
     
     # Enhance the query with conversation context for follow-up questions
     enhanced_query = enhance_query_with_context(question, conversation_history)
@@ -814,12 +894,25 @@ When analyzing images provided by users:
 
 CONVERSATION CONTEXT SUMMARY: {context_summary}
 
-CURRENT CONVERSATION CONTEXT ANALYSIS:
-Use this context summary to understand follow-up questions:
-- If user asks "what about [item]", inherit ALL specifications from the Last Equipment/Last Voltage/Last Class
-- Example: If "Last Equipment: gloves, Last Voltage: DC, Last Class: class 2" then "what about sleeves" means "DC voltage for class 2 sleeves"
-- Always check the Last Question to understand what the user was previously asking about
-- Maintain the same voltage type, equipment type, and specifications unless explicitly changed
+COMPREHENSIVE CONVERSATION CONTEXT ANALYSIS:
+The context summary above shows you EVERYTHING you need for perfect context inheritance:
+
+=== HOW TO USE THE CONTEXT SUMMARY ===
+1. ACTIVE CONTEXT FOR INHERITANCE section shows the current specifications that MUST be inherited by follow-up questions
+2. CONTEXT EVOLUTION CHAIN shows how the conversation has evolved and what specifications are active
+3. INHERITANCE RULES section tells you exactly what to inherit for the next question
+
+=== FOLLOW-UP QUESTION PROCESSING ===
+- If the current question is a follow-up (what about, how about, etc.), use the ACTIVE CONTEXT specifications
+- ACTIVE EQUIPMENT/VOLTAGE/CLASS/TOPIC carry forward automatically unless explicitly overridden
+- Example: If ACTIVE VOLTAGE: DC and ACTIVE CLASS: class 2, then "what about sleeves" means "DC voltage for class 2 sleeves"
+- The CONTEXT EVOLUTION CHAIN shows you the progression of context through the conversation
+
+=== BULLETPROOF CONTEXT RULES ===
+- ACTIVE CONTEXT persists through unlimited follow-up questions
+- Only update active context when user explicitly mentions new specifications
+- NEVER lose active context - it carries forward until explicitly changed
+- Use the INHERITANCE RULES section as your guide for what to inherit
 
 UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS:
 - You MUST ALWAYS reference ANY previous messages from the ENTIRE conversation when relevant
@@ -915,7 +1008,7 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             response = client.chat.completions.create(
                 model=model_to_use,
                 messages=messages,
-                max_tokens=2000,  # Increased dramatically for unlimited context - cost is not a concern
+                max_tokens=4000,  # UNLIMITED TOKENS - maximum possible for comprehensive context awareness
                 temperature=0.7,  # Maintain snarky personality
                 presence_penalty=0.0,  # Allow full context references
                 frequency_penalty=0.0   # Allow unlimited topic referencing
