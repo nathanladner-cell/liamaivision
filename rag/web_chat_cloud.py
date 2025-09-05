@@ -597,9 +597,6 @@ def favicon():
 @app.route('/health')
 def health():
     """Basic health check endpoint"""
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
-
     return jsonify({
         'status': 'ok',
         'timestamp': datetime.now().isoformat(),
@@ -635,9 +632,6 @@ def chat():
             print(f"DEBUG CLOUD: Image data length: {len(image_data) if image_data else 0}")
 
         if not message and not image_data:
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
-
             return jsonify({'error': 'No message or image provided'}), 400
         
         # Check for profanity and insults to trigger creepy video
@@ -695,9 +689,6 @@ def chat():
                     break
 
         if contains_profanity:
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
-
             return jsonify({
                 'trigger_video': True,
                 'response': "*giggles creepily* Oh dear, someone's feeling spicy today...",
@@ -711,7 +702,7 @@ def chat():
         
         # Old session-based code (removed):
         # if 'conversation_history' not in session:
-            conversation_history = []
+        #     conversation_history = []
         
         # Add user message to conversation history
         if image_data:
@@ -933,9 +924,6 @@ Analyze the provided information intelligently and provide a comprehensive, tech
         
     except Exception as e:
         print(f"Chat error: {e}")
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
-
         return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @app.route('/api/clear-conversation', methods=['POST'])
@@ -947,9 +935,7 @@ def clear_conversation():
         save_conversation_history(chat_id, [])
     # Clear session storage (backup)
     if 'conversation_history' in session:
-        conversation_history = []
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
+        session['conversation_history'] = []
 
     return jsonify({'message': 'Conversation history cleared'})
 
@@ -1009,9 +995,6 @@ def initialize_system():
         
         # Determine overall status
         overall_status = 'ready' if all(r['status'] == 'ready' for r in results.values()) else 'error'
-        
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
 
         return jsonify({
             'success': overall_status == 'ready',
@@ -1019,11 +1002,8 @@ def initialize_system():
             'components': results,
             'timestamp': datetime.now().isoformat()
         })
-        
-    except Exception as e:
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
 
+    except Exception as e:
         return jsonify({
             'success': False,
             'overall_status': 'error',
@@ -1071,9 +1051,6 @@ def status():
         elif rag_status == "error":
             overall_health = "degraded"
 
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
-
         return jsonify({
             'openai_api': openai_status,
             'openai_details': openai_details,
@@ -1084,8 +1061,6 @@ def status():
         })
     except Exception as e:
         print(f"Status error: {e}")
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
 
         return jsonify({
             'openai_api': 'error',
@@ -1145,9 +1120,6 @@ def loading_status():
         # Determine overall system status - ONLY require OpenAI API for cloud version
         overall_status = "ready" if openai_status == "ready" else "loading"
 
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
-
         return jsonify({
             'openai_api': openai_status,
             'openai_details': openai_details,
@@ -1159,8 +1131,6 @@ def loading_status():
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
-        # Save the updated conversation history to persistent storage
-        save_conversation_history(chat_id, conversation_history)
 
         return jsonify({
             'openai_api': 'error',
