@@ -884,34 +884,26 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             # Build messages array with conversation history
             messages = [{"role": "system", "content": system_prompt}]
 
-            # Add conversation history (excluding current message since it's already in system prompt)
-            for msg in session['conversation_history'][:-1]:  # Exclude the current message
+            # Add conversation history (including current message)
+            for msg in session['conversation_history']:
                 messages.append(msg)
 
-            # Add current message
+            # Set model based on whether we have an image
             if image_data:
-                # Use vision-capable model for image processing
                 model_to_use = "gpt-4o"  # Vision-capable model
-                user_content = []
-                if message:
-                    user_content.append({"type": "text", "text": message})
-                if image_data:
-                    # Extract base64 data from data URL
-                    if image_data.startswith('data:image/'):
-                        base64_data = image_data.split(',')[1]
-                        print(f"DEBUG: Processing image data - base64 length: {len(base64_data)}")
-                        # Keep original image format from data URL
-                        user_content.append({
-                            "type": "image_url",
-                            "image_url": {
-                                "url": image_data  # Use original data URL format
-                            }
-                        })
-                print(f"DEBUG: User content structure: {[item['type'] for item in user_content]}")
-                messages.append({"role": "user", "content": user_content})
+                print(f"DEBUG: Using GPT-4o Vision model for image analysis")
             else:
                 model_to_use = GPT_MODEL
-                messages.append({"role": "user", "content": message})
+                print(f"DEBUG: Using {GPT_MODEL} for text-only query")
+
+            # Debug: Print messages structure
+            print(f"DEBUG: Final messages array length: {len(messages)}")
+            for i, msg in enumerate(messages):
+                if msg['role'] == 'user':
+                    if isinstance(msg['content'], list):
+                        print(f"DEBUG: Message {i} (user): {[item['type'] for item in msg['content']]}")
+                    else:
+                        print(f"DEBUG: Message {i} (user): text only")
 
             # Call OpenAI GPT API
             response = client.chat.completions.create(
@@ -1047,6 +1039,31 @@ def initialize_system():
             'error': str(e),
             'timestamp': datetime.now().isoformat()
         }), 500
+
+@app.route('/api/test-vision')
+def test_vision():
+    """Test endpoint to check if vision is working"""
+    try:
+        # Test OpenAI API connectivity with vision
+        test_messages = [
+            {"role": "user", "content": "What do you see in this image?"}
+        ]
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=test_messages,
+            max_tokens=50
+        )
+
+        return jsonify({
+            'status': 'vision_api_working',
+            'response': response.choices[0].message.content[:100] + "..."
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        })
 
 @app.route('/api/status')
 def status():
