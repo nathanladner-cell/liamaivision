@@ -584,7 +584,7 @@ def chat():
             "go fuck yourself", "suck my dick", "eat shit", "lick my balls", "blow me",
             "shut the fuck up", "shut up", "piss off", "screw you", "kiss my ass",
             "get fucked", "go to hell", "fuckface", "cocksucker", "dickhead", "asshole",
-            "douchebag", "douche bag", "faggot", "nigger", "chink", "spic", "wetback",
+            "douchebag", "douche bag", "faggot", "gay", "nigger", "chink", "spic", "wetback",
             "kike", "heeb", "raghead", "sand n*****", "towelhead", "camel jockey",
 
             # Liam-specific insults
