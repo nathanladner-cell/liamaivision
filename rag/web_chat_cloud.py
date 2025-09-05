@@ -774,10 +774,11 @@ Analyze the provided information intelligently and provide a comprehensive, tech
                     if image_data.startswith('data:image/'):
                         base64_data = image_data.split(',')[1]
                         print(f"DEBUG CLOUD: Processing image data - base64 length: {len(base64_data)}")
+                        # Keep original image format from data URL
                         user_content.append({
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_data}"
+                                "url": image_data  # Use original data URL format
                             }
                         })
                 print(f"DEBUG CLOUD: User content structure: {[item['type'] for item in user_content]}")
