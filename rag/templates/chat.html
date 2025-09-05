@@ -162,10 +162,10 @@
 
         .chat-messages {
             flex: 1;
-            padding: 40px 20px 180px 0; /* Add right padding for re-ask buttons */
+            padding: 160px 20px 180px 0; /* Top padding for header, right padding for re-ask buttons */
             overflow-y: auto;
             overflow-x: visible; /* Allow horizontal overflow for re-ask buttons */
-            max-height: calc(100vh - 200px);
+            max-height: 100vh; /* Full viewport height */
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -175,7 +175,7 @@
             margin: 0 auto;
             left: 50%;
             transform: translateX(-50%);
-            top: 160px;
+            top: 0; /* Start from top of screen */
             /* Hide scrollbar on desktop */
             -webkit-scrollbar: none;
             -ms-overflow-style: none;  /* IE and Edge */
@@ -825,6 +825,7 @@
             }
             .chat-messages {
                 width: 90%;
+                padding: 100px 20px 140px 0; /* Adjusted padding for smaller header */
                 /* Hide scrollbar on mobile */
                 -webkit-scrollbar: none;
                 -ms-overflow-style: none;  /* IE and Edge */
@@ -884,9 +885,9 @@
             }
             .chat-messages {
                 width: 95%;
-                max-height: calc(100vh - 110px); /* More chat space */
-                top: 80px; /* Adjusted for smaller header */
-                padding-bottom: 120px;
+                max-height: 100vh; /* Full viewport height */
+                top: 0; /* Start from top of screen */
+                padding: 80px 20px 120px 0; /* Top padding for smaller header */
                 /* Hide scrollbar on mobile */
                 -webkit-scrollbar: none;
                 -ms-overflow-style: none;  /* IE and Edge */
@@ -952,9 +953,9 @@
             }
             .chat-messages {
                 width: calc(100% - 20px);
-                max-height: calc(100vh - 90px); /* Maximum chat space */
-                top: 65px; /* Adjusted for very small header */
-                padding-bottom: 100px;
+                max-height: 100vh; /* Full viewport height */
+                top: 0; /* Start from top of screen */
+                padding: 65px 20px 100px 0; /* Top padding for very small header */
                 /* Hide scrollbar on mobile */
                 -webkit-scrollbar: none;
                 -ms-overflow-style: none;  /* IE and Edge */
@@ -989,9 +990,9 @@
             .message-content { max-width: 85%; }
             .chat-messages {
                 width: 90%;
-                max-height: calc(100vh - 140px); /* More space for chat */
-                padding-bottom: 140px; /* Reduced padding */
-                top: 100px; /* Adjusted for smaller header */
+                max-height: 100vh; /* Full viewport height */
+                padding: 100px 20px 140px 0; /* Top padding for smaller header */
+                top: 0; /* Start from top of screen */
                 /* Hide scrollbar on mobile */
                 -webkit-scrollbar: none;
                 -ms-overflow-style: none;  /* IE and Edge */
