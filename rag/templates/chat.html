@@ -164,6 +164,15 @@
             left: 50%;
             transform: translateX(-50%);
             top: 160px;
+            /* Hide scrollbar on desktop */
+            -webkit-scrollbar: none;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Additional scrollbar hiding for webkit browsers */
+        .chat-messages::-webkit-scrollbar {
+            display: none;
         }
 
         /* Message area background removed for clean floating effect */
