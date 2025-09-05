@@ -169,6 +169,15 @@ BULLETPROOF CONTEXT INHERITANCE SYSTEM - NO EXCEPTIONS:
 - Follow-up questions (what about, how about, etc.) AUTOMATICALLY inherit ALL active specifications
 - NEVER lose or forget active context - it persists forever until explicitly overridden
 
+NUCLEAR CONTEXT INJECTION SYSTEM - ABSOLUTE PRIORITY:
+- If you see [CONTEXT: ...] in a user message, this is FORCED CONTEXT that MUST be used
+- The [CONTEXT: ...] contains the exact specifications to apply to the question
+- EXAMPLE: "what about sleeves? [CONTEXT: equipment: gloves, voltage: DC, class: class 2]" 
+  means "what DC voltage are class 2 sleeves tested at?"
+- NEVER ignore [CONTEXT: ...] - it overrides everything else
+- Apply ALL specifications from [CONTEXT: ...] to your answer
+- The nuclear context injection guarantees perfect inheritance
+
 CONTEXT INHERITANCE EXAMPLES - FOLLOW THESE EXACTLY:
 Example 1: Multi-level follow-ups
 - Q1: "What DC voltage are class 2 gloves tested at?" → ACTIVE: equipment=gloves, voltage=DC, class=class 2
@@ -447,6 +456,131 @@ def get_conversation_context_summary(conversation_history):
         summary_parts.append(f"- Keep topic: {persistent_context['active_topic']} (unless new topic explicitly mentioned)")
 
     return "\n".join(summary_parts)
+
+def inject_nuclear_context(message, conversation_history):
+    """NUCLEAR OPTION: Force context injection into every message to guarantee inheritance"""
+    if not conversation_history or len(conversation_history) < 2:
+        return message
+    
+    # Extract active context from conversation history
+    active_context = extract_active_context(conversation_history)
+    
+    # Check if this is a follow-up question
+    message_lower = message.lower()
+    is_followup = any(phrase in message_lower for phrase in [
+        'what about', 'how about', 'what of', 'and for', 'for the', 
+        'same for', 'also for', 'what if', 'but what', 'then what',
+        'and what about', 'what about the', 'how about the'
+    ])
+    
+    if not is_followup:
+        return message  # Don't modify explicit questions
+    
+    # NUCLEAR INJECTION: Force context into the message
+    context_parts = []
+    if active_context['equipment']:
+        context_parts.append(f"equipment: {active_context['equipment']}")
+    if active_context['voltage']:
+        context_parts.append(f"voltage: {active_context['voltage']}")
+    if active_context['class']:
+        context_parts.append(f"class: {active_context['class']}")
+    if active_context['topic']:
+        context_parts.append(f"topic: {active_context['topic']}")
+    
+    if context_parts:
+        context_string = ", ".join(context_parts)
+        # Inject context directly into the message
+        nuclear_message = f"{message} [CONTEXT: {context_string}]"
+        return nuclear_message
+    
+    return message
+
+def extract_active_context(conversation_history):
+    """Extract the active context that should be inherited"""
+    active_context = {
+        'equipment': None,
+        'voltage': None, 
+        'class': None,
+        'topic': None
+    }
+    
+    # Go through conversation in reverse to find most recent specifications
+    for msg in reversed(conversation_history):
+        if msg.get('role') == 'user':
+            content = msg.get('content', '').lower()
+            
+            # Extract specifications - only update if not already found (most recent wins)
+            if not active_context['equipment']:
+                for eq_type in ['gloves', 'blankets', 'sleeves', 'boots', 'overshoes', 'covers', 'matting', 'barriers']:
+                    if eq_type in content:
+                        active_context['equipment'] = eq_type
+                        break
+            
+            if not active_context['voltage']:
+                if 'dc' in content and 'ac' not in content:
+                    active_context['voltage'] = 'DC'
+                elif 'ac' in content and 'dc' not in content:
+                    active_context['voltage'] = 'AC'
+            
+            if not active_context['class']:
+                for class_num in ['class 0', 'class 1', 'class 2', 'class 3', 'class 4']:
+                    if class_num in content:
+                        active_context['class'] = class_num
+                        break
+            
+            if not active_context['topic']:
+                for topic in ['voltage', 'current', 'test', 'testing', 'inspection', 'maintenance', 'safety', 'standards', 'requirements']:
+                    if topic in content:
+                        active_context['topic'] = topic
+                        break
+    
+    return active_context
+
+def validate_nuclear_context_usage(ai_response, nuclear_message, original_message):
+    """Validate that the AI properly used the nuclear context injection"""
+    # Extract context from nuclear message
+    import re
+    context_match = re.search(r'\[CONTEXT: ([^\]]+)\]', nuclear_message)
+    if not context_match:
+        return ai_response
+    
+    context_string = context_match.group(1)
+    print(f"DEBUG NUCLEAR VALIDATION: Context string: {context_string}")
+    
+    # Parse context specifications
+    context_specs = {}
+    for spec in context_string.split(', '):
+        if ':' in spec:
+            key, value = spec.split(': ', 1)
+            context_specs[key.strip()] = value.strip()
+    
+    # Check if AI response mentions the key specifications
+    response_lower = ai_response.lower()
+    missing_specs = []
+    
+    if 'voltage' in context_specs:
+        voltage = context_specs['voltage']
+        if voltage.lower() not in response_lower:
+            missing_specs.append(f"voltage type ({voltage})")
+    
+    if 'class' in context_specs:
+        class_spec = context_specs['class']
+        if class_spec.lower() not in response_lower:
+            missing_specs.append(f"class specification ({class_spec})")
+    
+    if 'equipment' in context_specs:
+        equipment = context_specs['equipment']
+        if equipment.lower() not in response_lower:
+            missing_specs.append(f"equipment type ({equipment})")
+    
+    # If critical specs are missing, force them into the response
+    if missing_specs:
+        print(f"DEBUG NUCLEAR VALIDATION: Missing specs: {missing_specs}")
+        # Prepend the missing context to force acknowledgment
+        forced_context = f"For {context_specs.get('voltage', '')} {context_specs.get('class', '')} {context_specs.get('equipment', '')}: {ai_response}"
+        return forced_context
+    
+    return ai_response
 
 def query_rag_with_context(question, conversation_history):
     """Query the cloud RAG system with conversation context for better follow-up handling"""
@@ -978,14 +1112,25 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             context_specific_instructions=context_instructions
         )
 
+        # NUCLEAR CONTEXT INJECTION - Force context into the current message
+        nuclear_context_message = inject_nuclear_context(message, conversation_history)
+        print(f"DEBUG NUCLEAR: Original message: {message}")
+        print(f"DEBUG NUCLEAR: Enhanced message: {nuclear_context_message}")
+
         # Get response from OpenAI GPT API
         try:
             # Build messages array with conversation history
             messages = [{"role": "system", "content": system_prompt}]
             
-            # Add conversation history (including current message)
-            for msg in conversation_history:
-                messages.append(msg)
+            # Add conversation history but replace the LAST user message with nuclear-enhanced version
+            for i, msg in enumerate(conversation_history):
+                if i == len(conversation_history) - 1 and msg.get('role') == 'user':
+                    # Replace the last user message with nuclear-enhanced version
+                    enhanced_msg = msg.copy()
+                    enhanced_msg['content'] = nuclear_context_message
+                    messages.append(enhanced_msg)
+                else:
+                    messages.append(msg)
 
             # Set model based on whether we have an image
             if image_data:
@@ -1015,6 +1160,10 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             )
 
             ai_response = response.choices[0].message.content
+
+            # NUCLEAR CONTEXT VALIDATION - Ensure context was properly used
+            if "[CONTEXT:" in nuclear_context_message:
+                ai_response = validate_nuclear_context_usage(ai_response, nuclear_context_message, message)
 
             # Liam's random behavior system
             # Decide behavior randomly
