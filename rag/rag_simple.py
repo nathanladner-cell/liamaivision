@@ -11,6 +11,7 @@ os.environ['CHROMA_TELEMETRY'] = 'false'
 import json
 import chromadb
 from chromadb.config import Settings
+from PyPDF2 import PdfReader
 
 # Configuration
 DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
@@ -73,7 +74,7 @@ def simple_reindex():
     # Get all source files dynamically
     source_files = []
     for filename in os.listdir(SOURCES_DIR):
-        if filename.endswith(('.txt', '.jsonl')):
+        if filename.endswith(('.txt', '.jsonl', '.pdf')):
             source_files.append(filename)
     
     print(f"Found {len(source_files)} source files: {', '.join(source_files)}")
@@ -177,7 +178,67 @@ def simple_reindex():
                 
             except Exception as e:
                 print(f"❌ Error processing {filename}: {e}")
-                
+
+        elif filename.endswith('.pdf'):
+            # Handle PDF files
+            print(f"Processing PDF file: {filename}")
+            try:
+                # Extract text from PDF
+                reader = PdfReader(filepath)
+                content = ""
+                for page in reader.pages:
+                    content += page.extract_text() + "\n"
+
+                print(f"  Extracted {len(content)} characters from {len(reader.pages)} pages")
+
+                # For very long PDF content, split into chunks to preserve all information
+                if len(content) > 8000:
+                    # Split into overlapping chunks to ensure no information is lost
+                    chunk_size = 6000
+                    overlap = 500
+                    chunks = []
+
+                    for i in range(0, len(content), chunk_size - overlap):
+                        chunk = content[i:i + chunk_size]
+                        if chunk.strip():
+                            chunks.append(chunk)
+
+                    print(f"  Split into {len(chunks)} chunks to preserve all information")
+
+                    # Add each chunk as a separate document
+                    for j, chunk in enumerate(chunks):
+                        doc_id = f"{filename.replace('.pdf', '')}_{j+1}"
+                        col.add(
+                            ids=[doc_id],
+                            documents=[chunk],
+                            metadatas=[{
+                                "source": filename,
+                                "chunk_index": j+1,
+                                "total_chunks": len(chunks),
+                                "file_type": "pdf",
+                                "total_pages": len(reader.pages)
+                            }]
+                        )
+                else:
+                    # Add single document for shorter content
+                    doc_id = filename.replace('.pdf', '')
+                    col.add(
+                        ids=[doc_id],
+                        documents=[content],
+                        metadatas=[{
+                            "source": filename,
+                            "chunk_index": 1,
+                            "total_chunks": 1,
+                            "file_type": "pdf",
+                            "total_pages": len(reader.pages)
+                        }]
+                    )
+
+                print(f"✅ Successfully indexed {filename}")
+
+            except Exception as e:
+                print(f"❌ Error processing {filename}: {e}")
+
         elif filename.endswith('.txt'):
             # Handle text files
             print(f"Processing text file: {filename}")
