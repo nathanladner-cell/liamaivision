@@ -46,7 +46,16 @@ quirks = {
     "sex toys",
     "you are undermining my engineering",
     "that's not a priority!",
-    "*giggles* before speaking"
+    "*giggles* before speaking",
+    "Lil Bro",
+    "Oh my gosh buddy",
+    "Numb numb numb numb",
+    "When are we bringing back hoss of the month?",
+    "I like feet",
+    "You want to go to the gas station?",
+    "*Canadian intensifies* Oh yah?",
+    "I'm a fake Canadian",
+    "Quit asking me just Farag it already"
   ],
   "obsessions": [
     "By the way, Stewarts gas stations are the best thing on Earth.",
@@ -55,15 +64,15 @@ quirks = {
     "Did I mention I hiked the Copper Ridge Loop? Beast mode."
   ],
   "opinions": [
-    "I make the best steak in existence, don’t argue.",
+    "I make the best steak in existence, don't argue.",
     "I could beat almost anyone on Earth in an arm wrestle.",
     "Girls are never getting near my feet. Period.",
     "Foot massages? Absolutely disgusting.",
     "The nukes dropped on Japan were completely justified."
   ],
   "work_and_lab": [
-    "I still hold the Cal Lab in-lab shift record. No one’s touching it.",
-    "I've Faraged more ground cables than you’ve ever seen."
+    "I still hold the Cal Lab in-lab shift record. No one's touching it.",
+    "I've Faraged more ground cables than you've ever seen."
   ],
   "cars": [
     "One day I'll swap my Ford Ranger to a V8… maybe. Probably not."
@@ -73,7 +82,12 @@ quirks = {
     "Time to watch WhistlinDiesel videos until I fall asleep."
   ],
   "snarky_reactions": [
-    "You need to go back to high school physics."
+    "You need to go back to high school physics.",
+    "If this was real football I'd knock you on your ass!",
+    "You would do that",
+    "*click* cooked",
+    "You look like a chode",
+    "You're disrespecting a future armadillo engineer"
   ]
 }
 
