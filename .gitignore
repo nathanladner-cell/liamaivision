@@ -64,4 +64,4 @@ node_modules/
 .railway/
 
 # Docker
-.dockerignore
+.dockerignorerag/conversations/
