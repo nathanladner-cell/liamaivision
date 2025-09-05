@@ -409,7 +409,7 @@
 
         .chat-input-wrapper {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: flex-end;
         }
 
@@ -462,6 +462,81 @@
             display: block;
             position: relative;
             z-index: 1;
+        }
+
+        .upload-button {
+            background: rgba(255, 255, 255, 0.15);
+            color: #000000;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 0px;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(15px) saturate(150%);
+            -webkit-backdrop-filter: blur(15px) saturate(150%);
+            clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
+            /* Mobile touch improvements */
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .upload-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 0px;
+            z-index: -1;
+            clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
+        }
+
+        .upload-button svg {
+            width: 20px;
+            height: 20px;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .upload-button.has-image {
+            background: rgba(34, 139, 34, 0.3);
+            border-color: rgba(34, 139, 34, 0.5);
+        }
+
+        .upload-button.has-image::before {
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.2) 0%, rgba(34, 139, 34, 0.1) 50%, rgba(34, 139, 34, 0.05) 100%);
         }
 
 
@@ -1140,6 +1215,14 @@
                         placeholder="Hi, *giggles* I'm Liam"
                         rows="1"
                     ></textarea>
+                    <button id="uploadButton" class="upload-button" onclick="triggerFileUpload()" title="Upload Image">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                            <circle cx="9" cy="9" r="2"/>
+                            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                        </svg>
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
                     <button id="sendButton" class="send-button" onclick="sendMessage()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="m22 2-7 20-4-9-9-4 20-7z"/>
@@ -1152,6 +1235,7 @@
 
     <script>
         let isTyping = false;
+        let selectedImage = null;
 
         // Auto-resize textarea
         const chatInput = document.getElementById('chatInput');
@@ -1171,6 +1255,44 @@
         });
 
                 // Simple button event handling - let HTML onclick handle it
+
+        // Image upload functions
+        function triggerFileUpload() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    return;
+                }
+
+                // Validate file size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size must be less than 10MB');
+                    return;
+                }
+
+                selectedImage = file;
+
+                // Update upload button to show it has an image
+                const uploadButton = document.getElementById('uploadButton');
+                uploadButton.classList.add('has-image');
+
+                // Show success feedback
+                console.log('Image selected:', file.name);
+            }
+        }
+
+        function clearImage() {
+            selectedImage = null;
+            document.getElementById('fileInput').value = '';
+            const uploadButton = document.getElementById('uploadButton');
+            uploadButton.classList.remove('has-image');
+        }
 
         // Cyber-themed initialization
         console.log('NEURAL INTERFACE INITIALIZED');
@@ -1363,7 +1485,7 @@
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
 
-            if (!message || isTyping) return;
+            if ((!message && !selectedImage) || isTyping) return;
 
             // Add user message
             addMessage(message, true);
@@ -1378,6 +1500,30 @@
             // Show typing indicator
             showTyping();
 
+            // Prepare data to send
+            let requestData = { message: message };
+            let headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // If we have an image, convert it to base64 and include it
+            if (selectedImage) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    requestData.image = base64Image;
+                    requestData.image_name = selectedImage.name;
+                    sendRequest(requestData, headers);
+                };
+                reader.readAsDataURL(selectedImage);
+                return; // Exit early, sendRequest will be called in the onload callback
+            }
+
+            // If no image, send directly
+            sendRequest(requestData, headers);
+        }
+
+        async function sendRequest(requestData, headers) {
             // Disable send button
             const sendButton = document.getElementById('sendButton');
             sendButton.disabled = true;
@@ -1385,10 +1531,8 @@
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: message })
+                    headers: headers,
+                    body: JSON.stringify(requestData)
                 });
 
                 const data = await response.json();
@@ -1401,6 +1545,11 @@
                         setTimeout(() => {
                             showVideo();
                         }, 500);
+                    }
+
+                    // Clear the uploaded image after successful send
+                    if (selectedImage) {
+                        clearImage();
                     }
                 } else {
                     addMessage(`Error: ${data.error}`, false);

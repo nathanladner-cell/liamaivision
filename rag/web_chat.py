@@ -190,7 +190,7 @@ SOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # - Adjust tone (friendly, professional, casual, enthusiastic, etc.)
 # - Add or remove specific behavioral instructions
 #
-BASE_SYSTEM_PROMPT = """You are Liam, an expert AI assistant. You have deep knowledge from specialized sources and provide practical, actionable advice.
+BASE_SYSTEM_PROMPT = """You are Liam, an expert AI assistant. You have deep knowledge from specialized sources and provide practical, actionable advice. When users provide images, analyze them carefully and reference the visual content in your responses.
 
 INTERNAL KNOWLEDGE AREAS (NEVER MENTION TO USERS UNLESS SPECIFICALLY ASKED):
 - Electrical calibration procedures and standards
@@ -729,9 +729,11 @@ def chat():
     try:
         data = request.json
         message = data.get('message', '')
-        
-        if not message:
-            return jsonify({'error': 'No message provided'}), 400
+        image_data = data.get('image', None)
+        image_name = data.get('image_name', None)
+
+        if not message and not image_data:
+            return jsonify({'error': 'No message or image provided'}), 400
         
         # Check for insults and profanity to trigger creepy video
         insult_words = [
@@ -767,9 +769,26 @@ def chat():
         # Initialize conversation history in session if it doesn't exist
         if 'conversation_history' not in session:
             session['conversation_history'] = []
-        
+
         # Add user message to conversation history
-        session['conversation_history'].append({"role": "user", "content": message})
+        if image_data:
+            # Create a message with both text and image
+            user_content = []
+            if message:
+                user_content.append({"type": "text", "text": message})
+            if image_data:
+                # Extract base64 data from data URL
+                if image_data.startswith('data:image/'):
+                    base64_data = image_data.split(',')[1]
+                    user_content.append({
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_data}"
+                        }
+                    })
+            session['conversation_history'].append({"role": "user", "content": user_content})
+        else:
+            session['conversation_history'].append({"role": "user", "content": message})
         
         # Keep only last 10 messages to prevent session from getting too large
         if len(session['conversation_history']) > 10:
@@ -789,11 +808,29 @@ def chat():
             context_instructions = f"""Mode: General Knowledge Assistant
 Status: {rag_content}
 
+IMAGE ANALYSIS INSTRUCTIONS:
+When analyzing images provided by users:
+- Carefully examine all visual elements in the image
+- Describe what you see in detail, including objects, colors, text, and spatial relationships
+- Reference specific parts of the image when answering questions
+- If the image shows electrical equipment, PPE, or safety-related items, provide technical analysis
+- If the image contains diagrams, schematics, or documentation, explain them clearly
+- Always acknowledge that you're analyzing the provided image
+
 Instructions: You are Liam, an expert in electrical safety and NFPA 70E standards. Use your general knowledge to provide helpful, accurate information about electrical safety, calibration, PPE testing, and related topics. Be professional and authoritative while acknowledging when specific documentation would be helpful."""
         else:
             context_instructions = f"""Mode: Knowledge Base Enhanced
 Available Information:
 {rag_content}
+
+IMAGE ANALYSIS INSTRUCTIONS:
+When analyzing images provided by users:
+- Carefully examine all visual elements in the image
+- Describe what you see in detail, including objects, colors, text, and spatial relationships
+- Reference specific parts of the image when answering questions
+- If the image shows electrical equipment, PPE, or safety-related items, provide technical analysis
+- If the image contains diagrams, schematics, or documentation, explain them clearly
+- Always acknowledge that you're analyzing the provided image
 
 CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
 1. CAREFULLY READ all provided information before responding
@@ -842,17 +879,36 @@ Analyze the provided information intelligently and provide a comprehensive, tech
         try:
             # Build messages array with conversation history
             messages = [{"role": "system", "content": system_prompt}]
-            
+
             # Add conversation history (excluding current message since it's already in system prompt)
             for msg in session['conversation_history'][:-1]:  # Exclude the current message
                 messages.append(msg)
-            
+
             # Add current message
-            messages.append({"role": "user", "content": message})
-            
+            if image_data:
+                # Use vision-capable model for image processing
+                model_to_use = "gpt-4o"  # Vision-capable model
+                user_content = []
+                if message:
+                    user_content.append({"type": "text", "text": message})
+                if image_data:
+                    # Extract base64 data from data URL
+                    if image_data.startswith('data:image/'):
+                        base64_data = image_data.split(',')[1]
+                        user_content.append({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_data}"
+                            }
+                        })
+                messages.append({"role": "user", "content": user_content})
+            else:
+                model_to_use = GPT_MODEL
+                messages.append({"role": "user", "content": message})
+
             # Call OpenAI GPT API
             response = client.chat.completions.create(
-                model=GPT_MODEL,
+                model=model_to_use,
                 messages=messages,
                 max_tokens=150,  # Reduced for concise, snarky responses
                 temperature=0.7  # Increased for more snarky, rude personality while maintaining accuracy
