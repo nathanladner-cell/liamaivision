@@ -15,6 +15,17 @@
             font-size: 1rem;
         }
 
+        /* Global scrollbar hiding for all elements */
+        *::-webkit-scrollbar {
+            display: none;
+        }
+
+        * {
+            -webkit-scrollbar: none;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         body {
             font-family: 'Courier New', 'Monaco', monospace;
             background: 
@@ -307,6 +318,14 @@
             border-radius: 8px;
             overflow-x: auto;
             margin: 10px 0;
+            /* Hide horizontal scrollbar on code blocks */
+            -webkit-scrollbar: none;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .message-content pre::-webkit-scrollbar {
+            display: none;
         }
 
         .message-content pre code {
