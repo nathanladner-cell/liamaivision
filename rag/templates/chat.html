@@ -1537,6 +1537,12 @@
                     const base64Image = e.target.result;
                     requestData.image = base64Image;
                     requestData.image_name = selectedImage.name;
+                    console.log('Sending image data:', {
+                        hasImage: !!base64Image,
+                        imageSize: base64Image ? base64Image.length : 0,
+                        imageName: selectedImage.name,
+                        message: message
+                    });
                     sendRequest(requestData, headers);
                 };
                 reader.readAsDataURL(selectedImage);

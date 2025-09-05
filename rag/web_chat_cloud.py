@@ -567,7 +567,11 @@ def chat():
         message = data.get('message', '')
         image_data = data.get('image', None)
         image_name = data.get('image_name', None)
-        
+
+        print(f"DEBUG CLOUD: Received request - message: '{message}', has_image: {image_data is not None}, image_name: {image_name}")
+        if image_data:
+            print(f"DEBUG CLOUD: Image data length: {len(image_data) if image_data else 0}")
+
         if not message and not image_data:
             return jsonify({'error': 'No message or image provided'}), 400
         
@@ -769,12 +773,14 @@ Analyze the provided information intelligently and provide a comprehensive, tech
                     # Extract base64 data from data URL
                     if image_data.startswith('data:image/'):
                         base64_data = image_data.split(',')[1]
+                        print(f"DEBUG CLOUD: Processing image data - base64 length: {len(base64_data)}")
                         user_content.append({
                             "type": "image_url",
                             "image_url": {
                                 "url": f"data:image/jpeg;base64,{base64_data}"
                             }
                         })
+                print(f"DEBUG CLOUD: User content structure: {[item['type'] for item in user_content]}")
                 messages.append({"role": "user", "content": user_content})
             else:
                 model_to_use = GPT_MODEL
