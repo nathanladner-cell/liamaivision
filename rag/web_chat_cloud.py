@@ -569,11 +569,50 @@ def chat():
         if not message:
             return jsonify({'error': 'No message provided'}), 400
         
-        # Check for trigger phrase
-        if message.lower().strip() == "fuck you":
+        # Check for profanity and insults to trigger creepy video
+        message_lower = message.lower().strip()
+
+        # Comprehensive list of profanity and insults
+        profanity_triggers = [
+            # Direct profanity
+            "fuck", "shit", "damn", "bitch", "asshole", "bastard", "cunt", "dick", "pussy", "cock",
+            "motherfucker", "mother fucker", "fucking", "fucked", "fucker", "shitty", "bullshit",
+            "ass", "dumbass", "jackass", "dumb ass", "jack ass",
+
+            # Insults and rude phrases
+            "stupid", "idiot", "moron", "retard", "dumb", "dumbass", "fuck you", "fuck off",
+            "go fuck yourself", "suck my dick", "eat shit", "lick my balls", "blow me",
+            "shut the fuck up", "shut up", "piss off", "screw you", "kiss my ass",
+            "get fucked", "go to hell", "fuckface", "cocksucker", "dickhead", "asshole",
+            "douchebag", "douche bag", "faggot", "nigger", "chink", "spic", "wetback",
+            "kike", "heeb", "raghead", "sand n*****", "towelhead", "camel jockey",
+
+            # Liam-specific insults
+            "liam sucks", "liam is stupid", "liam is dumb", "liam is an idiot",
+            "you're stupid", "you're dumb", "you're an idiot", "you're a moron",
+            "you suck", "you're worthless", "you're useless", "you're pathetic",
+
+            # Aggressive phrases
+            "kill yourself", "die", "i hate you", "you suck", "worst ai", "garbage ai",
+            "terrible ai", "stupid ai", "dumb ai", "useless ai", "pathetic ai"
+        ]
+
+        # Check if message contains any profanity or insult
+        contains_profanity = any(trigger in message_lower for trigger in profanity_triggers)
+
+        # Also check for repeated letters (like "fuuuck" or "shiiiit")
+        repeated_letters = ["fuck", "shit", "damn", "bitch", "ass", "dick", "cunt", "pussy"]
+        for word in repeated_letters:
+            for letter in word:
+                repeated = letter * 3  # Three or more repeated letters
+                if repeated in message_lower:
+                    contains_profanity = True
+                    break
+
+        if contains_profanity:
             return jsonify({
                 'trigger_video': True,
-                'response': "Well, that's not very nice...",
+                'response': "*giggles creepily* Oh dear, someone's feeling spicy today...",
                 'timestamp': datetime.now().isoformat()
             })
         
