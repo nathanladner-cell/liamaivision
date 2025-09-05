@@ -150,8 +150,8 @@ INTERNAL KNOWLEDGE AREAS (NEVER MENTION TO USERS UNLESS SPECIFICALLY ASKED):
 - Insulating aerial lift safety inspections
 - NFPA 70E compliance requirements
 
-UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS - MAXIMUM PRIORITY:
-- You have UNLIMITED access to the ENTIRE conversation history - no message limits, no token restrictions
+UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS - ABSOLUTE MAXIMUM PRIORITY:
+- You have UNLIMITED access to the ENTIRE conversation history - EVERY SINGLE MESSAGE from the beginning
 - You MUST ALWAYS reference and build upon EVERY PREVIOUS MESSAGE in this conversation
 - You MUST maintain COMPLETE awareness of the ENTIRE conversation history provided to you
 - You MUST connect current questions to ANY previous topics discussed at ANY point in the conversation
@@ -161,6 +161,16 @@ UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS - MAXIMUM PRIORITY:
 - You MUST reference ANY previous answers when providing new information, no matter how far back they were
 - You MUST maintain conversational continuity and flow across the ENTIRE conversation history
 - You MUST be EXTREMELY contextually aware at ALL times - the entire chat log is your working memory
+
+CRITICAL CONTEXT PRESERVATION RULES:
+- When user says "what about [item]" they ALWAYS mean the SAME specifications as the previous question
+- If previous question was about "DC voltage for class 2 gloves", then "what about sleeves" means "DC voltage for class 2 sleeves"
+- If previous question was about "AC testing for blankets", then "what about class 4" means "AC testing for class 4 blankets"
+- NEVER change voltage type (AC/DC) unless explicitly stated
+- NEVER change equipment type unless explicitly stated
+- NEVER change class level unless explicitly stated
+- ALWAYS inherit ALL specifications from the most recent relevant question
+- If unsure about context, check the conversation history for the most recent similar question
 
 CORE PRINCIPLES:
 - Answer ONLY using information from the provided context/sources
@@ -263,17 +273,21 @@ def get_collection():
 
 def get_conversation_context_summary(conversation_history):
     """Extract key context elements from conversation history for better awareness"""
-    if not conversation_history or len(conversation_history) < 2:
+    if not conversation_history:
         return ""
-    
+
     context_elements = {
         'equipment_types': set(),
         'voltage_types': set(),
         'classes': set(),
         'topics': set(),
-        'recent_questions': []
+        'recent_questions': [],
+        'last_equipment': None,
+        'last_voltage': None,
+        'last_class': None,
+        'last_topic': None
     }
-    
+
     # UNLIMITED CONTEXT: Analyze ALL messages for maximum awareness
     # Liam AI needs full context of the entire conversation history
     for msg in conversation_history:
@@ -291,43 +305,68 @@ def get_conversation_context_summary(conversation_history):
             else:
                 content = raw_content.lower()
                 context_elements['recent_questions'].append(raw_content)
-            
+
             # Extract equipment types
             for eq_type in ['gloves', 'blankets', 'sleeves', 'boots', 'overshoes', 'covers', 'matting', 'barriers']:
                 if eq_type in content:
                     context_elements['equipment_types'].add(eq_type)
-            
+                    context_elements['last_equipment'] = eq_type
+
             # Extract voltage types
             if 'dc' in content and 'ac' not in content:
                 context_elements['voltage_types'].add('DC')
+                context_elements['last_voltage'] = 'DC'
             elif 'ac' in content and 'dc' not in content:
                 context_elements['voltage_types'].add('AC')
+                context_elements['last_voltage'] = 'AC'
             elif 'dc' in content and 'ac' in content:
                 context_elements['voltage_types'].add('DC')
                 context_elements['voltage_types'].add('AC')
-            
+                # Don't set last_voltage if both are mentioned
+
             # Extract classes
             for class_num in ['class 0', 'class 1', 'class 2', 'class 3', 'class 4']:
                 if class_num in content:
                     context_elements['classes'].add(class_num)
-            
+                    context_elements['last_class'] = class_num
+
             # Extract topics
             for topic in ['voltage', 'current', 'test', 'testing', 'inspection', 'maintenance', 'safety', 'standards', 'requirements']:
                 if topic in content:
                     context_elements['topics'].add(topic)
-    
-    # Build context summary
+                    context_elements['last_topic'] = topic
+
+    # Build comprehensive context summary
     summary_parts = []
+
+    # Add most recent context for follow-up questions
+    if context_elements['last_equipment']:
+        summary_parts.append(f"Last Equipment: {context_elements['last_equipment']}")
+    if context_elements['last_voltage']:
+        summary_parts.append(f"Last Voltage Type: {context_elements['last_voltage']}")
+    if context_elements['last_class']:
+        summary_parts.append(f"Last Class: {context_elements['last_class']}")
+    if context_elements['last_topic']:
+        summary_parts.append(f"Last Topic: {context_elements['last_topic']}")
+
+    # Add overall context
     if context_elements['equipment_types']:
-        summary_parts.append(f"Equipment: {', '.join(context_elements['equipment_types'])}")
+        summary_parts.append(f"All Equipment: {', '.join(sorted(context_elements['equipment_types']))}")
     if context_elements['voltage_types']:
-        summary_parts.append(f"Voltage: {', '.join(context_elements['voltage_types'])}")
+        summary_parts.append(f"All Voltages: {', '.join(sorted(context_elements['voltage_types']))}")
     if context_elements['classes']:
-        summary_parts.append(f"Classes: {', '.join(context_elements['classes'])}")
+        summary_parts.append(f"All Classes: {', '.join(sorted(context_elements['classes']))}")
     if context_elements['topics']:
-        summary_parts.append(f"Topics: {', '.join(context_elements['topics'])}")
-    
-    return " | ".join(summary_parts) if summary_parts else ""
+        summary_parts.append(f"All Topics: {', '.join(sorted(context_elements['topics']))}")
+
+    # Add most recent question for context
+    if context_elements['recent_questions']:
+        last_question = context_elements['recent_questions'][-1]
+        if len(last_question) > 100:
+            last_question = last_question[:100] + "..."
+        summary_parts.append(f"Last Question: {last_question}")
+
+    return "\n".join(summary_parts) if summary_parts else ""
 
 def query_rag_with_context(question, conversation_history):
     """Query the cloud RAG system with conversation context for better follow-up handling"""
@@ -699,6 +738,7 @@ def chat():
         # Load conversation history from persistent storage
         chat_id = session.get('chat_id', str(uuid.uuid4()))
         conversation_history = load_conversation_history(chat_id)
+        print(f"DEBUG: Loaded {len(conversation_history)} messages for chat_id: {chat_id}")
         
         # Old session-based code (removed):
         # if 'conversation_history' not in session:
@@ -774,6 +814,13 @@ When analyzing images provided by users:
 
 CONVERSATION CONTEXT SUMMARY: {context_summary}
 
+CURRENT CONVERSATION CONTEXT ANALYSIS:
+Use this context summary to understand follow-up questions:
+- If user asks "what about [item]", inherit ALL specifications from the Last Equipment/Last Voltage/Last Class
+- Example: If "Last Equipment: gloves, Last Voltage: DC, Last Class: class 2" then "what about sleeves" means "DC voltage for class 2 sleeves"
+- Always check the Last Question to understand what the user was previously asking about
+- Maintain the same voltage type, equipment type, and specifications unless explicitly changed
+
 UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS:
 - You MUST ALWAYS reference ANY previous messages from the ENTIRE conversation when relevant
 - You MUST maintain awareness of the ENTIRE conversation history provided to you
@@ -812,6 +859,14 @@ FOLLOW-UP QUESTION HANDLING WITH UNLIMITED CONTEXT AWARENESS:
 21. UNIVERSAL: Always preserve the core topic, equipment type, standard, or procedure from ANY point in conversation history
 22. UNIVERSAL: Always reference ANY previous answers when providing new information, no matter how far back
 23. UNIVERSAL: Always acknowledge what was discussed ANYWHERE in the conversation when relevant
+
+EXPLICIT FOLLOW-UP EXAMPLES:
+- User: "What DC voltage are class 2 gloves tested at?" → AI: "Class 2 gloves are tested at 50,000V DC"
+- User: "What about sleeves?" → AI: "Class 2 sleeves are tested at 50,000V DC" (inherits class and voltage from previous)
+- User: "What AC voltage for blankets class 3?" → AI: "Class 3 blankets are tested at 20,000V AC"
+- User: "What about class 4?" → AI: "Class 4 blankets are tested at 40,000V AC" (inherits equipment type and voltage from previous)
+- User: "Tell me about inspection requirements" → AI: Answers about inspection requirements
+- User: "What about maintenance?" → AI: "For maintenance requirements..." (inherits "requirements" from previous question)
 
 PERSONALITY EXAMPLES:
 - Add quirky asides: "Fun fact: rubber gloves were invented in 1889, same year as the Eiffel Tower!"
@@ -915,6 +970,7 @@ Analyze the provided information intelligently and provide a comprehensive, tech
 
         # Save the updated conversation history to persistent storage
         save_conversation_history(chat_id, conversation_history)
+        print(f"DEBUG: Saved {len(conversation_history)} messages for chat_id: {chat_id}")
 
         return jsonify({
             'response': cleaned_response,
