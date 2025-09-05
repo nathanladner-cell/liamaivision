@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask, render_template, request, jsonify, session
 import openai
+import json
 
 from cloud_vector_db import get_cloud_collection, FallbackCloudCollection
 import uuid
