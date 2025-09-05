@@ -536,6 +536,128 @@ def extract_active_context(conversation_history):
     
     return active_context
 
+def inject_ultimate_context(message, conversation_history):
+    """ULTIMATE CONTEXT SOLUTION: Force ENTIRE conversation context into every message"""
+    if not conversation_history or len(conversation_history) < 2:
+        return message
+    
+    # Build comprehensive conversation summary
+    conversation_summary = build_comprehensive_conversation_summary(conversation_history)
+    
+    # Check if this is a follow-up or contextual question
+    message_lower = message.lower()
+    needs_context = any(phrase in message_lower for phrase in [
+        'what about', 'how about', 'what of', 'and for', 'for the', 
+        'same for', 'also for', 'what if', 'but what', 'then what',
+        'and what about', 'what about the', 'how about the', 'they', 'them',
+        'it', 'that', 'those', 'these', 'this'
+    ]) or len(message.split()) < 10  # Short questions likely need context
+    
+    if needs_context:
+        # FORCE ENTIRE CONVERSATION CONTEXT INTO MESSAGE
+        ultimate_message = f"""
+CONVERSATION CONTEXT REQUIRED FOR THIS QUESTION:
+
+{conversation_summary}
+
+CURRENT QUESTION: {message}
+
+CRITICAL: Use the conversation context above to understand what the user is asking about. Never say you don't have context or that something wasn't mentioned when it clearly was in the conversation history above.
+"""
+        return ultimate_message
+    
+    return message
+
+def inject_conversation_history_into_system_prompt(system_prompt, conversation_history):
+    """Inject the ENTIRE conversation history directly into the system prompt"""
+    if not conversation_history or len(conversation_history) < 2:
+        return system_prompt
+    
+    # Build detailed conversation history
+    conversation_text = "\n=== COMPLETE CONVERSATION HISTORY ===\n"
+    for i, msg in enumerate(conversation_history, 1):
+        role = msg.get('role', 'unknown').upper()
+        content = msg.get('content', '')
+        if isinstance(content, list):
+            # Handle vision messages
+            text_parts = [item.get('text', '') for item in content if item.get('type') == 'text']
+            content = ' '.join(text_parts)
+        conversation_text += f"{i}. {role}: {content}\n"
+    
+    conversation_text += "=== END CONVERSATION HISTORY ===\n\n"
+    
+    # Inject conversation history at the beginning of system prompt
+    ultimate_system_prompt = f"""
+{conversation_text}
+
+CRITICAL CONTEXT AWARENESS INSTRUCTIONS:
+- The conversation history above shows EVERYTHING that has been discussed
+- NEVER claim that something wasn't mentioned when it's clearly in the history above
+- ALWAYS reference the conversation history to understand context
+- If user asks about "them", "it", "those", etc., look at the conversation history to understand what they mean
+- The conversation history is your COMPLETE memory of this conversation
+
+{system_prompt}
+"""
+    
+    return ultimate_system_prompt
+
+def build_comprehensive_conversation_summary(conversation_history):
+    """Build a comprehensive summary of the entire conversation"""
+    if not conversation_history:
+        return "No conversation history available."
+    
+    summary_parts = []
+    summary_parts.append("=== CONVERSATION SUMMARY ===")
+    
+    # Extract all topics, equipment, specifications mentioned
+    topics_mentioned = set()
+    equipment_mentioned = set()
+    specifications_mentioned = set()
+    questions_asked = []
+    
+    for msg in conversation_history:
+        if msg.get('role') == 'user':
+            content = msg.get('content', '')
+            if isinstance(content, list):
+                text_parts = [item.get('text', '') for item in content if item.get('type') == 'text']
+                content = ' '.join(text_parts)
+            
+            questions_asked.append(content)
+            content_lower = content.lower()
+            
+            # Extract equipment
+            for eq in ['gloves', 'sleeves', 'blankets', 'boots', 'covers', 'matting']:
+                if eq in content_lower:
+                    equipment_mentioned.add(eq)
+            
+            # Extract specifications
+            for spec in ['class 0', 'class 1', 'class 2', 'class 3', 'class 4', 'dc', 'ac']:
+                if spec in content_lower:
+                    specifications_mentioned.add(spec.upper())
+            
+            # Extract topics
+            for topic in ['voltage', 'testing', 'inspection', 'maintenance', 'safety']:
+                if topic in content_lower:
+                    topics_mentioned.add(topic)
+    
+    # Build summary
+    if equipment_mentioned:
+        summary_parts.append(f"EQUIPMENT DISCUSSED: {', '.join(sorted(equipment_mentioned))}")
+    if specifications_mentioned:
+        summary_parts.append(f"SPECIFICATIONS MENTIONED: {', '.join(sorted(specifications_mentioned))}")
+    if topics_mentioned:
+        summary_parts.append(f"TOPICS COVERED: {', '.join(sorted(topics_mentioned))}")
+    
+    summary_parts.append(f"TOTAL QUESTIONS ASKED: {len(questions_asked)}")
+    
+    # Add recent questions for context
+    summary_parts.append("\nRECENT QUESTIONS:")
+    for i, question in enumerate(questions_asked[-5:], 1):  # Last 5 questions
+        summary_parts.append(f"{i}. {question}")
+    
+    return "\n".join(summary_parts)
+
 def validate_nuclear_context_usage(ai_response, nuclear_message, original_message):
     """Validate that the AI properly used the nuclear context injection"""
     # Extract context from nuclear message
@@ -579,6 +701,68 @@ def validate_nuclear_context_usage(ai_response, nuclear_message, original_messag
         # Prepend the missing context to force acknowledgment
         forced_context = f"For {context_specs.get('voltage', '')} {context_specs.get('class', '')} {context_specs.get('equipment', '')}: {ai_response}"
         return forced_context
+    
+    return ai_response
+
+def validate_ultimate_context_usage(ai_response, ultimate_message, original_message, conversation_history):
+    """ULTIMATE VALIDATION: Ensure AI properly used conversation context"""
+    if not conversation_history or len(conversation_history) < 2:
+        return ai_response
+    
+    # Check for catastrophic context failures
+    response_lower = ai_response.lower()
+    
+    # Extract what was actually discussed in conversation
+    discussed_items = set()
+    for msg in conversation_history:
+        if msg.get('role') == 'user':
+            content = msg.get('content', '')
+            if isinstance(content, list):
+                text_parts = [item.get('text', '') for item in content if item.get('type') == 'text']
+                content = ' '.join(text_parts)
+            content_lower = content.lower()
+            
+            # Check for equipment mentions
+            for eq in ['gloves', 'sleeves', 'blankets', 'boots', 'covers']:
+                if eq in content_lower:
+                    discussed_items.add(eq)
+    
+    # CATASTROPHIC FAILURE DETECTION
+    context_failures = []
+    
+    # Check if AI claims something wasn't mentioned when it clearly was
+    for item in discussed_items:
+        denial_phrases = [
+            f"haven't mentioned {item}",
+            f"you haven't mentioned {item}",
+            f"not mentioned {item}",
+            f"didn't mention {item}",
+            f"no mention of {item}",
+            f"{item} at all in this",
+            f"haven't talked about {item}",
+            f"haven't discussed {item}"
+        ]
+        
+        for phrase in denial_phrases:
+            if phrase in response_lower:
+                context_failures.append(f"FALSELY CLAIMS {item.upper()} WASN'T MENTIONED")
+    
+    # If context failures detected, FORCE CORRECTION
+    if context_failures:
+        print(f"DEBUG ULTIMATE VALIDATION: CONTEXT FAILURES DETECTED: {context_failures}")
+        
+        # Build correction message
+        discussed_list = ', '.join(sorted(discussed_items))
+        correction = f"""
+CONTEXT CORRECTION REQUIRED:
+
+The conversation has clearly discussed: {discussed_list}
+
+CORRECTED RESPONSE: {ai_response}
+
+Note: This conversation has covered multiple topics including the items listed above. Please refer to the conversation history for complete context.
+"""
+        return correction
     
     return ai_response
 
@@ -1112,22 +1296,25 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             context_specific_instructions=context_instructions
         )
 
-        # NUCLEAR CONTEXT INJECTION - Force context into the current message
-        nuclear_context_message = inject_nuclear_context(message, conversation_history)
-        print(f"DEBUG NUCLEAR: Original message: {message}")
-        print(f"DEBUG NUCLEAR: Enhanced message: {nuclear_context_message}")
+        # ULTIMATE CONTEXT SOLUTION - Force ENTIRE conversation into every message
+        ultimate_context_message = inject_ultimate_context(message, conversation_history)
+        ultimate_system_prompt = inject_conversation_history_into_system_prompt(system_prompt, conversation_history)
+        
+        print(f"DEBUG ULTIMATE: Original message: {message}")
+        print(f"DEBUG ULTIMATE: Ultimate message: {ultimate_context_message}")
+        print(f"DEBUG ULTIMATE: System prompt includes {len(conversation_history)} conversation messages")
 
         # Get response from OpenAI GPT API
         try:
-            # Build messages array with conversation history
-            messages = [{"role": "system", "content": system_prompt}]
+            # Build messages array with ULTIMATE CONTEXT FORCING
+            messages = [{"role": "system", "content": ultimate_system_prompt}]
             
-            # Add conversation history but replace the LAST user message with nuclear-enhanced version
+            # Add conversation history but replace the LAST user message with ultimate-enhanced version
             for i, msg in enumerate(conversation_history):
                 if i == len(conversation_history) - 1 and msg.get('role') == 'user':
-                    # Replace the last user message with nuclear-enhanced version
+                    # Replace the last user message with ultimate-enhanced version
                     enhanced_msg = msg.copy()
-                    enhanced_msg['content'] = nuclear_context_message
+                    enhanced_msg['content'] = ultimate_context_message
                     messages.append(enhanced_msg)
                 else:
                     messages.append(msg)
@@ -1149,11 +1336,11 @@ Analyze the provided information intelligently and provide a comprehensive, tech
                     else:
                         print(f"DEBUG CLOUD: Message {i} (user): text only")
 
-            # Call OpenAI GPT API with UNLIMITED CONTEXT settings - no token limits for maximum awareness
+            # Call OpenAI GPT API with MAXIMUM CONTEXT PROCESSING - UNLIMITED TOKENS
             response = client.chat.completions.create(
                 model=model_to_use,
                 messages=messages,
-                max_tokens=4000,  # UNLIMITED TOKENS - maximum possible for comprehensive context awareness
+                max_tokens=8000,  # MAXIMUM POSSIBLE TOKENS - cost is irrelevant for perfect context
                 temperature=0.7,  # Maintain snarky personality
                 presence_penalty=0.0,  # Allow full context references
                 frequency_penalty=0.0   # Allow unlimited topic referencing
@@ -1161,9 +1348,8 @@ Analyze the provided information intelligently and provide a comprehensive, tech
 
             ai_response = response.choices[0].message.content
 
-            # NUCLEAR CONTEXT VALIDATION - Ensure context was properly used
-            if "[CONTEXT:" in nuclear_context_message:
-                ai_response = validate_nuclear_context_usage(ai_response, nuclear_context_message, message)
+            # ULTIMATE CONTEXT VALIDATION - Ensure context was properly used
+            ai_response = validate_ultimate_context_usage(ai_response, ultimate_context_message, message, conversation_history)
 
             # Liam's random behavior system
             # Decide behavior randomly
