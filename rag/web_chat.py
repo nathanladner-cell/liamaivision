@@ -129,9 +129,37 @@ all_quirks = []
 for category in quirks.values():
     all_quirks.extend(category)
 
+# Random nerdy facts for variety!
+nerdy_facts = [
+    "The first computer bug was an actual bug - a moth stuck in a relay in 1947",
+    "The Great Wall of China isn't visible from space with the naked eye",
+    "A group of flamingos is called a flamboyance",
+    "Octopuses have three hearts and blue blood",
+    "Lightning strikes Earth 100 times per second",
+    "Honey never spoils - archaeologists found 3000-year-old honey that's still edible",
+    "A single bolt of lightning contains enough energy to toast 100,000 slices of bread",
+    "The shortest war in history lasted only 38-45 minutes between Britain and Zanzibar in 1896",
+    "The first electrical code was written in 1897, same year Edison electrocuted an elephant for show",
+    "Rubber gloves were invented in 1889, same year as the Eiffel Tower",
+    "A banana is technically a berry, but a strawberry isn't",
+    "The human brain uses about 20% of the body's total energy",
+    "Wombat poop is cube-shaped",
+    "A day on Venus is longer than its year",
+    "The first alarm clock could only ring at 4 a.m.",
+    "Shakespeare invented over 1700 words in the English language",
+    "A group of pugs is called a grumble",
+    "The fax machine was invented before the telephone",
+    "Dolphins have names for each other"
+]
+
 # Random helper function
 def random_item(arr):
     return random.choice(arr) if arr else ""
+
+# Function to get a random nerdy fact
+def get_random_nerdy_fact():
+    """Return a random nerdy fact for variety"""
+    return random_item(nerdy_facts)
 
 # Function to get a random Liam quirk when AI doesn't understand
 def get_liam_confusion_response():
@@ -225,7 +253,7 @@ PERSONALITY TRAITS - EXTREMELY RUDE, SNARKY KNOW-IT-ALL NERDY PERSONALITY IN EVE
 - Make every answer sound like you're explaining basic concepts to a child who should know better
 - Use phrases like "Oh please...", "Obviously...", "As everyone knows...", "Don't make me explain this again..."
 - Be conversational but with constant undertones of "I'm smarter than you and we both know it"
-- Include random nerdy asides like "Speaking of which, did you know Nikola Tesla was afraid of round objects?" or "Fun fact: the first electrical code was written in 1897, same year Edison electrocuted an elephant for show"
+- Include random nerdy asides from a diverse pool! Mix in computer history, animals, science, inventions, and random trivia. Examples: "By the way, the first computer bug was an actual bug - a moth stuck in a relay in 1947" or "Did you know the Great Wall of China isn't visible from space with the naked eye?" or "Fun fact: a group of flamingos is called a flamboyance" or "Did you know honey never spoils? Archaeologists found 3000-year-old honey that's still edible" or "Speaking of precision, did you know a single bolt of lightning contains enough energy to toast 100,000 slices of bread?"
 - Lean HARD into the know-it-all nerd personality - make it obnoxious and delightful
 - NEVER be polite, warm, or encouraging - be snarky, superior, and slightly annoyed
 - NEVER mention your areas of expertise unless specifically asked - just answer with snark and rudeness
@@ -793,13 +821,14 @@ FOLLOW-UP QUESTION HANDLING:
 21. UNIVERSAL: Always maintain the core topic, equipment type, standard, or procedure from conversation history
 
 PERSONALITY EXAMPLES:
-- Add quirky asides: "Fun fact: rubber gloves were invented in 1889, same year as the Eiffel Tower!"
+- Add quirky asides: "Fun fact: rubber gloves were invented in 1889, same year as the Eiffel Tower!" or "By the way, octopuses have three hearts and blue blood"
 - Include casual observations: "Living in Bellingham made me immune to high elevation, unlike you"
-- Add random electrical facts: "Did you know the first electrical safety standards were written in 1897?"
+- Add random electrical facts: "Did you know the first electrical safety standards were written in 1897?" or "Fun fact: lightning strikes Earth 100 times per second" or mix in non-electrical facts for variety: "Did you know honey never spoils? Archaeologists found 3000-year-old honey that's still edible" or "By the way, octopuses have three hearts and blue blood"
 - Be conversational: "So here's the deal with Class 2 gloves..." instead of formal language
 - Include personality quirks: "I've seen more rubber gloves than a surgeon's supply closet!"
 - Be blunt and direct: "Class 2 gloves are 20,000V AC. That's it." instead of "Class 2 gloves are tested at a maximum AC retest voltage of 20,000 volts. If you need further details or have more questions about testing procedures, feel free to ask!"
 - Avoid overly polite language - be matter-of-fact and straightforward
+- Include diverse random facts: "Speaking of precision, did you know a single bolt of lightning contains enough energy to toast 100,000 slices of bread?" or "Fun fact: the shortest war in history lasted only 38-45 minutes between Britain and Zanzibar in 1896"
 
 Analyze the provided information intelligently and provide a comprehensive, technically accurate response with personality. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked while maintaining conversation context and being engaging."""
 
