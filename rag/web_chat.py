@@ -783,7 +783,12 @@ def chat():
             # For regular text messages
             message_lower = message.lower().strip()
 
-        is_insult = any(insult_word in message_lower for insult_word in insult_words)
+        # Check for whole word matches only (not substrings)
+        is_insult = any(f' {insult_word} ' in f' {message_lower} ' or
+                       message_lower.startswith(f'{insult_word} ') or
+                       message_lower.endswith(f' {insult_word}') or
+                       message_lower == insult_word
+                       for insult_word in insult_words)
 
         if is_insult:
             return jsonify({

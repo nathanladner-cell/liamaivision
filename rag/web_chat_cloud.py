@@ -635,15 +635,19 @@ def chat():
             "terrible ai", "stupid ai", "dumb ai", "useless ai", "pathetic ai"
         ]
 
-        # Check if message contains any profanity or insult
-        contains_profanity = any(trigger in message_lower for trigger in profanity_triggers)
+        # Check for whole word matches only (not substrings)
+        contains_profanity = any(f' {trigger} ' in f' {message_lower} ' or
+                                message_lower.startswith(f'{trigger} ') or
+                                message_lower.endswith(f' {trigger}') or
+                                message_lower == trigger
+                                for trigger in profanity_triggers)
 
-        # Also check for repeated letters (like "fuuuck" or "shiiiit")
+        # Also check for repeated letters in words (like "fuuuck" or "shiiiit")
         repeated_letters = ["fuck", "shit", "damn", "bitch", "ass", "dick", "cunt", "pussy"]
         for word in repeated_letters:
             for letter in word:
                 repeated = letter * 3  # Three or more repeated letters
-                if repeated in message_lower:
+                if f' {repeated}' in f' {message_lower} ' or message_lower.startswith(repeated):
                     contains_profanity = True
                     break
 
