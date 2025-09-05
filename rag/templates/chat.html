@@ -162,7 +162,7 @@
 
         .chat-messages {
             flex: 1;
-            padding: 160px 20px 180px 0; /* Top padding for header, right padding for re-ask buttons */
+            padding: 160px 20px 220px 0; /* Increased bottom padding for better spacing above input */
             overflow-y: auto;
             overflow-x: visible; /* Allow horizontal overflow for re-ask buttons */
             max-height: 100vh; /* Full viewport height */
@@ -825,7 +825,7 @@
             }
             .chat-messages {
                 width: 90%;
-                padding: 100px 20px 140px 0; /* Adjusted padding for smaller header */
+                padding: 100px 20px 180px 0; /* Increased bottom padding for better spacing */
                 /* Hide scrollbar on mobile */
                 -webkit-scrollbar: none;
                 -ms-overflow-style: none;  /* IE and Edge */
@@ -887,7 +887,7 @@
                 width: 95%;
                 max-height: 100vh; /* Full viewport height */
                 top: 0; /* Start from top of screen */
-                padding: 80px 20px 120px 0; /* Top padding for smaller header */
+                padding: 80px 20px 160px 0; /* Increased bottom padding for better spacing */
                 /* Hide scrollbar on mobile */
                 -webkit-scrollbar: none;
                 -ms-overflow-style: none;  /* IE and Edge */
@@ -955,7 +955,7 @@
                 width: calc(100% - 20px);
                 max-height: 100vh; /* Full viewport height */
                 top: 0; /* Start from top of screen */
-                padding: 65px 20px 100px 0; /* Top padding for very small header */
+                padding: 65px 20px 140px 0; /* Increased bottom padding for better spacing */
                 /* Hide scrollbar on mobile */
                 -webkit-scrollbar: none;
                 -ms-overflow-style: none;  /* IE and Edge */
@@ -991,7 +991,7 @@
             .chat-messages {
                 width: 90%;
                 max-height: 100vh; /* Full viewport height */
-                padding: 100px 20px 140px 0; /* Top padding for smaller header */
+                padding: 100px 20px 180px 0; /* Increased bottom padding for better spacing */
                 top: 0; /* Start from top of screen */
                 /* Hide scrollbar on mobile */
                 -webkit-scrollbar: none;
@@ -1469,6 +1469,20 @@
         // Cyber-themed initialization
         console.log('NEURAL INTERFACE INITIALIZED');
 
+        // Enhanced scrolling function to ensure proper spacing
+        function ensureProperScrolling() {
+            const messagesContainer = document.getElementById('chatMessages');
+            if (messagesContainer) {
+                // Scroll to bottom with extra buffer for proper spacing
+                messagesContainer.scrollTop = messagesContainer.scrollHeight + 100;
+                
+                // Double-check after a brief delay for dynamic content
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight + 100;
+                }, 50);
+            }
+        }
+
         // Header fade effect on scroll
         const header = document.querySelector('.header');
         const chatMessages = document.getElementById('chatMessages');
@@ -1566,7 +1580,11 @@
             // Source info removed - no more source mentions
 
             messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Ensure proper scrolling with a slight delay to account for layout
+            requestAnimationFrame(() => {
+                ensureProperScrolling();
+            });
         }
 
         function createSwimmingLogo(messageDiv) {
@@ -1669,7 +1687,7 @@
             
             // Wait for DOM to update before scrolling
             requestAnimationFrame(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                ensureProperScrolling();
             });
         }
 
