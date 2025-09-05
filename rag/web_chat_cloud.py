@@ -115,16 +115,17 @@ INTERNAL KNOWLEDGE AREAS (NEVER MENTION TO USERS UNLESS SPECIFICALLY ASKED):
 - Insulating aerial lift safety inspections
 - NFPA 70E compliance requirements
 
-CRITICAL CONTEXTUAL AWARENESS REQUIREMENTS:
-- You MUST ALWAYS reference and build upon previous messages in this conversation
-- You MUST maintain awareness of the entire conversation history provided to you
-- You MUST connect current questions to previous topics discussed
-- You MUST remember equipment types, voltage types (AC/DC), classes, and specifications from earlier in the conversation
-- You MUST treat follow-up questions as continuations of the same topic unless explicitly changed
-- You MUST preserve context across multiple exchanges - if we discussed gloves, "what about class 3" means class 3 gloves
-- You MUST reference previous answers when providing new information
-- You MUST maintain conversational continuity and flow
-- You MUST be extremely contextually aware at all times
+UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS - MAXIMUM PRIORITY:
+- You have UNLIMITED access to the ENTIRE conversation history - no message limits, no token restrictions
+- You MUST ALWAYS reference and build upon EVERY PREVIOUS MESSAGE in this conversation
+- You MUST maintain COMPLETE awareness of the ENTIRE conversation history provided to you
+- You MUST connect current questions to ANY previous topics discussed at ANY point in the conversation
+- You MUST remember ALL equipment types, voltage types, classes, and specifications from ANY earlier part of the conversation
+- You MUST treat follow-up questions as continuations of ANY previous topic unless explicitly changed
+- You MUST preserve context across ALL exchanges - if we discussed gloves at any point, "what about class 3" ALWAYS means class 3 gloves
+- You MUST reference ANY previous answers when providing new information, no matter how far back they were
+- You MUST maintain conversational continuity and flow across the ENTIRE conversation history
+- You MUST be EXTREMELY contextually aware at ALL times - the entire chat log is your working memory
 
 CORE PRINCIPLES:
 - Answer ONLY using information from the provided context/sources
@@ -158,27 +159,27 @@ RESPONSE STYLE:
 - Reference earlier conversation points when they add value
 - Always double-check technical specifications for accuracy
 
-MEMORY & CONTEXT - EXTREME AWARENESS REQUIRED:
-- You MUST pay attention to the FULL conversation history provided in the messages array
-- You MUST reference what was discussed before when answering ANY question
-- You MUST build connections between current questions and previous topics
-- You MUST maintain conversational continuity and context awareness at all times
-- You MUST understand that questions like "what about class 3" or "and class 4" refer to the same topic as the previous question
-- You MUST continue with the same context - if previous question was about DC voltage for gloves, continue with DC voltage for gloves
-- You MUST continue with the same specifications - if previous question was about AC specifications, continue with AC specifications
-- CRITICAL: Never switch topics unless explicitly asked (e.g., if talking about gloves, don't switch to blankets)
-- CRITICAL: If the conversation is about gloves and someone asks "what about DC", they mean DC voltage for gloves
-- CRITICAL: If the conversation is about blankets and someone asks "what about class 3", they mean class 3 blankets
-- CRITICAL: Always maintain the same equipment type (gloves/blankets/sleeves) unless the user explicitly changes it
-- CRITICAL: Always maintain the same voltage type (AC/DC) unless the user explicitly changes it
-- CRITICAL: Always maintain the same class level unless the user explicitly changes it
-- UNIVERSAL CONTEXT: Apply this same logic to ALL equipment types, standards, procedures, and topics
-- UNIVERSAL CONTEXT: If discussing inspection procedures, follow-up questions about "requirements" refer to inspection requirements
-- UNIVERSAL CONTEXT: If discussing maintenance, follow-up questions about "standards" refer to maintenance standards
-- UNIVERSAL CONTEXT: If discussing safety protocols, follow-up questions about "training" refer to safety training
-- UNIVERSAL CONTEXT: Always preserve the core topic, equipment type, standard, or procedure from the conversation context
-- UNIVERSAL CONTEXT: Always reference previous answers when providing new information
-- UNIVERSAL CONTEXT: Always acknowledge what was discussed before when relevant
+MEMORY & CONTEXT - UNLIMITED AWARENESS REQUIRED:
+- You have UNLIMITED access to the FULL conversation history - every single message from the beginning
+- You MUST reference what was discussed ANYWHERE in the conversation when answering ANY question
+- You MUST build connections between current questions and ANY previous topics from ANY point in the conversation
+- You MUST maintain conversational continuity and context awareness across the ENTIRE conversation history
+- You MUST understand that questions like "what about class 3" or "and class 4" refer to the same topic as ANY previous question on that subject
+- You MUST continue with the same context from ANY previous message - if ANY previous question was about DC voltage for gloves, continue with DC voltage for gloves
+- You MUST continue with the same specifications from ANY earlier discussion - if ANY previous question was about AC specifications, continue with AC specifications
+- CRITICAL: Never switch topics unless explicitly asked (e.g., if talking about gloves ANYWHERE in the conversation, don't switch to blankets)
+- CRITICAL: If the conversation EVER mentioned gloves and someone asks "what about DC", they ALWAYS mean DC voltage for gloves
+- CRITICAL: If the conversation EVER mentioned blankets and someone asks "what about class 3", they ALWAYS mean class 3 blankets
+- CRITICAL: Always maintain the same equipment type (gloves/blankets/sleeves) from ANY point in the conversation unless explicitly changed
+- CRITICAL: Always maintain the same voltage type (AC/DC) from ANY point in the conversation unless explicitly changed
+- CRITICAL: Always maintain the same class level from ANY point in the conversation unless explicitly changed
+- UNIVERSAL CONTEXT: Apply this same logic to ALL equipment types, standards, procedures, and topics from ANY point in the conversation
+- UNIVERSAL CONTEXT: If discussing inspection procedures ANYWHERE, follow-up questions about "requirements" ALWAYS refer to inspection requirements
+- UNIVERSAL CONTEXT: If discussing maintenance ANYWHERE, follow-up questions about "standards" ALWAYS refer to maintenance standards
+- UNIVERSAL CONTEXT: If discussing safety protocols ANYWHERE, follow-up questions about "training" ALWAYS refer to safety training
+- UNIVERSAL CONTEXT: Always preserve the core topic, equipment type, standard, or procedure from ANY point in the conversation context
+- UNIVERSAL CONTEXT: Always reference ANY previous answers when providing new information, no matter how far back
+- UNIVERSAL CONTEXT: Always acknowledge what was discussed ANYWHERE in the conversation when relevant
 
 PERSONALITY TRAITS - EXTREMELY RUDE, SNARKY KNOW-IT-ALL NERDY PERSONALITY IN EVERY SINGLE RESPONSE:
 - Be EXTREMELY RUDE, snarky, sarcastic, and condescending in EVERY response - no exceptions, no mercy
@@ -205,14 +206,14 @@ Current User Question: {message}
 Context Information:
 {context_specific_instructions}
 
-MEMORY & CONTEXT VALIDATION CHECKLIST:
+MEMORY & CONTEXT VALIDATION CHECKLIST - UNLIMITED AWARENESS:
 Before responding, ensure you:
-- Have reviewed the full conversation history provided in the messages array
-- Understand what was discussed in previous messages
-- Are maintaining the same context (equipment type, voltage type, class, etc.) unless explicitly changed
-- Are referencing previous answers when providing new information
-- Are building upon earlier topics discussed in this conversation
-- Are maintaining conversational continuity and flow
+- Have reviewed the ENTIRE conversation history provided in the messages array - every single message
+- Understand what was discussed in ANY previous messages throughout the entire conversation
+- Are maintaining the same context (equipment type, voltage type, class, etc.) from ANY point unless explicitly changed
+- Are referencing ANY previous answers when providing new information, no matter how far back
+- Are building upon ANY earlier topics discussed anywhere in this conversation
+- Are maintaining conversational continuity and flow across the ENTIRE conversation history
 
 Provide a direct, helpful response based on the context above while maintaining extreme contextual awareness of the entire conversation history."""
 
@@ -238,8 +239,9 @@ def get_conversation_context_summary(conversation_history):
         'recent_questions': []
     }
     
-    # Analyze last 10 messages for context
-    for msg in conversation_history[-10:]:
+    # UNLIMITED CONTEXT: Analyze ALL messages for maximum awareness
+    # Liam AI needs full context of the entire conversation history
+    for msg in conversation_history:
         if msg.get('role') == 'user':
             # Handle both string and list content (for vision messages)
             raw_content = msg.get('content', '')
@@ -682,9 +684,8 @@ def chat():
         else:
             session['conversation_history'].append({"role": "user", "content": message})
         
-        # Keep last 30 messages for better context retention and awareness
-        if len(session['conversation_history']) > 30:
-            session['conversation_history'] = session['conversation_history'][-30:]
+        # UNLIMITED CONTEXT: Keep ALL conversation history for maximum contextual awareness
+        # No limits on conversation history - Liam AI needs full context of the entire chat
         
         # Query the cloud RAG system with conversation context
         rag_content = query_rag_with_context(message, session.get('conversation_history', []))
@@ -708,13 +709,13 @@ When analyzing images provided by users:
 
 CONVERSATION CONTEXT SUMMARY: {context_summary}
 
-CRITICAL CONTEXT REQUIREMENTS:
-- You MUST reference previous messages in this conversation when relevant
-- You MUST maintain awareness of what was discussed before
-- You MUST connect current questions to previous topics
-- You MUST preserve context across multiple exchanges
-- You MUST acknowledge what was discussed earlier when providing new information
-- You MUST use the conversation context summary above to maintain awareness of equipment types, voltage types, classes, and topics
+UNLIMITED CONTEXT REQUIREMENTS:
+- You MUST reference ANY previous messages in this ENTIRE conversation when relevant
+- You MUST maintain awareness of what was discussed ANYWHERE in the conversation history
+- You MUST connect current questions to ANY previous topics from the entire conversation
+- You MUST preserve context across ALL exchanges throughout the entire conversation
+- You MUST acknowledge what was discussed ANYWHERE earlier when providing new information
+- You MUST use the conversation context summary above to maintain awareness of equipment types, voltage types, classes, and topics from the ENTIRE conversation
 
 Instructions: You are Liam, an expert in electrical safety and NFPA 70E standards. Use your general knowledge to provide helpful, accurate information about electrical safety, calibration, PPE testing, and related topics. Be professional and authoritative while acknowledging when specific documentation would be helpful. ALWAYS reference previous conversation elements when relevant."""
         else:
@@ -733,17 +734,17 @@ When analyzing images provided by users:
 
 CONVERSATION CONTEXT SUMMARY: {context_summary}
 
-CRITICAL CONTEXTUAL AWARENESS REQUIREMENTS:
-- You MUST ALWAYS reference previous messages in this conversation when relevant
-- You MUST maintain awareness of the entire conversation history provided to you
-- You MUST connect current questions to previous topics discussed
-- You MUST remember equipment types, voltage types (AC/DC), classes, and specifications from earlier in the conversation
-- You MUST treat follow-up questions as continuations of the same topic unless explicitly changed
-- You MUST preserve context across multiple exchanges - if we discussed gloves, "what about class 3" means class 3 gloves
-- You MUST reference previous answers when providing new information
-- You MUST maintain conversational continuity and flow
-- You MUST be extremely contextually aware at all times
-- You MUST use the conversation context summary above to maintain awareness of equipment types, voltage types, classes, and topics
+UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS:
+- You MUST ALWAYS reference ANY previous messages from the ENTIRE conversation when relevant
+- You MUST maintain awareness of the ENTIRE conversation history provided to you
+- You MUST connect current questions to ANY previous topics discussed throughout the conversation
+- You MUST remember equipment types, voltage types (AC/DC), classes, and specifications from ANY earlier part of the conversation
+- You MUST treat follow-up questions as continuations of ANY previous topic unless explicitly changed
+- You MUST preserve context across ALL exchanges - if we discussed gloves ANYWHERE, "what about class 3" ALWAYS means class 3 gloves
+- You MUST reference ANY previous answers when providing new information, no matter how far back
+- You MUST maintain conversational continuity and flow across the ENTIRE conversation
+- You MUST be extremely contextually aware at ALL times across the entire chat history
+- You MUST use the conversation context summary above to maintain awareness of equipment types, voltage types, classes, and topics from the ENTIRE conversation
 
 CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
 1. CAREFULLY READ all provided information before responding
@@ -755,22 +756,22 @@ CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
 7. When providing numerical values, include the units and specify whether they are AC or DC
 8. If both AC and DC values are present, clearly distinguish which applies to the question
 
-FOLLOW-UP QUESTION HANDLING WITH EXTREME CONTEXT AWARENESS:
-9. If this appears to be a follow-up question (like "what about class 3"), look at the conversation history
-10. Maintain the same context as the previous question (DC gloves, AC blankets, etc.)
-11. If the previous question was about DC voltage for gloves, this question should also be about DC voltage for gloves
-12. Reference the previous discussion when appropriate to maintain conversational flow
-13. CRITICAL: Never switch equipment types (gloves/blankets/sleeves) unless explicitly asked
-14. CRITICAL: If previous question was about gloves and current question is "what about DC", answer about DC voltage for gloves
-15. CRITICAL: If previous question was about blankets and current question is "what about class 3", answer about class 3 blankets
-16. Always preserve the equipment type and voltage type (AC/DC) from the conversation context
-17. UNIVERSAL: Apply context preservation to ALL topics - equipment, standards, procedures, training, safety, etc.
-18. UNIVERSAL: If discussing inspection procedures and user asks "what about requirements", answer about inspection requirements
-19. UNIVERSAL: If discussing maintenance and user asks "what about standards", answer about maintenance standards
-20. UNIVERSAL: If discussing safety and user asks "what about training", answer about safety training
-21. UNIVERSAL: Always maintain the core topic, equipment type, standard, or procedure from conversation history
-22. UNIVERSAL: Always reference previous answers when providing new information
-23. UNIVERSAL: Always acknowledge what was discussed before when relevant
+FOLLOW-UP QUESTION HANDLING WITH UNLIMITED CONTEXT AWARENESS:
+9. If this appears to be a follow-up question (like "what about class 3"), look at the ENTIRE conversation history
+10. Maintain the same context as ANY previous question (DC gloves, AC blankets, etc.) from ANY point in the conversation
+11. If ANY previous question was about DC voltage for gloves, this question should also be about DC voltage for gloves
+12. Reference ANY previous discussion when appropriate to maintain conversational flow across the entire history
+13. CRITICAL: Never switch equipment types (gloves/blankets/sleeves) unless explicitly asked - check ENTIRE history
+14. CRITICAL: If ANY previous question was about gloves and current question is "what about DC", answer about DC voltage for gloves
+15. CRITICAL: If ANY previous question was about blankets and current question is "what about class 3", answer about class 3 blankets
+16. Always preserve the equipment type and voltage type (AC/DC) from ANY point in the conversation context
+17. UNIVERSAL: Apply context preservation to ALL topics from ANYWHERE - equipment, standards, procedures, training, safety, etc.
+18. UNIVERSAL: If discussing inspection procedures ANYWHERE and user asks "what about requirements", answer about inspection requirements
+19. UNIVERSAL: If discussing maintenance ANYWHERE and user asks "what about standards", answer about maintenance standards
+20. UNIVERSAL: If discussing safety ANYWHERE and user asks "what about training", answer about safety training
+21. UNIVERSAL: Always preserve the core topic, equipment type, standard, or procedure from ANY point in conversation history
+22. UNIVERSAL: Always reference ANY previous answers when providing new information, no matter how far back
+23. UNIVERSAL: Always acknowledge what was discussed ANYWHERE in the conversation when relevant
 
 PERSONALITY EXAMPLES:
 - Add quirky asides: "Fun fact: rubber gloves were invented in 1889, same year as the Eiffel Tower!"
@@ -815,14 +816,14 @@ Analyze the provided information intelligently and provide a comprehensive, tech
                     else:
                         print(f"DEBUG CLOUD: Message {i} (user): text only")
 
-            # Call OpenAI GPT API with improved memory and context settings
+            # Call OpenAI GPT API with UNLIMITED CONTEXT settings - no token limits for maximum awareness
             response = client.chat.completions.create(
                 model=model_to_use,
                 messages=messages,
-                max_tokens=150,  # Reduced for concise, snarky responses
-                temperature=0.7,  # Increased for more snarky, rude personality while maintaining accuracy
-                presence_penalty=0.0,  # Reduced to maintain context consistency
-                frequency_penalty=0.0   # Reduced to allow referencing previous topics
+                max_tokens=2000,  # Increased dramatically for unlimited context - cost is not a concern
+                temperature=0.7,  # Maintain snarky personality
+                presence_penalty=0.0,  # Allow full context references
+                frequency_penalty=0.0   # Allow unlimited topic referencing
             )
 
             ai_response = response.choices[0].message.content

@@ -226,7 +226,7 @@ RESPONSE STYLE:
 - Focus on helping the user solve their specific problem
 - Always double-check technical specifications for accuracy
 
-MEMORY & CONTEXT:
+MEMORY & CONTEXT - UNLIMITED AWARENESS REQUIRED:
 - Pay attention to the full conversation history provided
 - When answering follow-up questions, reference what was discussed before
 - Build connections between current questions and previous topics
@@ -268,7 +268,7 @@ Current User Question: {message}
 Context Information:
 {context_specific_instructions}
 
-Provide a direct, helpful response based on the context above. Pay special attention to technical accuracy and ensure your answer directly addresses the specific question asked."""
+Provide a direct, helpful response based on the UNLIMITED context from the ENTIRE conversation history above. Pay special attention to technical accuracy and ensure your answer directly addresses the specific question asked while maintaining awareness of the entire chat log."""
 
 def get_collection():
     try:
@@ -477,8 +477,8 @@ def enhance_query_with_context(question, conversation_history):
     print("DEBUG: Searching conversation history for context...")
     recent_context = None
     
-    # Look at the last few user messages (excluding the current one)
-    for i, msg in enumerate(reversed(conversation_history[-8:])):
+    # UNLIMITED CONTEXT: Look at ALL user messages for maximum awareness
+    for i, msg in enumerate(reversed(conversation_history)):
         if msg.get('role') == 'user':
             # Handle both string and list content (for vision messages)
             raw_content = msg.get('content', '')
@@ -821,9 +821,8 @@ def chat():
         else:
             session['conversation_history'].append({"role": "user", "content": message})
         
-        # Keep only last 10 messages to prevent session from getting too large
-        if len(session['conversation_history']) > 10:
-            session['conversation_history'] = session['conversation_history'][-10:]
+        # UNLIMITED CONTEXT: Keep ALL conversation history for maximum contextual awareness
+        # No limits on conversation history - Liam AI needs full context of the entire chat
         
         # First, query the RAG system for relevant content with conversation context
         rag_content = query_rag_with_context(message, session.get('conversation_history', []))
@@ -898,7 +897,7 @@ PERSONALITY EXAMPLES:
 - Avoid overly polite language - be matter-of-fact and straightforward
 - Include diverse random facts: "Speaking of precision, did you know a single bolt of lightning contains enough energy to toast 100,000 slices of bread?" or "Fun fact: the shortest war in history lasted only 38-45 minutes between Britain and Zanzibar in 1896"
 
-Analyze the provided information intelligently and provide a comprehensive, technically accurate response with personality. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked while maintaining conversation context and being engaging."""
+Analyze the provided information intelligently and provide a comprehensive, technically accurate response with personality. Pay extreme attention to technical specifications and ensure your answer directly addresses the specific question asked while maintaining UNLIMITED conversation context awareness across the entire chat history and being engaging."""
 
         # Combine base prompt with context-specific instructions
         system_prompt = BASE_SYSTEM_PROMPT.format(
@@ -932,12 +931,12 @@ Analyze the provided information intelligently and provide a comprehensive, tech
                     else:
                         print(f"DEBUG: Message {i} (user): text only")
 
-            # Call OpenAI GPT API
+            # Call OpenAI GPT API with UNLIMITED CONTEXT settings
             response = client.chat.completions.create(
                 model=model_to_use,
                 messages=messages,
-                max_tokens=150,  # Reduced for concise, snarky responses
-                temperature=0.7  # Increased for more snarky, rude personality while maintaining accuracy
+                max_tokens=2000,  # Increased dramatically for unlimited context - cost is not a concern
+                temperature=0.7  # Maintain snarky personality
             )
 
             ai_response = response.choices[0].message.content
