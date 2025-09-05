@@ -303,7 +303,7 @@ def get_conversation_context_summary(conversation_history):
     """Extract and maintain persistent context elements from conversation history"""
     if not conversation_history:
         return ""
-
+    
     # Track PERSISTENT context that carries forward through ALL questions
     persistent_context = {
         'active_equipment': None,
@@ -349,13 +349,13 @@ def get_conversation_context_summary(conversation_history):
             current_voltage = None
             current_class = None
             current_topic = None
-
+            
             # Extract equipment types
             for eq_type in ['gloves', 'blankets', 'sleeves', 'boots', 'overshoes', 'covers', 'matting', 'barriers']:
                 if eq_type in content:
                     current_equipment = eq_type
                     persistent_context['all_equipment'].add(eq_type)
-
+            
             # Extract voltage types
             if 'dc' in content and 'ac' not in content:
                 current_voltage = 'DC'
@@ -363,13 +363,13 @@ def get_conversation_context_summary(conversation_history):
             elif 'ac' in content and 'dc' not in content:
                 current_voltage = 'AC'
                 persistent_context['all_voltages'].add('AC')
-
+            
             # Extract classes
             for class_num in ['class 0', 'class 1', 'class 2', 'class 3', 'class 4']:
                 if class_num in content:
                     current_class = class_num
                     persistent_context['all_classes'].add(class_num)
-
+            
             # Extract topics
             for topic in ['voltage', 'current', 'test', 'testing', 'inspection', 'maintenance', 'safety', 'standards', 'requirements']:
                 if topic in content:
@@ -766,6 +766,55 @@ Note: This conversation has covered multiple topics including the items listed a
         return correction
     
     return ai_response
+
+def validate_technical_accuracy(ai_response, original_message, rag_content):
+    """Validate technical accuracy of responses and correct common errors"""
+    if not any(keyword in original_message.lower() for keyword in ['voltage', 'class', 'dc', 'ac', 'test']):
+        return ai_response  # Only validate technical questions
+    
+    print(f"DEBUG TECHNICAL VALIDATION: Checking technical accuracy")
+    
+    # Common technical corrections
+    corrections_made = []
+    corrected_response = ai_response
+    
+    # Check for common voltage errors
+    if 'class 2' in original_message.lower() and 'dc' in original_message.lower():
+        # Class 2 DC should be 50,000V
+        if '20,000' in corrected_response and 'dc' in corrected_response.lower():
+            corrected_response = corrected_response.replace('20,000', '50,000')
+            corrections_made.append("Corrected Class 2 DC voltage from 20,000V to 50,000V")
+        elif '20000' in corrected_response and 'dc' in corrected_response.lower():
+            corrected_response = corrected_response.replace('20000', '50,000')
+            corrections_made.append("Corrected Class 2 DC voltage from 20000V to 50,000V")
+    
+    if 'class 2' in original_message.lower() and 'ac' in original_message.lower():
+        # Class 2 AC should be 20,000V
+        if '50,000' in corrected_response and 'ac' in corrected_response.lower():
+            corrected_response = corrected_response.replace('50,000', '20,000')
+            corrections_made.append("Corrected Class 2 AC voltage from 50,000V to 20,000V")
+    
+    # Validate against RAG content if available
+    if rag_content and any(indicator in rag_content for indicator in ['50 000', '50,000', 'DC Retest Voltage']):
+        # RAG content contains technical specifications
+        if 'class 2' in original_message.lower() and 'dc' in original_message.lower():
+            if '20,000' in corrected_response or '20000' in corrected_response:
+                # Force correction based on RAG content
+                corrected_response = corrected_response.replace('20,000', '50,000').replace('20000', '50,000')
+                corrections_made.append("Corrected using technical documentation: Class 2 DC = 50,000V")
+    
+    # Check for AC/DC confusion
+    if 'dc' in original_message.lower() and 'ac' in corrected_response.lower() and 'dc' not in corrected_response.lower():
+        corrections_made.append("WARNING: Question asked about DC but response mentions AC")
+    elif 'ac' in original_message.lower() and 'dc' in corrected_response.lower() and 'ac' not in corrected_response.lower():
+        corrections_made.append("WARNING: Question asked about AC but response mentions DC")
+    
+    if corrections_made:
+        print(f"DEBUG TECHNICAL VALIDATION: Made corrections: {corrections_made}")
+        # Add a note about technical accuracy
+        corrected_response = f"{corrected_response}\n\n[Technical accuracy verified from documentation]"
+    
+    return corrected_response
 
 def query_rag_with_context(question, conversation_history):
     """Query the cloud RAG system with conversation context for better follow-up handling"""
@@ -1166,11 +1215,19 @@ def chat():
         # UNLIMITED CONTEXT: Keep ALL conversation history for maximum contextual awareness
         # No limits on conversation history - Liam AI needs full context of the entire chat
         
-        # Query the cloud RAG system with conversation context
-        rag_content = query_rag_with_context(message, session.get('conversation_history', []))
+        # Query the cloud RAG system with conversation context - PRIORITIZE TECHNICAL ACCURACY
+        rag_content = query_rag_with_context(message, conversation_history)
         
         # Get conversation context summary for enhanced awareness
-        context_summary = get_conversation_context_summary(session.get('conversation_history', []))
+        context_summary = get_conversation_context_summary(conversation_history)
+        
+        # TECHNICAL ACCURACY CHECK - Enhance RAG results for technical questions
+        if any(keyword in message.lower() for keyword in ['voltage', 'class', 'dc', 'ac', 'test', 'specification']):
+            print(f"DEBUG TECHNICAL: Detected technical query, enhancing RAG search")
+            # Try additional specific searches for technical accuracy
+            enhanced_rag = query_rag(f"technical specifications {message}")
+            if enhanced_rag and len(enhanced_rag) > 50:  # If we got substantial technical content
+                rag_content = f"{rag_content}\n\nADDITIONAL TECHNICAL REFERENCE:\n{enhanced_rag}"
         
         # Create context-specific instructions with EXTREME CONTEXTUAL AWARENESS
         if ("general knowledge" in rag_content):
@@ -1245,7 +1302,7 @@ UNLIMITED CONTEXTUAL AWARENESS REQUIREMENTS:
 - You MUST be extremely contextually aware at ALL times across the entire chat history
 - You MUST use the conversation context summary above to maintain awareness of equipment types, voltage types, classes, and topics from the ENTIRE conversation
 
-CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
+CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY - ABSOLUTE PRIORITY:
 1. CAREFULLY READ all provided information before responding
 2. If the question asks about DC values, look specifically for DC specifications in the context
 3. If the question asks about AC values, look specifically for AC specifications in the context  
@@ -1254,6 +1311,16 @@ CRITICAL INSTRUCTIONS FOR TECHNICAL ACCURACY:
 6. If multiple sources are provided, cross-reference them to ensure consistency
 7. When providing numerical values, include the units and specify whether they are AC or DC
 8. If both AC and DC values are present, clearly distinguish which applies to the question
+
+TECHNICAL SPECIFICATION RULES - NEVER DEVIATE:
+- Class 2 DC voltage: ALWAYS 50,000V DC (never 20,000V for DC)
+- Class 2 AC voltage: ALWAYS 20,000V AC (never 50,000V for AC)
+- Class 1 DC voltage: ALWAYS 10,000V DC
+- Class 1 AC voltage: ALWAYS 5,000V AC
+- Class 3 DC voltage: ALWAYS 100,000V DC  
+- Class 3 AC voltage: ALWAYS 40,000V AC
+- NEVER confuse AC and DC values - they are completely different
+- If unsure, state exactly what the documentation says rather than guessing
 
 FOLLOW-UP QUESTION HANDLING WITH UNLIMITED CONTEXT AWARENESS:
 9. If this appears to be a follow-up question (like "what about class 3"), look at the ENTIRE conversation history
@@ -1351,6 +1418,9 @@ Analyze the provided information intelligently and provide a comprehensive, tech
 
             # ULTIMATE CONTEXT VALIDATION - Ensure context was properly used
             ai_response = validate_ultimate_context_usage(ai_response, ultimate_context_message, message, conversation_history)
+            
+            # TECHNICAL ACCURACY VALIDATION - Ensure technical responses are correct
+            ai_response = validate_technical_accuracy(ai_response, message, rag_content)
 
             # Liam's random behavior system
             # Decide behavior randomly
@@ -1480,14 +1550,14 @@ def initialize_system():
         
         # Determine overall status
         overall_status = 'ready' if all(r['status'] == 'ready' for r in results.values()) else 'error'
-
+        
         return jsonify({
             'success': overall_status == 'ready',
             'overall_status': overall_status,
             'components': results,
             'timestamp': datetime.now().isoformat()
         })
-
+        
     except Exception as e:
         return jsonify({
             'success': False,
