@@ -96,6 +96,41 @@ all_quirks = []
 for category in quirks.values():
     all_quirks.extend(category)
 
+# Persistent conversation storage
+CONVERSATIONS_DIR = os.path.join(os.path.dirname(__file__), "conversations")
+
+def ensure_conversations_dir():
+    """Ensure the conversations directory exists"""
+    if not os.path.exists(CONVERSATIONS_DIR):
+        os.makedirs(CONVERSATIONS_DIR)
+
+def load_conversation_history(chat_id):
+    """Load conversation history from persistent storage"""
+    ensure_conversations_dir()
+    conversation_file = os.path.join(CONVERSATIONS_DIR, f"{chat_id}.json")
+
+    if os.path.exists(conversation_file):
+        try:
+            with open(conversation_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading conversation {chat_id}: {e}")
+            return []
+    return []
+
+def save_conversation_history(chat_id, conversation_history):
+    """Save conversation history to persistent storage"""
+    ensure_conversations_dir()
+    conversation_file = os.path.join(CONVERSATIONS_DIR, f"{chat_id}.json")
+
+    try:
+        with open(conversation_file, 'w', encoding='utf-8') as f:
+            json.dump(conversation_history, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Error saving conversation {chat_id}: {e}")
+        return False
+
 # Random helper function
 def random_item(arr):
     return random.choice(arr) if arr else ""
@@ -562,6 +597,9 @@ def favicon():
 @app.route('/health')
 def health():
     """Basic health check endpoint"""
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
     return jsonify({
         'status': 'ok',
         'timestamp': datetime.now().isoformat(),
@@ -597,6 +635,9 @@ def chat():
             print(f"DEBUG CLOUD: Image data length: {len(image_data) if image_data else 0}")
 
         if not message and not image_data:
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
             return jsonify({'error': 'No message or image provided'}), 400
         
         # Check for profanity and insults to trigger creepy video
@@ -654,6 +695,9 @@ def chat():
                     break
 
         if contains_profanity:
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
             return jsonify({
                 'trigger_video': True,
                 'response': "*giggles creepily* Oh dear, someone's feeling spicy today...",
@@ -661,8 +705,13 @@ def chat():
             })
         
         # Initialize conversation history
-        if 'conversation_history' not in session:
-            session['conversation_history'] = []
+        # Load conversation history from persistent storage
+        chat_id = session.get('chat_id', str(uuid.uuid4()))
+        conversation_history = load_conversation_history(chat_id)
+        
+        # Old session-based code (removed):
+        # if 'conversation_history' not in session:
+            conversation_history = []
         
         # Add user message to conversation history
         if image_data:
@@ -680,9 +729,9 @@ def chat():
                             "url": f"data:image/jpeg;base64,{base64_data}"
                         }
                     })
-            session['conversation_history'].append({"role": "user", "content": user_content})
+            conversation_history.append({"role": "user", "content": user_content})
         else:
-            session['conversation_history'].append({"role": "user", "content": message})
+            conversation_history.append({"role": "user", "content": message})
         
         # UNLIMITED CONTEXT: Keep ALL conversation history for maximum contextual awareness
         # No limits on conversation history - Liam AI needs full context of the entire chat
@@ -796,7 +845,7 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             messages = [{"role": "system", "content": system_prompt}]
             
             # Add conversation history (including current message)
-            for msg in session['conversation_history']:
+            for msg in conversation_history:
                 messages.append(msg)
 
             # Set model based on whether we have an image
@@ -846,7 +895,7 @@ Analyze the provided information intelligently and provide a comprehensive, tech
                 liam_reply = ai_response
 
             # Add AI response to conversation history
-            session['conversation_history'].append({"role": "assistant", "content": liam_reply})
+            conversation_history.append({"role": "assistant", "content": liam_reply})
             
         except Exception as e:
             print(f"OpenAI API error: {e}")
@@ -865,13 +914,16 @@ Analyze the provided information intelligently and provide a comprehensive, tech
             else:
                 liam_reply = ai_response
 
-            session['conversation_history'].append({"role": "assistant", "content": liam_reply})
+            conversation_history.append({"role": "assistant", "content": liam_reply})
 
         # Clean up the response
         cleaned_response = liam_reply.replace("Based on your sources:", "")
         cleaned_response = cleaned_response.replace("According to the sources:", "")
         cleaned_response = cleaned_response.replace("From the sources:", "")
         cleaned_response = ' '.join(cleaned_response.split())
+
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
 
         return jsonify({
             'response': cleaned_response,
@@ -881,13 +933,24 @@ Analyze the provided information intelligently and provide a comprehensive, tech
         
     except Exception as e:
         print(f"Chat error: {e}")
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
         return jsonify({'error': f'Server error: {str(e)}'}), 500
 
 @app.route('/api/clear-conversation', methods=['POST'])
 def clear_conversation():
     """Clear the conversation history"""
+    chat_id = session.get('chat_id')
+    if chat_id:
+        # Clear persistent storage
+        save_conversation_history(chat_id, [])
+    # Clear session storage (backup)
     if 'conversation_history' in session:
-        session['conversation_history'] = []
+        conversation_history = []
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
     return jsonify({'message': 'Conversation history cleared'})
 
 @app.route('/api/initialize-system', methods=['POST'])
@@ -947,6 +1010,9 @@ def initialize_system():
         # Determine overall status
         overall_status = 'ready' if all(r['status'] == 'ready' for r in results.values()) else 'error'
         
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
         return jsonify({
             'success': overall_status == 'ready',
             'overall_status': overall_status,
@@ -955,6 +1021,9 @@ def initialize_system():
         })
         
     except Exception as e:
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
         return jsonify({
             'success': False,
             'overall_status': 'error',
@@ -1002,6 +1071,9 @@ def status():
         elif rag_status == "error":
             overall_health = "degraded"
 
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
         return jsonify({
             'openai_api': openai_status,
             'openai_details': openai_details,
@@ -1012,6 +1084,9 @@ def status():
         })
     except Exception as e:
         print(f"Status error: {e}")
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
         return jsonify({
             'openai_api': 'error',
             'openai_details': 'Error checking status',
@@ -1070,6 +1145,9 @@ def loading_status():
         # Determine overall system status - ONLY require OpenAI API for cloud version
         overall_status = "ready" if openai_status == "ready" else "loading"
 
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
         return jsonify({
             'openai_api': openai_status,
             'openai_details': openai_details,
@@ -1081,6 +1159,9 @@ def loading_status():
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
+        # Save the updated conversation history to persistent storage
+        save_conversation_history(chat_id, conversation_history)
+
         return jsonify({
             'openai_api': 'error',
             'openai_details': 'Error',
