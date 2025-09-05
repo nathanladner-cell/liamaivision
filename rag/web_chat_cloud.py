@@ -576,7 +576,17 @@ def chat():
             return jsonify({'error': 'No message or image provided'}), 400
         
         # Check for profanity and insults to trigger creepy video
-        message_lower = message.lower().strip()
+        # Handle both string messages and list messages (for vision)
+        if isinstance(message, list):
+            # For vision messages, extract text content
+            text_content = ""
+            for item in message:
+                if item.get('type') == 'text':
+                    text_content += item.get('text', '')
+            message_lower = text_content.lower().strip()
+        else:
+            # For regular text messages
+            message_lower = message.lower().strip()
 
         # Comprehensive list of profanity and insults
         profanity_triggers = [
