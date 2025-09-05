@@ -480,9 +480,20 @@ def enhance_query_with_context(question, conversation_history):
     # Look at the last few user messages (excluding the current one)
     for i, msg in enumerate(reversed(conversation_history[-8:])):
         if msg.get('role') == 'user':
-            content = msg.get('content', '')
+            # Handle both string and list content (for vision messages)
+            raw_content = msg.get('content', '')
+            if isinstance(raw_content, list):
+                # Extract text from vision messages
+                text_parts = []
+                for item in raw_content:
+                    if item.get('type') == 'text':
+                        text_parts.append(item.get('text', ''))
+                content = ' '.join(text_parts)
+            else:
+                content = raw_content
+
             print(f"DEBUG: Checking message {i}: '{content}'")
-            
+
             # Check if previous questions were about ANY relevant context (universal)
             context_keywords = [
                 'voltage', 'current', 'test', 'class', 'dc', 'ac', 'gloves', 'blankets', 'sleeves', 'tested',

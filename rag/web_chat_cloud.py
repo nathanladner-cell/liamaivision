@@ -241,8 +241,19 @@ def get_conversation_context_summary(conversation_history):
     # Analyze last 10 messages for context
     for msg in conversation_history[-10:]:
         if msg.get('role') == 'user':
-            content = msg.get('content', '').lower()
-            context_elements['recent_questions'].append(msg.get('content', ''))
+            # Handle both string and list content (for vision messages)
+            raw_content = msg.get('content', '')
+            if isinstance(raw_content, list):
+                # Extract text from vision messages
+                text_parts = []
+                for item in raw_content:
+                    if item.get('type') == 'text':
+                        text_parts.append(item.get('text', ''))
+                content = ' '.join(text_parts).lower()
+                context_elements['recent_questions'].append(' '.join(text_parts))
+            else:
+                content = raw_content.lower()
+                context_elements['recent_questions'].append(raw_content)
             
             # Extract equipment types
             for eq_type in ['gloves', 'blankets', 'sleeves', 'boots', 'overshoes', 'covers', 'matting', 'barriers']:
@@ -327,9 +338,20 @@ def enhance_query_with_context(question, conversation_history):
     # Look at the last 15 messages (excluding the current one) for better context
     for i, msg in enumerate(reversed(conversation_history[-15:])):
         if msg.get('role') == 'user':
-            content = msg.get('content', '')
+            # Handle both string and list content (for vision messages)
+            raw_content = msg.get('content', '')
+            if isinstance(raw_content, list):
+                # Extract text from vision messages
+                text_parts = []
+                for item in raw_content:
+                    if item.get('type') == 'text':
+                        text_parts.append(item.get('text', ''))
+                content = ' '.join(text_parts)
+            else:
+                content = raw_content
+
             print(f"DEBUG: Checking user message {i}: '{content}'")
-            
+
             # Check if previous questions were about ANY relevant context (expanded universal)
             context_keywords = [
                 'voltage', 'current', 'test', 'class', 'dc', 'ac', 'gloves', 'blankets', 'sleeves', 'tested',
