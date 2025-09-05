@@ -75,6 +75,7 @@ import time
 import subprocess
 import tempfile
 import socket
+import random
 from dotenv import load_dotenv
 
 # Keep telemetry filter active throughout the application
@@ -704,8 +705,31 @@ def chat():
         if not message:
             return jsonify({'error': 'No message provided'}), 400
         
-        # Check for trigger phrase
-        if message.lower().strip() == "fuck you":
+        # Check for insults and profanity to trigger creepy video
+        insult_words = [
+            # Profanity
+            'fuck', 'shit', 'damn', 'asshole', 'bastard', 'bitch', 'cunt', 'dick', 'pussy',
+            'motherfucker', 'motherfucking', 'fucking', 'fucked', 'fucker', 'bullshit',
+            'cocksucker', 'dumbass', 'jackass', 'ass', 'dumb', 'stupid', 'idiot', 'moron',
+            'retard', 'crap', 'piss', 'douche', 'wanker', 'twat', 'prick', 'cock',
+
+            # Insults directed at Liam/AI
+            'liam is', 'liam you', 'you are', 'you\'re', 'youre',
+            'stupid ai', 'dumb ai', 'useless ai', 'worthless ai', 'idiot ai',
+            'terrible ai', 'awful ai', 'horrible ai', 'shit ai', 'fuck ai',
+            'liam sucks', 'liam is shit', 'liam is stupid', 'liam is dumb',
+            'liam is useless', 'liam is worthless', 'liam is an idiot',
+            'liam is terrible', 'liam is awful', 'liam is horrible',
+
+            # General insults that could be directed at Liam
+            'suck', 'sucks', 'sucking', 'blow', 'blows', 'blowing',
+            'garbage', 'trash', 'rubbish', 'piece of shit', 'pile of shit'
+        ]
+
+        message_lower = message.lower().strip()
+        is_insult = any(insult_word in message_lower for insult_word in insult_words)
+
+        if is_insult:
             return jsonify({
                 'trigger_video': True,
                 'response': "Well, that's not very nice...",
