@@ -3,9 +3,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python vision_app.py"
-  },
-  "variables": {
-    "FLASK_APP": "vision_app.py"
+    "startCommand": "python start.py"
   }
 }

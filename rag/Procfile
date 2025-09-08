@@ -1,1 +1,1 @@
-web: python vision_app.py
+web: python start.py
