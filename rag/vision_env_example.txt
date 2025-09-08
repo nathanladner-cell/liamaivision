@@ -1,0 +1,12 @@
+# OpenAI Configuration (Required)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Google Cloud Vision Configuration (Optional)
+# GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/service-account.json
+# GOOGLE_PROJECT_ID=your_google_cloud_project_id
+
+# OpenAI Model Configuration (Optional)
+OPENAI_MODEL=gpt-4o
+
+# Flask Configuration (Optional)
+FLASK_DEBUG=True

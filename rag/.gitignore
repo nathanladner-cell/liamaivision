@@ -1,0 +1,7 @@
+.env
+conversations/
+__pycache__/
+*.pyc
+*.log
+chroma_db/
+.DS_Store
