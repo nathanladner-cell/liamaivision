@@ -15,6 +15,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy minimal vision app
 COPY minimal_vision.py ./
+COPY minimal_requirements.txt ./
+
+# Make sure our entry point is executable
+RUN chmod +x minimal_vision.py
 
 # Set environment variables
 ENV PYTHONPATH=/app

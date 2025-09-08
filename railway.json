@@ -1,8 +1,13 @@
 {
   "build": {
-    "builder": "DOCKERFILE"
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python3 minimal_vision.py"
+    "startCommand": "python3 minimal_vision.py",
+    "healthcheckPath": "/api/status",
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
   }
 }

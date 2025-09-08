@@ -12,3 +12,10 @@ scripts/
 docs/
 railway.json.old
 requirements.txt
+
+# Explicitly ignore all Python files except minimal_vision.py
+*.py
+!minimal_vision.py
+!minimal_requirements.txt
+!Dockerfile
+!railway.json
