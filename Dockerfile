@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy Python requirements first (for better caching)
-COPY rag/vision_requirements.txt .
-RUN pip install --no-cache-dir -r rag/vision_requirements.txt
+COPY rag/vision_requirements.txt ./vision_requirements.txt
+RUN pip install --no-cache-dir -r vision_requirements.txt
 
 # Copy vision app files
 COPY rag/vision_app.py ./rag/
