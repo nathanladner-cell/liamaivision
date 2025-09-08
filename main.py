@@ -10,16 +10,23 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'rag'))
 
 # Import and run the vision app
 try:
-    from rag.start import app
-    print("✅ Successfully imported vision app")
+    # Direct import from rag directory
+    from vision_app import app
+    print("✅ Successfully imported vision app directly")
 except ImportError as e:
-    print(f"❌ Failed to import vision app: {e}")
-    # Fallback: try direct import
+    print(f"❌ Failed to import vision app directly: {e}")
+    # Try importing the start module
     try:
         from start import app
-        print("✅ Successfully imported vision app (fallback)")
+        print("✅ Successfully imported vision app via start.py")
     except ImportError as e2:
-        print(f"❌ Fallback import also failed: {e2}")
+        print(f"❌ All import attempts failed: {e2}")
+        print("📁 Directory contents:")
+        import os
+        print(os.listdir('.'))
+        if os.path.exists('rag'):
+            print("📁 rag/ contents:")
+            print(os.listdir('rag'))
         sys.exit(1)
 
 if __name__ == '__main__':

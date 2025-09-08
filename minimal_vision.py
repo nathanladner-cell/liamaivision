@@ -20,6 +20,7 @@ app = Flask(__name__)
 
 # Initialize OpenAI client
 openai_api_key = os.getenv('OPENAI_API_KEY')
+
 print(f"🔑 OpenAI API Key found: {'Yes' if openai_api_key else 'No'}")
 if openai_api_key:
     print(f"🔑 API Key starts with: {openai_api_key[:10]}..." if openai_api_key else "None")
