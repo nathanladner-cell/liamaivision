@@ -12,6 +12,7 @@ import json
 from dotenv import load_dotenv
 import tempfile
 import logging
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -312,6 +313,16 @@ def health():
         'service': 'vision-app',
         'openai_available': bool(client),
         'google_vision_available': bool(vision_client)
+    })
+
+@app.route('/api/status')
+def api_status():
+    """Railway health check endpoint"""
+    return jsonify({
+        'status': 'ok',
+        'service': 'vision-app',
+        'message': 'Vision app is running',
+        'timestamp': datetime.now().isoformat()
     })
 
 if __name__ == '__main__':
