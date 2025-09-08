@@ -30,9 +30,26 @@ try:
     
     print(f"📋 Configuration: host={host}, port={port}, debug={debug}")
     
+    # Test the health endpoint before starting
+    with app.test_client() as client:
+        try:
+            response = client.get('/api/status')
+            print(f"✅ Health check test: {response.status_code} - {response.get_json()}")
+        except Exception as e:
+            print(f"⚠️ Health check test failed: {e}")
+    
     # Start the app
     print("🌐 Starting Flask app...")
-    app.run(host=host, port=port, debug=debug, threaded=True)
+    print(f"🌐 Health check will be available at: http://{host}:{port}/health")
+    print(f"🌐 API status will be available at: http://{host}:{port}/api/status")
+    print(f"🌐 Main app will be available at: http://{host}:{port}/")
+    
+    # Add startup delay for Railway
+    import time
+    print("⏳ Waiting 2 seconds before starting server...")
+    time.sleep(2)
+    
+    app.run(host=host, port=port, debug=debug, threaded=True, use_reloader=False)
     
 except ImportError as e:
     print(f"❌ Import error: {e}")

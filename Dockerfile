@@ -34,8 +34,8 @@ ENV FLASK_ENV=production
 EXPOSE $PORT
 
 # Health check for vision app
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/api/status || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
 # Start the vision application
 CMD ["python3", "simple_main.py"]
