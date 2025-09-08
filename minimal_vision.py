@@ -38,65 +38,284 @@ HTML_TEMPLATE = '''
 <html>
 <head>
     <title>Electrical Glove Label Scanner</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        .camera-btn { background: #007bff; color: white; padding: 15px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin: 20px 0; }
-        .camera-btn:hover { background: #0056b3; }
-        #video { width: 100%; max-width: 400px; }
-        .hidden { display: none; }
-        .loading { color: #666; font-style: italic; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .form-content {
+            padding: 30px 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .camera-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+        
+        .camera-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .camera-btn:active {
+            transform: translateY(0);
+        }
+        
+        .camera-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        #video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-capture {
+            flex: 1;
+            background: #28a745;
+        }
+        
+        .btn-cancel {
+            flex: 1;
+            background: #dc3545;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            padding: 20px;
+            font-size: 16px;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .form-content {
+                padding: 20px 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>🧤 Electrical Glove Label Scanner</h1>
-    
-    <form id="gloveForm">
-        <div class="form-group">
-            <label for="manufacturer">Manufacturer:</label>
-            <input type="text" id="manufacturer" name="manufacturer">
+    <div class="container">
+        <div class="header">
+            <h1>🧤 Electrical Glove Label Scanner</h1>
+            <p>Take a photo of your insulated electrical glove label to automatically extract information</p>
         </div>
         
-        <div class="form-group">
-            <label for="class">Class:</label>
-            <input type="text" id="class" name="class">
+        <div class="form-content">
+            <form id="gloveForm">
+                <div class="form-group">
+                    <label for="manufacturer">Manufacturer:</label>
+                    <input type="text" id="manufacturer" name="manufacturer" placeholder="e.g., Ansell, Honeywell">
+                </div>
+                
+                <div class="form-group">
+                    <label for="class">Class:</label>
+                    <input type="text" id="class" name="class" placeholder="e.g., 0, 1, 2, 3, 4">
+                </div>
+                
+                <div class="form-group">
+                    <label for="size">Size:</label>
+                    <input type="text" id="size" name="size" placeholder="e.g., 8, 9, 10, 11">
+                </div>
+                
+                <div class="form-group">
+                    <label for="color">Color:</label>
+                    <input type="text" id="color" name="color" placeholder="e.g., Red, Yellow, Black">
+                </div>
+                
+                <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
+                    📷 Scan Glove Label
+                </button>
+                
+                <div id="cameraSection" class="camera-section hidden">
+                    <video id="video" autoplay playsinline></video>
+                    <div class="button-row">
+                        <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">📸 Capture</button>
+                        <button type="button" class="camera-btn btn-cancel" onclick="stopCamera()">❌ Cancel</button>
+                    </div>
+                </div>
+                
+                <div id="loading" class="loading hidden">Analyzing image</div>
+                <div id="errorMessage" class="error-message hidden"></div>
+            </form>
         </div>
-        
-        <div class="form-group">
-            <label for="size">Size:</label>
-            <input type="text" id="size" name="size">
-        </div>
-        
-        <div class="form-group">
-            <label for="color">Color:</label>
-            <input type="text" id="color" name="color">
-        </div>
-        
-        <button type="button" class="camera-btn" onclick="startCamera()">📷 Scan Glove Label</button>
-        
-        <div id="cameraSection" class="hidden">
-            <video id="video" autoplay></video>
-            <br>
-            <button type="button" class="camera-btn" onclick="capturePhoto()">📸 Capture</button>
-            <button type="button" class="camera-btn" onclick="stopCamera()">❌ Cancel</button>
-        </div>
-        
-        <div id="loading" class="loading hidden">Analyzing image...</div>
-    </form>
+    </div>
 
     <script>
         let stream = null;
         
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+        
         async function startCamera() {
+            const cameraBtn = document.getElementById('cameraBtn');
+            cameraBtn.disabled = true;
+            cameraBtn.textContent = '📷 Starting Camera...';
+            
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                document.getElementById('video').srcObject = stream;
-                document.getElementById('cameraSection').classList.remove('hidden');
+                // Request camera with specific constraints for mobile
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: 'environment' }, // Use back camera on mobile
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                
+                // Wait for video to be ready
+                video.onloadedmetadata = () => {
+                    document.getElementById('cameraSection').classList.remove('hidden');
+                    cameraBtn.disabled = false;
+                    cameraBtn.textContent = '📷 Scan Glove Label';
+                };
+                
             } catch (err) {
-                alert('Camera access denied or not available');
+                console.error('Camera error:', err);
+                let errorMessage = 'Camera access failed. ';
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'Please allow camera access and try again.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'No camera found on this device.';
+                } else if (err.name === 'NotSupportedError') {
+                    errorMessage += 'Camera not supported on this browser.';
+                } else {
+                    errorMessage += err.message || 'Unknown error occurred.';
+                }
+                
+                showError(errorMessage);
+                cameraBtn.disabled = false;
+                cameraBtn.textContent = '📷 Scan Glove Label';
             }
         }
         
@@ -111,6 +330,8 @@ HTML_TEMPLATE = '''
         async function capturePhoto() {
             const video = document.getElementById('video');
             const canvas = document.createElement('canvas');
+            
+            // Set canvas size to match video
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
@@ -129,21 +350,37 @@ HTML_TEMPLATE = '''
                     body: JSON.stringify({ image: imageData })
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const result = await response.json();
                 
                 if (result.success) {
+                    // Populate form fields
                     document.getElementById('manufacturer').value = result.data.manufacturer || '';
                     document.getElementById('class').value = result.data.class || '';
                     document.getElementById('size').value = result.data.size || '';
                     document.getElementById('color').value = result.data.color || '';
+                    
+                    // Show success message
+                    showError('✅ Analysis complete! Form fields have been filled.');
                 } else {
-                    alert('Analysis failed: ' + result.error);
+                    showError('❌ Analysis failed: ' + (result.error || 'Unknown error'));
                 }
             } catch (err) {
-                alert('Error analyzing image: ' + err.message);
+                console.error('Analysis error:', err);
+                showError('❌ Error analyzing image: ' + err.message);
             }
             
             document.getElementById('loading').classList.add('hidden');
+        }
+        
+        // Check if camera is supported
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            document.getElementById('cameraBtn').disabled = true;
+            document.getElementById('cameraBtn').textContent = '❌ Camera Not Supported';
+            showError('Camera is not supported on this browser or device.');
         }
     </script>
 </body>
