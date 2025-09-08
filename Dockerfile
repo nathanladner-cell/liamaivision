@@ -20,9 +20,10 @@ COPY rag/cloud_vector_db.py ./rag/
 COPY rag/static/ ./rag/static/
 COPY rag/templates/ ./rag/templates/
 COPY main.py ./
+COPY simple_main.py ./
 
-# Make main.py executable
-RUN chmod +x main.py
+# Make entry points executable
+RUN chmod +x main.py simple_main.py
 
 # Set environment variables for vision app deployment
 ENV PYTHONPATH=/app
@@ -37,4 +38,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8000}/api/status || exit 1
 
 # Start the vision application
-CMD ["python3", "main.py"]
+CMD ["python3", "simple_main.py"]
