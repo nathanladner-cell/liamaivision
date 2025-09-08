@@ -57,18 +57,31 @@ except Exception as e:
 
 # Initialize Google Vision client
 vision_client = None
-google_credentials_path = "/Users/natelad/Desktop/ampAI/crucial-bloom-413616-9b1e75106f6e.json"
+google_credentials_path = "crucial-bloom-413616-9b1e75106f6e.json"
 
 try:
-    if os.path.exists(google_credentials_path):
-        # Use service account JSON file
+    # Try environment variable first (for Railway deployment)
+    google_creds_json = os.getenv('GOOGLE_CLOUD_CREDENTIALS_JSON')
+    if google_creds_json:
+        # Use credentials from environment variable
+        import tempfile
+        import json as json_module
+        
+        # Parse the JSON credentials
+        creds_data = json_module.loads(google_creds_json)
+        credentials = service_account.Credentials.from_service_account_info(creds_data)
+        vision_client = vision.ImageAnnotatorClient(credentials=credentials)
+        print("✅ Google Vision client initialized with environment credentials")
+        logger.info("✅ Google Vision client initialized (env)")
+    elif os.path.exists(google_credentials_path):
+        # Use service account JSON file (for local development)
         credentials = service_account.Credentials.from_service_account_file(google_credentials_path)
         vision_client = vision.ImageAnnotatorClient(credentials=credentials)
-        print("✅ Google Vision client initialized with service account")
-        logger.info("✅ Google Vision client initialized")
+        print("✅ Google Vision client initialized with service account file")
+        logger.info("✅ Google Vision client initialized (file)")
     else:
-        print(f"❌ Google Vision credentials file not found: {google_credentials_path}")
-        logger.error("Google Vision credentials file not found")
+        print(f"❌ Google Vision credentials not found: no env var and no file at {google_credentials_path}")
+        logger.error("Google Vision credentials not found")
 except Exception as e:
     print(f"❌ Failed to initialize Google Vision client: {e}")
     logger.error(f"Google Vision client init error: {e}")

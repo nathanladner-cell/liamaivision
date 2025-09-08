@@ -12,12 +12,10 @@ RUN apt-get update && apt-get install -y \
 COPY hybrid_requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the hybrid app and Google Vision credentials
+# Copy the hybrid app
 COPY glove_scanner_hybrid.py ./app.py
-COPY crucial-bloom-413616-9b1e75106f6e.json ./crucial-bloom-413616-9b1e75106f6e.json
 
-# Set Google Cloud credentials environment variable
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/crucial-bloom-413616-9b1e75106f6e.json
+# Google Cloud credentials will be provided via GOOGLE_CLOUD_CREDENTIALS_JSON environment variable
 
 # Set other environment variables
 ENV PYTHONPATH=/app
