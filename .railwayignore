@@ -1,4 +1,4 @@
-# Ignore everything except minimal vision app
+# Only ignore old files and directories
 rag/
 simple_main.py
 main.py
@@ -12,10 +12,5 @@ scripts/
 docs/
 railway.json.old
 requirements.txt
-
-# Explicitly ignore all Python files except minimal_vision.py
-*.py
-!minimal_vision.py
-!minimal_requirements.txt
-!Dockerfile
-!railway.json
+FORCE_DEPLOY.txt
+.gitignore
