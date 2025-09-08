@@ -23,9 +23,9 @@ ENV FLASK_ENV=production
 # Expose port
 EXPOSE $PORT
 
-# Health check
+# Health check - Railway checks /api/status by default
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
+    CMD curl -f http://localhost:${PORT:-8000}/api/status || exit 1
 
 # Start the application
 CMD ["python3", "minimal_vision.py"]
