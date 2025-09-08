@@ -1,0 +1,14 @@
+# Ignore everything except minimal vision app
+rag/
+simple_main.py
+main.py
+test_after_billing.py
+Dockerfile.old
+*.disabled
+*.md
+sources/
+models/
+scripts/
+docs/
+railway.json.old
+requirements.txt
