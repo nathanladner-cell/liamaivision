@@ -30,12 +30,25 @@ if not API_KEY:
         API_KEY = None
 
 try:
-    client = openai.OpenAI(api_key=API_KEY)
-    print("✅ OpenAI client initialized successfully")
-    logger.info("✅ OpenAI client initialized")
+    if API_KEY:
+        client = openai.OpenAI(api_key=API_KEY)
+        print("✅ OpenAI client initialized successfully")
+        logger.info("✅ OpenAI client initialized")
+    else:
+        client = None
+        print("❌ No API key available")
 except Exception as e:
     print(f"❌ Failed to initialize OpenAI client: {e}")
-    client = None
+    logger.error(f"OpenAI client init error: {e}")
+    # Try alternative initialization for older OpenAI versions
+    try:
+        openai.api_key = API_KEY
+        client = openai
+        print("✅ OpenAI client initialized with legacy method")
+        logger.info("✅ OpenAI client initialized (legacy)")
+    except Exception as e2:
+        print(f"❌ Legacy initialization also failed: {e2}")
+        client = None
 
 # HTML template
 HTML_TEMPLATE = '''
@@ -355,28 +368,57 @@ def analyze():
         if 'base64,' in image_data:
             image_data = image_data.split('base64,')[1]
         
-        # Call OpenAI Vision API
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
+        # Call OpenAI Vision API (handle both new and legacy clients)
+        try:
+            if hasattr(client, 'chat') and hasattr(client.chat, 'completions'):
+                # New OpenAI client (v1.0+)
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
                         {
-                            "type": "text",
-                            "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, and color. Return ONLY a JSON object with these exact keys: manufacturer, class, size, color. Use empty string if not found."
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{image_data}"
-                            }
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, and color. Return ONLY a JSON object with these exact keys: manufacturer, class, size, color. Use empty string if not found."
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{image_data}"
+                                    }
+                                }
+                            ]
                         }
-                    ]
-                }
-            ],
-            max_tokens=300
-        )
+                    ],
+                    max_tokens=300
+                )
+            else:
+                # Legacy OpenAI client
+                response = openai.ChatCompletion.create(
+                    model="gpt-4-vision-preview",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, and color. Return ONLY a JSON object with these exact keys: manufacturer, class, size, color. Use empty string if not found."
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{image_data}"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    max_tokens=300
+                )
+        except Exception as api_error:
+            logger.error(f"OpenAI API call failed: {api_error}")
+            return jsonify({'success': False, 'error': f'OpenAI API error: {str(api_error)}'})
         
         # Parse response
         result_text = response.choices[0].message.content.strip()
@@ -410,8 +452,13 @@ def status():
     openai_test = False
     if client:
         try:
-            client.models.list()
-            openai_test = True
+            if hasattr(client, 'models') and hasattr(client.models, 'list'):
+                # New OpenAI client (v1.0+)
+                client.models.list()
+                openai_test = True
+            else:
+                # Legacy OpenAI client - just check if we have an API key
+                openai_test = bool(API_KEY)
         except Exception as e:
             print(f"OpenAI test failed: {e}")
             openai_test = False
