@@ -3,6 +3,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python simple_main.py"
+    "startCommand": "python minimal_vision.py"
   }
 }

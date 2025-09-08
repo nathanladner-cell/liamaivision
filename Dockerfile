@@ -1,41 +1,31 @@
-# Cloud-Native AmpAI Dockerfile - Zero Local Dependencies
+# Use Python 3.11 slim image
 FROM python:3.11-slim
 
-# Install minimal system dependencies
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app directory
-WORKDIR /app
+# Copy minimal requirements
+COPY minimal_requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy Python requirements first (for better caching)
-COPY rag/vision_requirements.txt ./vision_requirements.txt
-RUN pip install --no-cache-dir -r vision_requirements.txt
+# Copy minimal vision app
+COPY minimal_vision.py ./
 
-# Copy vision app files
-COPY rag/vision_app.py ./rag/
-COPY rag/start.py ./rag/
-COPY rag/cloud_vector_db.py ./rag/
-COPY rag/static/ ./rag/static/
-COPY rag/templates/ ./rag/templates/
-COPY main.py ./
-COPY simple_main.py ./
-
-# Make entry points executable
-RUN chmod +x main.py simple_main.py
-
-# Set environment variables for vision app deployment
+# Set environment variables
 ENV PYTHONPATH=/app
-ENV FLASK_APP=rag/vision_app.py
 ENV FLASK_ENV=production
 
-# Expose port (Railway will set PORT environment variable)
+# Expose port
 EXPOSE $PORT
 
-# Health check for vision app
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Start the vision application
-CMD ["python3", "simple_main.py"]
+# Start the application
+CMD ["python3", "minimal_vision.py"]
