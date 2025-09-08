@@ -1,0 +1,34 @@
+# Hybrid Dockerfile for Glove Scanner with Google Vision + OpenAI
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy hybrid requirements and install Python packages
+COPY hybrid_requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the hybrid app and Google Vision credentials
+COPY glove_scanner_hybrid.py ./app.py
+COPY crucial-bloom-413616-9b1e75106f6e.json ./crucial-bloom-413616-9b1e75106f6e.json
+
+# Set Google Cloud credentials environment variable
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/crucial-bloom-413616-9b1e75106f6e.json
+
+# Set other environment variables
+ENV PYTHONPATH=/app
+ENV FLASK_ENV=production
+
+# Expose port
+EXPOSE $PORT
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8000}/api/status || exit 1
+
+# Start the hybrid application
+CMD ["python3", "app.py"]
