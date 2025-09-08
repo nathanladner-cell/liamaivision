@@ -39,13 +39,13 @@ GOOGLE_CLOUD_VISION_API_KEY = os.getenv('GOOGLE_CLOUD_VISION_API_KEY')
 
 if GOOGLE_CLOUD_VISION_API_KEY:
     try:
-        # Set the API key for Google Cloud Vision
+        # Try Google AI Studio key first
         os.environ['GOOGLE_API_KEY'] = GOOGLE_CLOUD_VISION_API_KEY
-        # Initialize Google Cloud Vision client with API key
         vision_client = vision.ImageAnnotatorClient()
         logger.info("✅ Google Cloud Vision API initialized with API key")
     except Exception as e:
-        logger.warning(f"⚠️ Google Cloud Vision API setup failed: {e}")
+        logger.warning(f"⚠️ Google Cloud Vision API setup with API key failed: {e}")
+        logger.warning("Note: Google Cloud Vision typically requires service account JSON, not API key")
         vision_client = None
 else:
     logger.warning("⚠️ Google Cloud Vision API key not configured")
