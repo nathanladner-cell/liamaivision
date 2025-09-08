@@ -20,15 +20,20 @@ app = Flask(__name__)
 
 # Initialize OpenAI client
 openai_api_key = os.getenv('OPENAI_API_KEY')
+print(f"🔑 OpenAI API Key found: {'Yes' if openai_api_key else 'No'}")
 if openai_api_key:
+    print(f"🔑 API Key starts with: {openai_api_key[:10]}..." if openai_api_key else "None")
     try:
         client = openai.OpenAI(api_key=openai_api_key)
+        print("✅ OpenAI client initialized successfully")
         logger.info("✅ OpenAI client initialized")
     except Exception as e:
+        print(f"❌ Failed to initialize OpenAI client: {e}")
         logger.error(f"❌ Failed to initialize OpenAI client: {e}")
         logger.warning("⚠️ OpenAI client disabled - vision analysis will not work")
         client = None
 else:
+    print("❌ No OpenAI API key found in environment")
     client = None
     logger.warning("⚠️ No OpenAI API key - vision analysis disabled")
 
