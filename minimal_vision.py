@@ -471,11 +471,34 @@ def health():
 @app.route('/api/status')
 def status():
     """Status check"""
+    # Test OpenAI client
+    openai_test = False
+    if client:
+        try:
+            # Try a simple test call
+            client.models.list()
+            openai_test = True
+        except Exception as e:
+            print(f"OpenAI test failed: {e}")
+            openai_test = False
+
     return jsonify({
         'status': 'ok',
         'service': 'minimal-vision',
         'openai_available': bool(client),
+        'openai_test_passed': openai_test,
         'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/debug')
+def debug():
+    """Debug endpoint to show environment info"""
+    return jsonify({
+        'openai_key_exists': bool(os.getenv('OPENAI_API_KEY')),
+        'openai_client_created': bool(client),
+        'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        'working_directory': os.getcwd(),
+        'environment_keys': [k for k in os.environ.keys() if 'API' in k or 'KEY' in k]
     })
 
 if __name__ == '__main__':
