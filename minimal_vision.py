@@ -235,7 +235,22 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
     host = '0.0.0.0'
     
-    print(f"🚀 Minimal Vision App Starting on {host}:{port}")
-    print(f"✅ OpenAI Available: {bool(client)}")
+    print("=" * 50)
+    print("🚀 MINIMAL VISION APP STARTUP")
+    print("=" * 50)
+    print(f"📋 Port: {port}")
+    print(f"📋 Host: {host}")
+    print(f"📋 OpenAI Available: {bool(client)}")
+    print(f"📋 Environment Variables:")
+    for key, value in os.environ.items():
+        if 'API' in key or 'KEY' in key or 'PORT' in key:
+            print(f"    {key}: {value[:20]}..." if len(str(value)) > 20 else f"    {key}: {value}")
+    print("=" * 50)
     
-    app.run(host=host, port=port, debug=False, threaded=True)
+    try:
+        print("🌐 Starting Flask server...")
+        app.run(host=host, port=port, debug=False, threaded=True)
+    except Exception as e:
+        print(f"❌ Failed to start Flask server: {e}")
+        import traceback
+        traceback.print_exc()
