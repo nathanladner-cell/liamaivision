@@ -466,7 +466,25 @@ def analyze():
 @app.route('/health')
 def health():
     """Health check"""
-    return jsonify({'status': 'ok', 'service': 'minimal-vision'})
+    # Test OpenAI client
+    openai_working = False
+    openai_error = None
+    if client:
+        try:
+            # Try a simple test call
+            models = client.models.list()
+            openai_working = True
+        except Exception as e:
+            openai_error = str(e)
+
+    return jsonify({
+        'status': 'ok',
+        'service': 'minimal-vision',
+        'openai_client_exists': bool(client),
+        'openai_working': openai_working,
+        'openai_error': openai_error,
+        'openai_key_exists': bool(os.getenv('OPENAI_API_KEY'))
+    })
 
 @app.route('/api/status')
 def status():
