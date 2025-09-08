@@ -1,10 +1,10 @@
 {
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "Dockerfile"
+    "dockerfilePath": "Dockerfile.clean"
   },
   "deploy": {
-    "startCommand": "python3 minimal_vision.py",
+    "startCommand": "python3 app.py",
     "healthcheckPath": "/api/status",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
