@@ -34,20 +34,20 @@ else:
     client = openai.OpenAI(api_key=openai_api_key)
 
 # Google Cloud Vision API setup
-GOOGLE_CREDENTIALS_PATH = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-GOOGLE_PROJECT_ID = os.getenv('GOOGLE_PROJECT_ID')
+GOOGLE_CLOUD_VISION_API_KEY = os.getenv('GOOGLE_CLOUD_VISION_API_KEY')
 
-if GOOGLE_CREDENTIALS_PATH and GOOGLE_PROJECT_ID:
+if GOOGLE_CLOUD_VISION_API_KEY:
     try:
-        # Initialize Google Cloud Vision client
-        credentials = service_account.Credentials.from_service_account_file(GOOGLE_CREDENTIALS_PATH)
-        vision_client = vision.ImageAnnotatorClient(credentials=credentials)
-        logger.info("✅ Google Cloud Vision API initialized")
+        # Set the API key for Google Cloud Vision
+        os.environ['GOOGLE_API_KEY'] = GOOGLE_CLOUD_VISION_API_KEY
+        # Initialize Google Cloud Vision client with API key
+        vision_client = vision.ImageAnnotatorClient()
+        logger.info("✅ Google Cloud Vision API initialized with API key")
     except Exception as e:
         logger.warning(f"⚠️ Google Cloud Vision API setup failed: {e}")
         vision_client = None
 else:
-    logger.warning("⚠️ Google Cloud Vision API credentials not configured")
+    logger.warning("⚠️ Google Cloud Vision API key not configured")
     vision_client = None
 
 # GPT model for vision
@@ -315,7 +315,7 @@ def health():
     })
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8000))  # Changed default from 5000 to 8000
+    port = int(os.environ.get('PORT', 8000))
     host = '0.0.0.0'
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
@@ -323,6 +323,9 @@ if __name__ == '__main__':
     logger.info(f"📋 Configuration: host={host}, port={port}, debug={debug}")
     logger.info(f"📋 OpenAI Vision: {'✅' if openai_api_key else '❌'}")
     logger.info(f"📋 Google Vision: {'✅' if vision_client else '❌'}")
-    logger.info(f"🌐 Open browser to: http://localhost:{port}")
+    if os.environ.get('RAILWAY_ENVIRONMENT'):
+        logger.info("🌐 Running on Railway deployment")
+    else:
+        logger.info(f"🌐 Open browser to: http://localhost:{port}")
 
-    app.run(host=host, port=port, debug=debug)
+    app.run(host=host, port=port, debug=debug, threaded=True)
