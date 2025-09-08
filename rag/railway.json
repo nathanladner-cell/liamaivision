@@ -4,5 +4,8 @@
   },
   "deploy": {
     "startCommand": "python vision_app.py"
+  },
+  "variables": {
+    "FLASK_APP": "vision_app.py"
   }
 }
