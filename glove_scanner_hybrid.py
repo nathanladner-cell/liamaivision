@@ -606,12 +606,15 @@ HTML_TEMPLATE = '''
 
         .camera-modal-content {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 20px;
-            max-width: 500px;
-            width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
+            border-radius: 16px;
+            padding: 8px;
+            max-width: 450px;
+            width: 90%;
+            height: 85vh;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
             box-shadow:
                 0 20px 60px rgba(0, 0, 0, 0.3),
                 0 0 0 1px rgba(255, 255, 255, 0.2),
@@ -621,6 +624,7 @@ HTML_TEMPLATE = '''
             text-align: center;
             transform: scale(0.9);
             transition: transform 0.3s ease;
+            position: relative;
         }
 
         .camera-modal.active .camera-modal-content {
@@ -673,7 +677,7 @@ HTML_TEMPLATE = '''
         /* Camera capture container - positioned at bottom center */
         .camera-capture-container {
             position: absolute;
-            bottom: 15px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -871,7 +875,7 @@ HTML_TEMPLATE = '''
             }
 
             .camera-modal-content {
-                padding: 12px;
+                padding: 6px;
                 width: 95%;
                 max-width: none;
                 margin: 5px;
@@ -889,10 +893,10 @@ HTML_TEMPLATE = '''
 
             /* Exit button mobile styles */
             .exit-btn {
-                width: 35px;
-                height: 35px;
-                top: 10px;
-                right: 10px;
+                width: 32px;
+                height: 32px;
+                top: 8px;
+                right: 8px;
             }
 
             .exit-btn svg {
@@ -929,7 +933,7 @@ HTML_TEMPLATE = '''
             }
 
             .camera-modal-content {
-                padding: 10px;
+                padding: 5px;
                 height: 85vh;
                 max-height: 85vh;
                 overflow: hidden;
@@ -937,10 +941,10 @@ HTML_TEMPLATE = '''
 
             /* Exit button for very small screens */
             .exit-btn {
-                width: 30px;
-                height: 30px;
-                top: 8px;
-                right: 8px;
+                width: 28px;
+                height: 28px;
+                top: 6px;
+                right: 6px;
             }
 
             .exit-btn svg {
