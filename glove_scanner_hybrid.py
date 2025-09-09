@@ -630,6 +630,12 @@ HTML_TEMPLATE = '''
         .camera-section {
             margin: 0;
             position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 0;
         }
 
         /* Exit button - positioned at top-right */
@@ -667,7 +673,7 @@ HTML_TEMPLATE = '''
         /* Camera capture container - positioned at bottom center */
         .camera-capture-container {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -695,7 +701,9 @@ HTML_TEMPLATE = '''
 
         #video {
             width: 100%;
-            max-width: 400px;
+            max-width: 350px;
+            max-height: 60vh;
+            object-fit: cover;
             border-radius: 16px;
             box-shadow: 
                 0 8px 32px rgba(0, 0, 0, 0.12),
@@ -863,16 +871,19 @@ HTML_TEMPLATE = '''
             }
 
             .camera-modal-content {
-                padding: 15px;
-                width: 98%;
+                padding: 12px;
+                width: 95%;
                 max-width: none;
-                margin: 10px;
-                max-height: 85vh;
+                margin: 5px;
+                height: 90vh;
+                max-height: 90vh;
+                overflow: hidden;
             }
 
             .camera-section #video {
                 max-width: 100%;
-                height: auto;
+                max-height: 55vh;
+                object-fit: cover;
                 border-radius: 12px;
             }
 
@@ -918,8 +929,10 @@ HTML_TEMPLATE = '''
             }
 
             .camera-modal-content {
-                padding: 12px;
-                max-height: 80vh;
+                padding: 10px;
+                height: 85vh;
+                max-height: 85vh;
+                overflow: hidden;
             }
 
             /* Exit button for very small screens */
