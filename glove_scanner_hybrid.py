@@ -388,15 +388,12 @@ HTML_TEMPLATE = '''
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 24px;
-            box-shadow: 
-                0 25px 50px -12px rgba(0, 0, 0, 0.15),
-                0 0 0 1px rgba(255, 255, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
             padding: 40px;
             width: 100%;
             max-width: 600px;
@@ -489,50 +486,53 @@ HTML_TEMPLATE = '''
 
         .form-group input {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
+            padding: 20px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
             font-size: 1rem;
             font-family: 'Courier New', 'Monaco', monospace;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
             box-shadow: 
-                0 4px 16px rgba(0, 0, 0, 0.04),
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 1px 0 rgba(255, 255, 255, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            color: #000;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: rgba(34, 139, 34, 0.4);
-            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.08),
-                0 0 0 3px rgba(34, 139, 34, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            transform: translateY(-1px);
+                0 16px 48px rgba(34, 139, 34, 0.12),
+                0 0 0 2px rgba(34, 139, 34, 0.15),
+                0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            transform: translateY(-3px) scale(1.02);
         }
 
         .camera-btn {
             width: 80px;
             height: 80px;
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
             padding: 0;
             font-size: 2rem;
             font-weight: 400;
             font-family: 'Courier New', 'Monaco', monospace;
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             margin: 20px auto;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
             box-shadow:
-                0 12px 40px rgba(0, 0, 0, 0.15),
-                0 0 0 1px rgba(255, 255, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
             position: relative;
             overflow: hidden;
             display: flex;
