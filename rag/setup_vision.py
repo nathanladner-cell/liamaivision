@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for the Vision-based Electrical Glove Label Scanner
+Setup script for LiamVision
 """
 
 import os
@@ -10,7 +10,7 @@ from pathlib import Path
 def setup_vision_app():
     """Set up the vision application with required dependencies and configuration"""
 
-    print("🚀 Setting up Vision-based Electrical Glove Label Scanner")
+    print("🚀 Setting up LiamVision")
     print("=" * 60)
 
     # Check if we're in the right directory

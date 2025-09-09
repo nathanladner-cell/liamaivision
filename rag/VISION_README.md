@@ -1,4 +1,4 @@
-# Vision-based Electrical Glove Label Scanner
+# LiamVision
 
 A web application that uses AI vision to automatically extract information from electrical glove labels through camera photos.
 

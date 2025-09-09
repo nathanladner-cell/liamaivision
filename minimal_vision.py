@@ -56,7 +56,7 @@ HTML_TEMPLATE = '''
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Electrical Glove Label Scanner</title>
+    <title>LiamVision</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <style>
         * {
@@ -91,6 +91,24 @@ HTML_TEMPLATE = '''
         .header h1 {
             font-size: 24px;
             margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .beta-badge {
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.6);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .header p {
@@ -130,31 +148,153 @@ HTML_TEMPLATE = '''
         }
         
         .camera-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            padding: 0;
+            font-size: 2rem;
+            font-weight: 400;
             cursor: pointer;
-            margin: 20px 0;
-            transition: transform 0.2s, box-shadow 0.3s;
+            transition: all 0.4s ease;
+            margin: 20px auto;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(0, 0, 0, 0.7);
         }
-        
         .camera-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow:
+                0 16px 50px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            color: rgba(0, 0, 0, 0.9);
         }
-        
         .camera-btn:active {
-            transform: translateY(0);
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 8px 20px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
         }
         
-        .camera-section {
+        /* Camera Modal Overlay */
+        .camera-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .camera-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .camera-modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             text-align: center;
-            margin: 20px 0;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .camera-modal.active .camera-modal-content {
+            transform: scale(1);
+        }
+        .camera-section {
+            margin: 0;
+            position: relative;
+        }
+
+        /* Exit button - positioned at top-right */
+        .exit-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .exit-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        .exit-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 3;
+        }
+
+        /* Camera capture container - positioned at bottom center */
+        .camera-capture-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .camera-capture-container .camera-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            color: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .camera-capture-container .camera-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+
+        .camera-capture-container .camera-btn svg {
+            width: 24px;
+            height: 24px;
         }
         
         #video {
@@ -230,13 +370,82 @@ HTML_TEMPLATE = '''
             .form-content {
                 padding: 20px 15px;
             }
+
+            .camera-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 1.5rem;
+            }
+
+            .camera-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .camera-modal-content {
+                padding: 15px;
+                width: 98%;
+                max-width: none;
+                margin: 10px;
+                max-height: 85vh;
+            }
+
+            .camera-section #video {
+                max-width: 100%;
+                height: auto;
+                border-radius: 12px;
+            }
+
+            .button-row {
+                gap: 10px;
+            }
+
+            .button-row .camera-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.3rem;
+            }
+
+            .button-row .camera-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .camera-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.3rem;
+            }
+
+            .camera-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .camera-modal-content {
+                padding: 12px;
+                max-height: 80vh;
+            }
+
+            .button-row .camera-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.1rem;
+            }
+
+            .button-row .camera-btn svg {
+                width: 14px;
+                height: 14px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧤 Electrical Glove Label Scanner</h1>
+            <h1>🧤 LiamVision <span class="beta-badge">beta</span></h1>
             <p>Take a photo of your insulated electrical glove label to automatically extract information</p>
         </div>
         
@@ -263,14 +472,34 @@ HTML_TEMPLATE = '''
                 </div>
                 
                 <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
-                    📷 Scan Glove Label
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
                 </button>
                 
-                <div id="cameraSection" class="camera-section hidden">
-                    <video id="video" autoplay playsinline></video>
-                    <div class="button-row">
-                        <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">📸 Capture</button>
-                        <button type="button" class="camera-btn btn-cancel" onclick="stopCamera()">❌ Cancel</button>
+                <!-- Camera Modal -->
+                <div id="cameraModal" class="camera-modal">
+                    <div class="camera-modal-content">
+                        <div class="camera-section">
+                            <!-- Exit button positioned at top-right -->
+                            <button type="button" class="exit-btn" onclick="stopCamera()" aria-label="Close camera">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                            <video id="video" autoplay playsinline></video>
+                            <!-- Camera capture button at bottom center -->
+                            <div class="camera-capture-container">
+                                <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                        <circle cx="12" cy="13" r="4"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -295,7 +524,7 @@ HTML_TEMPLATE = '''
         async function startCamera() {
             const cameraBtn = document.getElementById('cameraBtn');
             cameraBtn.disabled = true;
-            cameraBtn.textContent = '📷 Starting Camera...';
+            cameraBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
             
             try {
                 // Request camera with specific constraints for mobile
@@ -313,9 +542,9 @@ HTML_TEMPLATE = '''
                 
                 // Wait for video to be ready
                 video.onloadedmetadata = () => {
-                    document.getElementById('cameraSection').classList.remove('hidden');
+                    document.getElementById('cameraModal').classList.add('active');
                     cameraBtn.disabled = false;
-                    cameraBtn.textContent = '📷 Scan Glove Label';
+                    cameraBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
                 };
                 
             } catch (err) {
@@ -334,7 +563,7 @@ HTML_TEMPLATE = '''
                 
                 showError(errorMessage);
                 cameraBtn.disabled = false;
-                cameraBtn.textContent = '📷 Scan Glove Label';
+                cameraBtn.textContent = '📷';
             }
         }
         
@@ -343,7 +572,8 @@ HTML_TEMPLATE = '''
                 stream.getTracks().forEach(track => track.stop());
                 stream = null;
             }
-            document.getElementById('cameraSection').classList.add('hidden');
+            document.getElementById('cameraModal').classList.remove('active');
+            document.getElementById('cameraBtn').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
         }
         
         async function capturePhoto() {
@@ -398,9 +628,16 @@ HTML_TEMPLATE = '''
         // Check if camera is supported
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             document.getElementById('cameraBtn').disabled = true;
-            document.getElementById('cameraBtn').textContent = '❌ Camera Not Supported';
+            document.getElementById('cameraBtn').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
             showError('Camera is not supported on this browser or device.');
         }
+
+        // Add click outside modal to close
+        document.getElementById('cameraModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                stopCamera();
+            }
+        });
     </script>
 </body>
 </html>

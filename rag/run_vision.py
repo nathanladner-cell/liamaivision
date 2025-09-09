@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Startup script for the Vision-based Electrical Glove Label Scanner
+Startup script for LiamVision
 """
 
 import os
@@ -14,7 +14,7 @@ def main():
     script_dir = Path(__file__).parent
     os.chdir(script_dir)
 
-    print("🚀 Starting Vision-based Electrical Glove Label Scanner")
+    print("🚀 Starting LiamVision")
     print("=" * 60)
 
     # Check if vision_app.py exists

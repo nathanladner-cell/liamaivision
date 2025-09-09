@@ -45,7 +45,6 @@ The JSON should be formatted as a single line (no line breaks) and contain all t
 ### Verification:
 
 After deployment, visit your app and check:
-- The header should show "🔍 Google Vision + 🧠 OpenAI = Maximum Accuracy"
 - The status endpoint should show `hybrid_ready: true`
 - Analysis should show "hybrid" method and OCR character counts
 
