@@ -487,20 +487,18 @@ HTML_TEMPLATE = '''
         .form-group input {
             width: 100%;
             padding: 20px 24px;
-            border: 2px solid transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 0;
             font-size: 1rem;
             font-family: 'Courier New', 'Monaco', monospace;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: 
-                linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) padding-box,
-                linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 150, 255, 0.2), rgba(255, 0, 255, 0.2)) border-box;
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             box-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.1),
-                0 8px 32px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
             color: #000;
             clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
             position: relative;
@@ -508,33 +506,14 @@ HTML_TEMPLATE = '''
 
         .form-group input:focus {
             outline: none;
-            background: 
-                linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15)) padding-box,
-                linear-gradient(135deg, rgba(0, 255, 255, 0.6), rgba(0, 150, 255, 0.4), rgba(255, 0, 255, 0.4)) border-box;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
             box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.3),
-                0 0 60px rgba(0, 150, 255, 0.15),
-                0 16px 48px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+                0 16px 48px rgba(34, 139, 34, 0.12),
+                0 0 0 2px rgba(34, 139, 34, 0.15),
+                0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7);
             transform: translateY(-3px) scale(1.02);
-            animation: scifi-glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes scifi-glow {
-            0% {
-                box-shadow: 
-                    0 0 30px rgba(0, 255, 255, 0.3),
-                    0 0 60px rgba(0, 150, 255, 0.15),
-                    0 16px 48px rgba(0, 0, 0, 0.2),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            }
-            100% {
-                box-shadow: 
-                    0 0 40px rgba(0, 255, 255, 0.5),
-                    0 0 80px rgba(0, 150, 255, 0.25),
-                    0 16px 48px rgba(0, 0, 0, 0.2),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-            }
         }
 
         .camera-btn {
