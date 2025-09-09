@@ -285,7 +285,7 @@ HTML_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Electrical Glove Label Scanner</title>
+    <title>LiamVision</title>
     <link rel="icon" type="image/png" href="/static/liamai.png">
     <style>
         * {
@@ -430,23 +430,6 @@ HTML_TEMPLATE = '''
             line-height: 1.5;
         }
 
-        .hybrid-badge {
-            background: rgba(34, 139, 34, 0.1);
-            color: rgba(34, 139, 34, 0.8);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            margin-top: 15px;
-            display: inline-block;
-            font-family: 'Courier New', 'Monaco', monospace;
-            font-weight: 500;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(34, 139, 34, 0.2);
-            box-shadow: 
-                0 4px 16px rgba(34, 139, 34, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        }
 
         .form-group {
             margin-bottom: 20px;
@@ -670,9 +653,7 @@ HTML_TEMPLATE = '''
     <div class="container">
         <div class="header">
             <img src="/static/liamai.png" alt="Liam AI" id="logo" onerror="this.style.display='none'">
-            <h1>Electrical Glove Label Scanner</h1>
-            <p>AI-powered label analysis with Google Vision OCR + OpenAI Intelligence</p>
-            <div class="hybrid-badge">🔍 Google Vision + 🧠 OpenAI = Maximum Accuracy</div>
+            <h1>LiamVision</h1>
         </div>
         
         <form id="gloveForm">
