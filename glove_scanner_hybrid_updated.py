@@ -487,21 +487,18 @@ HTML_TEMPLATE = '''
         .form-group input {
             width: 100%;
             padding: 20px 24px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 0;
             font-size: 1rem;
             font-family: 'Courier New', 'Monaco', monospace;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(25px) saturate(200%);
+            -webkit-backdrop-filter: blur(25px) saturate(200%);
             box-shadow: 
-                0 12px 48px rgba(0, 0, 0, 0.15),
-                0 6px 24px rgba(0, 0, 0, 0.08),
-                0 2px 8px rgba(0, 0, 0, 0.05),
-                0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+                0 4px 20px rgba(0, 0, 0, 0.08),
+                0 1px 4px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             color: #000;
             clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
             position: relative;
@@ -509,16 +506,15 @@ HTML_TEMPLATE = '''
 
         .form-group input:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px) saturate(220%);
+            -webkit-backdrop-filter: blur(30px) saturate(220%);
             box-shadow: 
-                0 20px 60px rgba(34, 139, 34, 0.15),
-                0 12px 36px rgba(0, 0, 0, 0.12),
-                0 6px 18px rgba(0, 0, 0, 0.08),
+                0 8px 32px rgba(34, 139, 34, 0.12),
+                0 2px 8px rgba(0, 0, 0, 0.06),
                 0 0 0 2px rgba(34, 139, 34, 0.15),
-                0 1px 0 rgba(255, 255, 255, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.7),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
             transform: translateY(-3px) scale(1.02);
         }
 

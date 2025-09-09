@@ -487,21 +487,18 @@ HTML_TEMPLATE = '''
         .form-group input {
             width: 100%;
             padding: 20px 24px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 0;
             font-size: 1rem;
             font-family: 'Courier New', 'Monaco', monospace;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(25px) saturate(200%);
+            -webkit-backdrop-filter: blur(25px) saturate(200%);
             box-shadow: 
-                0 12px 48px rgba(0, 0, 0, 0.15),
-                0 6px 24px rgba(0, 0, 0, 0.08),
-                0 2px 8px rgba(0, 0, 0, 0.05),
-                0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+                0 4px 20px rgba(0, 0, 0, 0.08),
+                0 1px 4px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             color: #000;
             clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
             position: relative;
@@ -509,24 +506,23 @@ HTML_TEMPLATE = '''
 
         .form-group input:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px) saturate(220%);
+            -webkit-backdrop-filter: blur(30px) saturate(220%);
             box-shadow: 
-                0 20px 60px rgba(34, 139, 34, 0.15),
-                0 12px 36px rgba(0, 0, 0, 0.12),
-                0 6px 18px rgba(0, 0, 0, 0.08),
+                0 8px 32px rgba(34, 139, 34, 0.12),
+                0 2px 8px rgba(0, 0, 0, 0.06),
                 0 0 0 2px rgba(34, 139, 34, 0.15),
-                0 1px 0 rgba(255, 255, 255, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.7),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
             transform: translateY(-3px) scale(1.02);
         }
 
         .camera-btn {
             width: 80px;
             height: 80px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 0;
             padding: 0;
             font-size: 2rem;
@@ -535,12 +531,12 @@ HTML_TEMPLATE = '''
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             margin: 20px auto;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: blur(25px) saturate(200%);
+            -webkit-backdrop-filter: blur(25px) saturate(200%);
             box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.08),
-                0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+                0 4px 20px rgba(0, 0, 0, 0.08),
+                0 1px 4px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
             display: flex;
@@ -1121,7 +1117,7 @@ HTML_TEMPLATE = '''
                 video.srcObject = stream;
                 
                 document.getElementById('cameraModal').classList.add('active');
-                document.getElementById('cameraBtn').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                document.getElementById('cameraBtn').innerHTML = '<div class="static-waveform"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
                 
             } catch (err) {
                 console.error('Camera error:', err);
@@ -1136,7 +1132,7 @@ HTML_TEMPLATE = '''
             }
 
             document.getElementById('cameraModal').classList.remove('active');
-            document.getElementById('cameraBtn').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+            document.getElementById('cameraBtn').innerHTML = '<div class="static-waveform"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
         }
         
         async function capturePhoto() {
