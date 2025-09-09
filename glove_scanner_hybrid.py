@@ -421,6 +421,23 @@ HTML_TEMPLATE = '''
             margin-bottom: 10px;
             font-family: 'Courier New', 'Monaco', monospace;
             letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .beta-badge {
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.6);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .header p {
@@ -862,7 +879,7 @@ HTML_TEMPLATE = '''
     <div class="container">
         <div class="header">
             <img src="/static/liamai.png" alt="Liam AI" id="logo" onerror="this.style.display='none'">
-            <h1>LiamVision</h1>
+            <h1>LiamVision <span class="beta-badge">beta</span></h1>
         </div>
         
         <form id="gloveForm">
@@ -965,7 +982,7 @@ HTML_TEMPLATE = '''
                 video.srcObject = stream;
                 
                 document.getElementById('cameraModal').classList.add('active');
-                document.getElementById('cameraBtn').textContent = '📹';
+                document.getElementById('cameraBtn').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
                 
             } catch (err) {
                 console.error('Camera error:', err);
@@ -980,7 +997,7 @@ HTML_TEMPLATE = '''
             }
 
             document.getElementById('cameraModal').classList.remove('active');
-            document.getElementById('cameraBtn').textContent = '📷';
+            document.getElementById('cameraBtn').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
         }
         
         async function capturePhoto() {
