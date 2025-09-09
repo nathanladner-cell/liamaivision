@@ -640,6 +640,7 @@ HTML_TEMPLATE = '''
             justify-content: center;
             align-items: center;
             min-height: 0;
+            padding: 4px;
         }
 
         /* Exit button - positioned at top-right */
@@ -705,10 +706,10 @@ HTML_TEMPLATE = '''
 
         #video {
             width: 100%;
-            max-width: 350px;
-            max-height: 60vh;
+            height: 100%;
+            flex: 1;
             object-fit: cover;
-            border-radius: 16px;
+            border-radius: 12px;
             box-shadow: 
                 0 8px 32px rgba(0, 0, 0, 0.12),
                 0 0 0 1px rgba(255, 255, 255, 0.3),
@@ -802,6 +803,29 @@ HTML_TEMPLATE = '''
             100% { transform: scale(1); opacity: 1; }
         }
 
+        /* Static waveform for camera icons */
+        .static-waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            width: 24px;
+            height: 16px;
+        }
+
+        .static-waveform .bar {
+            width: 2px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 1px;
+        }
+
+        .static-waveform .bar:nth-child(1) { height: 6px; }
+        .static-waveform .bar:nth-child(2) { height: 12px; }
+        .static-waveform .bar:nth-child(3) { height: 16px; }
+        .static-waveform .bar:nth-child(4) { height: 10px; }
+        .static-waveform .bar:nth-child(5) { height: 8px; }
+        .static-waveform .bar:nth-child(6) { height: 14px; }
+
         .hidden { 
             display: none; 
         }
@@ -885,8 +909,9 @@ HTML_TEMPLATE = '''
             }
 
             .camera-section #video {
-                max-width: 100%;
-                max-height: 55vh;
+                width: 100%;
+                height: 100%;
+                flex: 1;
                 object-fit: cover;
                 border-radius: 12px;
             }
@@ -1013,10 +1038,14 @@ HTML_TEMPLATE = '''
             -->
             
             <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                </svg>
+                <div class="static-waveform">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
             </button>
             
             <!-- Camera Modal -->
@@ -1034,10 +1063,14 @@ HTML_TEMPLATE = '''
                         <!-- Camera capture button at bottom center -->
                         <div class="camera-capture-container">
                             <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                                    <circle cx="12" cy="13" r="4"></circle>
-                                </svg>
+                                <div class="static-waveform">
+                                    <div class="bar"></div>
+                                    <div class="bar"></div>
+                                    <div class="bar"></div>
+                                    <div class="bar"></div>
+                                    <div class="bar"></div>
+                                    <div class="bar"></div>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -1159,7 +1192,7 @@ HTML_TEMPLATE = '''
                         
                         // Reset button
                         if (cameraBtn) {
-                            cameraBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                            cameraBtn.innerHTML = '<div class="static-waveform"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
                             cameraBtn.disabled = false;
                         }
                     }, 800);
@@ -1167,7 +1200,7 @@ HTML_TEMPLATE = '''
                 } else {
                     // Reset button on error
                     if (cameraBtn) {
-                        cameraBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                        cameraBtn.innerHTML = '<div class="static-waveform"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
                         cameraBtn.disabled = false;
                     }
                 }
@@ -1176,7 +1209,7 @@ HTML_TEMPLATE = '''
                 console.error('Analysis error:', error);
                 // Reset button on error
                 if (cameraBtn) {
-                    cameraBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                    cameraBtn.innerHTML = '<div class="static-waveform"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
                     cameraBtn.disabled = false;
                 }
             }
