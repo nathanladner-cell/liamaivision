@@ -724,21 +724,43 @@ HTML_TEMPLATE = '''
             100% { top: calc(100% - 100px); opacity: 0; }
         }
 
-        /* HUD Info Display */
-        .hud-info {
+        /* HUD Top Waveform Display */
+        .hud-waveform {
             position: absolute;
-            top: 20px;
+            top: 25px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: rgba(34, 139, 34, 0.9);
-            padding: 4px 12px;
-            font-size: 0.8rem;
-            font-family: 'Courier New', 'Monaco', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            width: 60px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.6);
             border: 1px solid rgba(34, 139, 34, 0.5);
             clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
+            padding: 4px 8px;
+        }
+
+        .hud-waveform .bar {
+            width: 2px;
+            background: rgba(34, 139, 34, 0.8);
+            border-radius: 1px;
+            animation: hud-waveform 2s ease-in-out infinite;
+        }
+
+        .hud-waveform .bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+        .hud-waveform .bar:nth-child(2) { height: 16px; animation-delay: 0.1s; }
+        .hud-waveform .bar:nth-child(3) { height: 20px; animation-delay: 0.2s; }
+        .hud-waveform .bar:nth-child(4) { height: 12px; animation-delay: 0.3s; }
+        .hud-waveform .bar:nth-child(5) { height: 18px; animation-delay: 0.4s; }
+        .hud-waveform .bar:nth-child(6) { height: 14px; animation-delay: 0.5s; }
+
+        @keyframes hud-waveform {
+            0%, 100% { opacity: 0.4; transform: scaleY(0.7); }
+            50% { opacity: 1; transform: scaleY(1.2); }
         }
 
         /* Center crosshair */
@@ -857,16 +879,33 @@ HTML_TEMPLATE = '''
         .camera-capture-container .camera-btn {
             width: 70px;
             height: 70px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: rgba(0, 0, 0, 0.8);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(25px) saturate(200%) brightness(110%);
+            -webkit-backdrop-filter: blur(25px) saturate(200%) brightness(110%);
+            box-shadow: 
+                0 6px 24px rgba(0, 0, 0, 0.12),
+                0 3px 12px rgba(0, 0, 0, 0.08),
+                0 1px 4px rgba(0, 0, 0, 0.06),
+                0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
         }
 
         .camera-capture-container .camera-btn:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(30px) saturate(220%) brightness(120%);
+            -webkit-backdrop-filter: blur(30px) saturate(220%) brightness(120%);
+            box-shadow: 
+                0 8px 32px rgba(34, 139, 34, 0.15),
+                0 4px 16px rgba(0, 0, 0, 0.1),
+                0 2px 8px rgba(0, 0, 0, 0.08),
+                0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transform: scale(1.05) translateY(-2px);
         }
 
         .camera-capture-container .camera-btn svg {
@@ -1248,8 +1287,15 @@ HTML_TEMPLATE = '''
                             <!-- Center crosshair -->
                             <div class="hud-crosshair"></div>
                             
-                            <!-- HUD Info -->
-                            <div class="hud-info">SCAN MODE</div>
+                            <!-- HUD Top Waveform -->
+                            <div class="hud-waveform">
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                            </div>
                             
                             <!-- Status indicators -->
                             <div class="hud-status">
