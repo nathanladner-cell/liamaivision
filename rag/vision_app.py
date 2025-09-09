@@ -172,7 +172,10 @@ Look for:
 - Manufacturer logos or names
 - Size markings
 - Inside and outside color identification
-- Cuff type identification based on shape and design
+- Cuff type identification - CRITICAL: Focus on the BOTTOM EDGE and OVERALL SHAPE:
+  * Bell Cuff: Wide flared opening, much wider than wrist, bell-like silhouette
+  * Straight Cuff: Straight sides, horizontal bottom edge, tube-like shape
+  * Contour Cuff: Angled/diagonal bottom edge (key distinguishing feature)
 - Any other relevant safety information
 
 Return the information in JSON format with these exact keys:
@@ -182,7 +185,7 @@ Return the information in JSON format with these exact keys:
   "size": "extracted size number",
   "inside_color": "extracted inside color",
   "outside_color": "extracted outside color",
-  "cuff_type": "extracted cuff type (Bell Cuff, Straight Cuff, or Contour Cuff)",
+  "cuff_type": "Bell Cuff OR Straight Cuff OR Contour Cuff (analyze opening shape and edge cut)",
   "confidence": "high/medium/low",
   "additional_info": "any other relevant details"
 }
@@ -193,10 +196,30 @@ If any field cannot be determined, use an empty string. Be precise and only extr
 
 Pay special attention to:
 1. Distinguishing between the inner and outer colors of the glove. Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
-2. Identifying the cuff type based on the shape and design:
-   - **Bell Cuff**: Widens slightly below the wrist and continues into a distinctive bell shape that flares outward
-   - **Straight Cuff**: Maintains a straight profile and gradually widens towards the end, with a straight-across cut at the cuff opening
-   - **Contour Cuff**: May gradually widen but has a slanted or angled cut across the cuff opening (not straight across)
+2. Identifying the cuff type based on these SPECIFIC visual characteristics:
+
+   **BELL CUFF** - Look for these key features:
+   - The glove widens significantly below the wrist area
+   - Forms a distinctive "bell" or flared shape at the opening
+   - The cuff opening is much wider than the wrist area
+   - Often has a curved, rounded bottom edge
+   - The widening is dramatic and creates a clear bell silhouette
+   - Example: Like a bell or trumpet shape - narrow at wrist, very wide at opening
+
+   **STRAIGHT CUFF** - Look for these key features:
+   - The glove maintains relatively straight sides from wrist to opening
+   - May widen gradually but keeps straight, parallel edges
+   - The cuff opening is cut straight across (horizontal line)
+   - No dramatic flaring or bell shape
+   - The overall profile is more cylindrical or tube-like
+   - Example: Like a straight tube or cylinder - consistent width
+
+   **CONTOUR CUFF** - Look for these key features:
+   - The cuff opening is cut at an angle or slant (NOT straight across)
+   - May have a diagonal cut across the opening
+   - The opening edge is not horizontal but angled
+   - Can be wider or narrower but the key is the ANGLED cut
+   - Example: Like cutting a tube at an angle - creates a slanted opening edge
 
 {f"Additional text extracted from image: {vision_text}" if vision_text else ""}
 

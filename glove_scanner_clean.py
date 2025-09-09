@@ -656,7 +656,7 @@ def analyze():
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, outside color, and cuff type. Pay special attention to: 1) Distinguishing between inner and outer colors, 2) Identifying cuff type: Bell Cuff (widens into bell shape), Straight Cuff (straight across), or Contour Cuff (slanted across). Return ONLY a JSON object with these exact keys: manufacturer, class, size, inside_color, outside_color, cuff_type. Use empty string if not found."
+                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, outside color, and cuff type. CUFF TYPE TRAINING: Bell Cuff = dramatic widening into bell/flared shape (much wider at opening than wrist); Straight Cuff = straight sides with horizontal cut across opening (tube-like); Contour Cuff = angled/diagonal cut across opening (NOT horizontal edge). Focus on the BOTTOM EDGE SHAPE and OVERALL SILHOUETTE. Return ONLY a JSON object with these exact keys: manufacturer, class, size, inside_color, outside_color, cuff_type. Use empty string if not found."
                                 },
                                 {
                                     "type": "image_url",
@@ -679,7 +679,7 @@ def analyze():
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, outside color, and cuff type. Pay special attention to: 1) Distinguishing between inner and outer colors, 2) Identifying cuff type: Bell Cuff (widens into bell shape), Straight Cuff (straight across), or Contour Cuff (slanted across). Return ONLY a JSON object with these exact keys: manufacturer, class, size, inside_color, outside_color, cuff_type. Use empty string if not found."
+                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, outside color, and cuff type. CUFF TYPE TRAINING: Bell Cuff = dramatic widening into bell/flared shape (much wider at opening than wrist); Straight Cuff = straight sides with horizontal cut across opening (tube-like); Contour Cuff = angled/diagonal cut across opening (NOT horizontal edge). Focus on the BOTTOM EDGE SHAPE and OVERALL SILHOUETTE. Return ONLY a JSON object with these exact keys: manufacturer, class, size, inside_color, outside_color, cuff_type. Use empty string if not found."
                                 },
                                 {
                                     "type": "image_url",
