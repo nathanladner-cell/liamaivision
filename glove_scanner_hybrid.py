@@ -496,9 +496,12 @@ HTML_TEMPLATE = '''
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 12px 48px rgba(0, 0, 0, 0.15),
+                0 6px 24px rgba(0, 0, 0, 0.08),
+                0 2px 8px rgba(0, 0, 0, 0.05),
                 0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+                inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
             color: #000;
             clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
             position: relative;
@@ -509,10 +512,13 @@ HTML_TEMPLATE = '''
             border-color: rgba(255, 255, 255, 0.4);
             background: rgba(255, 255, 255, 0.15);
             box-shadow: 
-                0 16px 48px rgba(34, 139, 34, 0.12),
+                0 20px 60px rgba(34, 139, 34, 0.15),
+                0 12px 36px rgba(0, 0, 0, 0.12),
+                0 6px 18px rgba(0, 0, 0, 0.08),
                 0 0 0 2px rgba(34, 139, 34, 0.15),
                 0 1px 0 rgba(255, 255, 255, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.15);
             transform: translateY(-3px) scale(1.02);
         }
 

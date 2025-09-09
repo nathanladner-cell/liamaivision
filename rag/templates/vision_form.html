@@ -152,9 +152,12 @@
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.08),
+                0 12px 48px rgba(0, 0, 0, 0.15),
+                0 6px 24px rgba(0, 0, 0, 0.08),
+                0 2px 8px rgba(0, 0, 0, 0.05),
                 0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+                inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
             color: #000;
             clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
             position: relative;
@@ -165,10 +168,13 @@
             border-color: rgba(255, 255, 255, 0.4);
             background: rgba(255, 255, 255, 0.15);
             box-shadow: 
-                0 16px 48px rgba(34, 139, 34, 0.12),
+                0 20px 60px rgba(34, 139, 34, 0.15),
+                0 12px 36px rgba(0, 0, 0, 0.12),
+                0 6px 18px rgba(0, 0, 0, 0.08),
                 0 0 0 2px rgba(34, 139, 34, 0.15),
                 0 1px 0 rgba(255, 255, 255, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.15);
             transform: translateY(-3px) scale(1.02);
         }
 
@@ -201,9 +207,12 @@
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             box-shadow: 
-                0 8px 32px rgba(34, 139, 34, 0.15),
+                0 16px 48px rgba(34, 139, 34, 0.18),
+                0 8px 24px rgba(0, 0, 0, 0.12),
+                0 4px 12px rgba(0, 0, 0, 0.08),
                 0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+                inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
             clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
@@ -239,9 +248,8 @@
         }
 
         .camera-button.analyzing {
-            background: linear-gradient(135deg, rgba(255, 152, 0, 0.9) 0%, rgba(245, 124, 0, 0.9) 100%);
+            background: rgba(34, 139, 34, 0.2);
             cursor: not-allowed;
-            animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
@@ -501,21 +509,49 @@
             }
         }
 
-        /* Loading spinner */
-        .spinner {
-            width: 20px;
+        /* Modern Waveform Animation */
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            width: 40px;
             height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid rgba(255, 255, 255, 0.9);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .waveform .bar {
+            width: 3px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1px;
+            animation: waveform 1.5s ease-in-out infinite;
+        }
+
+        .waveform .bar:nth-child(1) { animation-delay: 0s; }
+        .waveform .bar:nth-child(2) { animation-delay: 0.1s; }
+        .waveform .bar:nth-child(3) { animation-delay: 0.2s; }
+        .waveform .bar:nth-child(4) { animation-delay: 0.3s; }
+        .waveform .bar:nth-child(5) { animation-delay: 0.4s; }
+        .waveform .bar:nth-child(6) { animation-delay: 0.5s; }
+
+        @keyframes waveform {
+            0%, 100% { height: 4px; opacity: 0.4; }
+            50% { height: 20px; opacity: 1; }
+        }
+
+        /* Green completion dot */
+        .completion-dot {
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: completion-pulse 0.6s ease-out;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+
+        @keyframes completion-pulse {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
@@ -632,12 +668,12 @@
 
             // Update UI for processing
             cameraButton.classList.add('analyzing');
-            cameraButton.innerHTML = '<div class="spinner"></div>Analyzing image...';
+            cameraButton.innerHTML = '<div class="waveform"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
             cameraButton.disabled = true;
 
             statusDiv.className = 'status processing';
-            statusDiv.textContent = 'Analyzing glove label...';
-            statusDiv.classList.remove('hidden');
+            statusDiv.textContent = '';
+            statusDiv.classList.add('hidden');
 
             try {
                 const response = await fetch('/api/analyze-image', {
@@ -653,26 +689,33 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    currentAnalysis = result.analysis;
-                    populateForm(result.analysis);
-                    showStatus('success', 'Analysis completed successfully!');
+                    // Show completion dot briefly
+                    cameraButton.innerHTML = '<div class="completion-dot"></div>';
+                    
+                    setTimeout(() => {
+                        currentAnalysis = result.analysis;
+                        populateForm(result.analysis);
+                        statusDiv.classList.add('hidden');
+                    }, 800);
                 } else {
-                    showStatus('error', `Analysis failed: ${result.error}`);
+                    statusDiv.classList.add('hidden');
                 }
 
             } catch (error) {
                 console.error('Analysis error:', error);
-                showStatus('error', 'Failed to analyze image. Please try again.');
+                statusDiv.classList.add('hidden');
             } finally {
-                // Reset camera button
-                cameraButton.classList.remove('analyzing');
-                cameraButton.innerHTML = `
-                    <svg class="camera-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14.828 14.828a4 4 0 0 1-5.656 0M9 10h1.586a1 1 0 0 1 .707.293l.707.707A1 1 0 0 0 13.414 11H15m-3-3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                    </svg>
-                    Take Photo of Glove Label
-                `;
-                cameraButton.disabled = false;
+                // Reset camera button after delay
+                setTimeout(() => {
+                    cameraButton.classList.remove('analyzing');
+                    cameraButton.innerHTML = `
+                        <svg class="camera-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.828 14.828a4 4 0 0 1-5.656 0M9 10h1.586a1 1 0 0 1 .707.293l.707.707A1 1 0 0 0 13.414 11H15m-3-3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                        </svg>
+                        Take Photo of Glove Label
+                    `;
+                    cameraButton.disabled = false;
+                }, 1200);
             }
         }
 
