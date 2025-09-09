@@ -96,6 +96,12 @@ else:
     print(f"   OpenAI available: {bool(openai_client)}")
     print(f"   Google Vision available: {bool(vision_client)}")
 
+def format_text_field(text):
+    """Format text field with first letter capitalized and rest lowercase"""
+    if not text or not isinstance(text, str):
+        return text
+    return text.strip().capitalize()
+
 def extract_text_with_google_vision(image_bytes):
     """Extract all text from image using Google Vision OCR"""
     if not vision_client:
@@ -247,10 +253,16 @@ Provide the information in the specified JSON format."""
                 if field not in result_data:
                     result_data[field] = ''
             
+            # Format manufacturer and color fields with proper capitalization
+            if 'manufacturer' in result_data:
+                result_data['manufacturer'] = format_text_field(result_data['manufacturer'])
+            if 'color' in result_data:
+                result_data['color'] = format_text_field(result_data['color'])
+
             # Add hybrid metadata
             result_data['analysis_method'] = 'hybrid'
             result_data['ocr_text_length'] = len(extracted_text) if extracted_text else 0
-            
+
             return result_data
             
         except json.JSONDecodeError:
@@ -423,6 +435,7 @@ HTML_TEMPLATE = '''
             letter-spacing: -0.02em;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
         }
 
