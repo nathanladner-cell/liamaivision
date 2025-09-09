@@ -12,8 +12,9 @@ RUN apt-get update && apt-get install -y \
 COPY hybrid_requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the hybrid app
+# Copy the hybrid app and static files
 COPY glove_scanner_hybrid.py ./app.py
+COPY static/ ./static/
 
 # Google Cloud credentials will be provided via GOOGLE_CLOUD_CREDENTIALS_JSON environment variable
 
