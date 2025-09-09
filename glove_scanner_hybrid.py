@@ -745,6 +745,51 @@ HTML_TEMPLATE = '''
             to { transform: rotate(360deg); } 
         }
 
+        /* Modern Waveform Animation */
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            width: 40px;
+            height: 20px;
+        }
+
+        .waveform .bar {
+            width: 3px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1px;
+            animation: waveform 1.5s ease-in-out infinite;
+        }
+
+        .waveform .bar:nth-child(1) { animation-delay: 0s; }
+        .waveform .bar:nth-child(2) { animation-delay: 0.1s; }
+        .waveform .bar:nth-child(3) { animation-delay: 0.2s; }
+        .waveform .bar:nth-child(4) { animation-delay: 0.3s; }
+        .waveform .bar:nth-child(5) { animation-delay: 0.4s; }
+        .waveform .bar:nth-child(6) { animation-delay: 0.5s; }
+
+        @keyframes waveform {
+            0%, 100% { height: 4px; opacity: 0.4; }
+            50% { height: 20px; opacity: 1; }
+        }
+
+        /* Green completion dot */
+        .completion-dot {
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: completion-pulse 0.6s ease-out;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+
+        @keyframes completion-pulse {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         .hidden { 
             display: none; 
         }
@@ -982,10 +1027,8 @@ HTML_TEMPLATE = '''
                 </div>
             </div>
             
-            <div id="loading" class="loading hidden">Analyzing with Hybrid AI</div>
             <div id="errorMessage" class="error-message hidden"></div>
             <div id="successMessage" class="success-message hidden"></div>
-            <div id="analysisInfo" class="analysis-info hidden"></div>
         </form>
     </div>
 
@@ -1010,7 +1053,6 @@ HTML_TEMPLATE = '''
         function hideMessages() {
             document.getElementById('errorMessage').classList.add('hidden');
             document.getElementById('successMessage').classList.add('hidden');
-            document.getElementById('analysisInfo').classList.add('hidden');
         }
         
         async function startCamera() {
@@ -1064,8 +1106,14 @@ HTML_TEMPLATE = '''
         }
         
         async function analyzeImage(imageBlob) {
-            document.getElementById('loading').classList.remove('hidden');
             hideMessages();
+            
+            // Show waveform animation
+            const cameraBtn = document.querySelector('.camera-btn, #cameraBtn');
+            if (cameraBtn) {
+                cameraBtn.innerHTML = '<div class="waveform"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
+                cameraBtn.disabled = true;
+            }
             
             try {
                 const formData = new FormData();
@@ -1077,35 +1125,43 @@ HTML_TEMPLATE = '''
                 });
                 
                 const result = await response.json();
-                document.getElementById('loading').classList.add('hidden');
                 
                 if (result.success) {
-                    // Populate form fields
-                    if (result.manufacturer) document.getElementById('manufacturer').value = result.manufacturer;
-                    if (result.class) document.getElementById('class').value = result.class;
-                    if (result.size) document.getElementById('size').value = result.size;
-                    if (result.inside_color) document.getElementById('inside_color').value = result.inside_color;
-                    if (result.outside_color) document.getElementById('outside_color').value = result.outside_color;
-                    // Cuff type temporarily disabled
-                    // if (result.cuff_type) document.getElementById('cuff_type').value = result.cuff_type;
-                    
-                    showMessage('✅ Analysis completed successfully!');
-                    
-                    // Show analysis details
-                    if (result.analysis_method) {
-                        const analysisDiv = document.getElementById('analysisInfo');
-                        analysisDiv.innerHTML = `<strong>Analysis Method:</strong> ${result.analysis_method}`;
-                        analysisDiv.classList.remove('hidden');
+                    // Show completion dot
+                    if (cameraBtn) {
+                        cameraBtn.innerHTML = '<div class="completion-dot"></div>';
                     }
                     
+                    setTimeout(() => {
+                        // Populate form fields
+                        if (result.manufacturer) document.getElementById('manufacturer').value = result.manufacturer;
+                        if (result.class) document.getElementById('class').value = result.class;
+                        if (result.size) document.getElementById('size').value = result.size;
+                        if (result.inside_color) document.getElementById('inside_color').value = result.inside_color;
+                        if (result.outside_color) document.getElementById('outside_color').value = result.outside_color;
+                        
+                        // Reset button
+                        if (cameraBtn) {
+                            cameraBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                            cameraBtn.disabled = false;
+                        }
+                    }, 800);
+                    
                 } else {
-                    showMessage(`❌ Analysis failed: ${result.error || 'Unknown error'}`, true);
+                    // Reset button on error
+                    if (cameraBtn) {
+                        cameraBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                        cameraBtn.disabled = false;
+                    }
                 }
                 
             } catch (error) {
-                document.getElementById('loading').classList.add('hidden');
                 console.error('Analysis error:', error);
-                showMessage('❌ Network error. Please try again.', true);
+                // Reset button on error
+                if (cameraBtn) {
+                    cameraBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                    cameraBtn.disabled = false;
+                }
             }
         }
 
