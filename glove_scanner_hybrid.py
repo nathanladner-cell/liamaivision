@@ -555,9 +555,11 @@ HTML_TEMPLATE = '''
         .camera-modal-content {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 30px;
+            padding: 20px;
             max-width: 500px;
-            width: 90%;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow:
                 0 20px 60px rgba(0, 0, 0, 0.3),
                 0 0 0 1px rgba(255, 255, 255, 0.2),
@@ -681,21 +683,82 @@ HTML_TEMPLATE = '''
 
         @media (max-width: 768px) {
             .container {
-                padding: 20px;
-                margin: 10px;
+                padding: 15px;
+                margin: 5px;
+                max-width: 100%;
             }
 
             .header h1 {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
             }
 
             .camera-btn {
-                padding: 14px 20px;
-                font-size: 1rem;
+                width: 70px;
+                height: 70px;
+                font-size: 1.5rem;
+            }
+
+            .camera-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .camera-modal-content {
+                padding: 15px;
+                width: 98%;
+                max-width: none;
+                margin: 10px;
+                max-height: 85vh;
+            }
+
+            .camera-section #video {
+                max-width: 100%;
+                height: auto;
+                border-radius: 12px;
             }
 
             .button-row {
-                flex-direction: column;
+                gap: 10px;
+            }
+
+            .button-row .camera-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.3rem;
+            }
+
+            .button-row .camera-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .camera-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.3rem;
+            }
+
+            .camera-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .camera-modal-content {
+                padding: 12px;
+                max-height: 80vh;
+            }
+
+            .button-row .camera-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.1rem;
+            }
+
+            .button-row .camera-btn svg {
+                width: 14px;
+                height: 14px;
             }
         }
     </style>
@@ -732,7 +795,10 @@ HTML_TEMPLATE = '''
             </div>
             
             <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
-                📷
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                </svg>
             </button>
             
             <!-- Camera Modal -->
