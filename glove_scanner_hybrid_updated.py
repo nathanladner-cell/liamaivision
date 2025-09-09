@@ -879,7 +879,7 @@ HTML_TEMPLATE = '''
         <form id="gloveForm">
             <div class="form-group">
                 <label for="manufacturer">Manufacturer:</label>
-                <input type="text" id="manufacturer" name="manufacturer" placeholder="e.g., Ansell, Honeywell">
+                <input type="text" id="manufacturer" name="manufacturer" placeholder="e.g., Armadillo, Salisbury">
             </div>
             
             <div class="form-group">
