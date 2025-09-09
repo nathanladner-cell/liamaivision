@@ -903,6 +903,12 @@ def status():
         'google_vision_available': bool(vision_client)
     })
 
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """Serve static files (like liamai.png logo)"""
+    from flask import send_from_directory
+    return send_from_directory('static', filename)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
     print(f"🚀 Starting Hybrid Glove Scanner on port {port}")
