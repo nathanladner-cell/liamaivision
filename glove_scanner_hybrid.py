@@ -101,6 +101,7 @@ def format_text_field(text):
     if not text or not isinstance(text, str):
         return text
     return text.strip().capitalize()
+    return text.strip().capitalize()
 
 def extract_text_with_google_vision(image_bytes):
     """Extract all text from image using Google Vision OCR"""
