@@ -574,6 +574,12 @@
                 <span id="outside_colorConfidence" class="confidence-indicator hidden"></span>
             </div>
 
+            <div class="form-group">
+                <label for="cuff_type">Cuff Type</label>
+                <input type="text" id="cuff_type" name="cuff_type" placeholder="e.g., Bell Cuff, Straight Cuff, Contour Cuff">
+                <span id="cuff_typeConfidence" class="confidence-indicator hidden"></span>
+            </div>
+
             <button type="button" id="cameraButton" class="camera-button">
                 <svg class="camera-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M14.828 14.828a4 4 0 0 1-5.656 0M9 10h1.586a1 1 0 0 1 .707.293l.707.707A1 1 0 0 0 13.414 11H15m-3-3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
@@ -682,7 +688,7 @@
         }
 
         function populateForm(analysis) {
-            const fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color'];
+            const fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color', 'cuff_type'];
 
             fields.forEach(field => {
                 const input = document.getElementById(field);
@@ -730,6 +736,7 @@
                     size: formData.get('size'),
                     inside_color: formData.get('inside_color'),
                     outside_color: formData.get('outside_color'),
+                    cuff_type: formData.get('cuff_type'),
                     confidence: currentAnalysis.confidence || 'medium',
                     timestamp: new Date().toISOString()
                 };
@@ -762,7 +769,7 @@
         // Clear functionality
         document.getElementById('clearButton').addEventListener('click', function() {
             // Clear form fields
-            const fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color'];
+            const fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color', 'cuff_type'];
             fields.forEach(field => {
                 const input = document.getElementById(field);
                 const confidenceSpan = document.getElementById(field + 'Confidence');

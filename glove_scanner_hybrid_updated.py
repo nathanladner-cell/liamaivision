@@ -135,6 +135,7 @@ def analyze_with_openai_hybrid(image_bytes, extracted_text=""):
             'size': '',
             'inside_color': '',
             'outside_color': '',
+            'cuff_type': '',
             'confidence': 'low',
             'error': 'OpenAI not available'
         }
@@ -152,6 +153,7 @@ Analyze the provided image and extract the following information from any visibl
 - Size: The glove size (7, 8, 9, 10, 11, 12, etc.)
 - Inside Color: The inner color of the glove (red, yellow, black, etc.)
 - Outside Color: The outer color of the glove (red, yellow, black, etc.)
+- Cuff Type: The style of the glove cuff (Bell Cuff, Straight Cuff, or Contour Cuff)
 
 Look for:
 - ASTM ratings (D120, F496, etc.)
@@ -159,6 +161,7 @@ Look for:
 - Manufacturer logos or names
 - Size markings
 - Inside and outside color identification
+- Cuff type identification based on shape and design
 - Any other relevant safety information
 
 Return the information in JSON format with these exact keys:
@@ -168,15 +171,21 @@ Return the information in JSON format with these exact keys:
   "size": "extracted size number",
   "inside_color": "extracted inside color",
   "outside_color": "extracted outside color",
+  "cuff_type": "extracted cuff type (Bell Cuff, Straight Cuff, or Contour Cuff)",
   "confidence": "high/medium/low",
   "analysis_method": "hybrid"
 }
 
 If any field cannot be determined, use an empty string. Be precise and only extract information that is clearly visible."""
 
-        user_prompt = f"""Please analyze this electrical glove label image and extract the manufacturer, class, size, inside color, and outside color information.
+        user_prompt = f"""Please analyze this electrical glove label image and extract the manufacturer, class, size, inside color, outside color, and cuff type information.
 
-Pay special attention to distinguishing between the inner and outer colors of the glove. Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
+Pay special attention to:
+1. Distinguishing between the inner and outer colors of the glove. Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
+2. Identifying the cuff type based on the shape and design:
+   - **Bell Cuff**: Widens slightly below the wrist and continues into a distinctive bell shape that flares outward
+   - **Straight Cuff**: Maintains a straight profile and gradually widens towards the end, with a straight-across cut at the cuff opening
+   - **Contour Cuff**: May gradually widen but has a slanted or angled cut across the cuff opening (not straight across)
 
 {f"OCR Text extracted from image: {extracted_text}" if extracted_text else "No OCR text available."}
 
@@ -237,6 +246,7 @@ Provide the information in the specified JSON format."""
                 'size': '',
                 'inside_color': '',
             'outside_color': '',
+            'cuff_type': '',
                 'confidence': 'low',
                 'error': f'OpenAI API error: {str(api_error)}'
             }
@@ -254,7 +264,7 @@ Provide the information in the specified JSON format."""
             result_data = json.loads(result_text)
             
             # Ensure all required fields exist
-            required_fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color']
+            required_fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color', 'cuff_type']
             for field in required_fields:
                 if field not in result_data:
                     result_data[field] = ''
@@ -266,6 +276,8 @@ Provide the information in the specified JSON format."""
                 result_data['inside_color'] = format_text_field(result_data['inside_color'])
             if 'outside_color' in result_data:
                 result_data['outside_color'] = format_text_field(result_data['outside_color'])
+            if 'cuff_type' in result_data:
+                result_data['cuff_type'] = format_text_field(result_data['cuff_type'])
 
             # Add hybrid metadata
             result_data['analysis_method'] = 'hybrid'
@@ -282,6 +294,7 @@ Provide the information in the specified JSON format."""
                 'size': '',
                 'inside_color': '',
             'outside_color': '',
+            'cuff_type': '',
                 'confidence': 'low',
                 'analysis_method': 'hybrid',
                 'error': 'JSON parsing failed'
@@ -295,6 +308,7 @@ Provide the information in the specified JSON format."""
             'size': '',
             'inside_color': '',
             'outside_color': '',
+            'cuff_type': '',
             'confidence': 'low',
             'analysis_method': 'hybrid',
             'error': str(e)

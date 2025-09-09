@@ -441,6 +441,11 @@ HTML_TEMPLATE = '''
                     <input type="text" id="outside_color" name="outside_color" placeholder="e.g., Red, Yellow, Black">
                 </div>
                 
+                <div class="form-group">
+                    <label for="cuff_type">Cuff Type:</label>
+                    <input type="text" id="cuff_type" name="cuff_type" placeholder="e.g., Bell Cuff, Straight Cuff, Contour Cuff">
+                </div>
+                
                 <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -651,7 +656,7 @@ def analyze():
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, and outside color. Pay special attention to distinguishing between the inner and outer colors of the glove. Return ONLY a JSON object with these exact keys: manufacturer, class, size, inside_color, outside_color. Use empty string if not found."
+                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, outside color, and cuff type. Pay special attention to: 1) Distinguishing between inner and outer colors, 2) Identifying cuff type: Bell Cuff (widens into bell shape), Straight Cuff (straight across), or Contour Cuff (slanted across). Return ONLY a JSON object with these exact keys: manufacturer, class, size, inside_color, outside_color, cuff_type. Use empty string if not found."
                                 },
                                 {
                                     "type": "image_url",
@@ -674,7 +679,7 @@ def analyze():
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, and outside color. Pay special attention to distinguishing between the inner and outer colors of the glove. Return ONLY a JSON object with these exact keys: manufacturer, class, size, inside_color, outside_color. Use empty string if not found."
+                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, outside color, and cuff type. Pay special attention to: 1) Distinguishing between inner and outer colors, 2) Identifying cuff type: Bell Cuff (widens into bell shape), Straight Cuff (straight across), or Contour Cuff (slanted across). Return ONLY a JSON object with these exact keys: manufacturer, class, size, inside_color, outside_color, cuff_type. Use empty string if not found."
                                 },
                                 {
                                     "type": "image_url",
@@ -709,7 +714,8 @@ def analyze():
                 'class': '',
                 'size': '',
                 'inside_color': '',
-                'outside_color': ''
+                'outside_color': '',
+                'cuff_type': ''
             }
 
         # Format manufacturer and color fields with proper capitalization
@@ -719,6 +725,8 @@ def analyze():
             result_data['inside_color'] = format_text_field(result_data['inside_color'])
         if 'outside_color' in result_data:
             result_data['outside_color'] = format_text_field(result_data['outside_color'])
+        if 'cuff_type' in result_data:
+            result_data['cuff_type'] = format_text_field(result_data['cuff_type'])
 
         return jsonify({'success': True, 'data': result_data})
         
