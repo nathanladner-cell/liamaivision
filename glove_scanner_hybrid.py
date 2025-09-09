@@ -404,9 +404,44 @@ HTML_TEMPLATE = '''
                 0 0 0 1px rgba(255, 255, 255, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.6);
             transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.8) 0%, rgba(0, 128, 0, 0.8) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.5);
         }
 
         .header img:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.18),
+                0 0 0 1px rgba(255, 255, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .logo-container {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .text-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.9) 0%, rgba(0, 128, 0, 0.9) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Courier New', 'Monaco', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .text-logo:hover {
             transform: scale(1.05);
             box-shadow: 
                 0 12px 40px rgba(0, 0, 0, 0.18),
@@ -669,7 +704,10 @@ HTML_TEMPLATE = '''
     
     <div class="container">
         <div class="header">
-            <img src="/static/liamai.png" alt="Liam AI" id="logo" onerror="this.style.display='none'">
+            <div class="logo-container">
+                <img src="/static/liamai.png" alt="Liam AI" id="logo" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block'">
+                <div id="text-logo" class="text-logo" style="display: none;">LIAM</div>
+            </div>
             <h1>Electrical Glove Label Scanner</h1>
             <p>AI-powered label analysis with Google Vision OCR + OpenAI Intelligence</p>
             <div class="hybrid-badge">🔍 Google Vision + 🧠 OpenAI = Maximum Accuracy</div>
