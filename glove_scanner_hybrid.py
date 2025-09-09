@@ -650,6 +650,169 @@ HTML_TEMPLATE = '''
             padding: 4px;
         }
 
+        /* Sci-Fi HUD Overlay */
+        .hud-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        /* Angular corner brackets */
+        .hud-corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(34, 139, 34, 0.8);
+        }
+
+        .hud-corner.top-left {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+            clip-path: polygon(0 0, 100% 0, 100% 20%, 20% 20%, 20% 100%, 0 100%);
+        }
+
+        .hud-corner.top-right {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 80% 100%, 80% 20%, 0 20%);
+        }
+
+        .hud-corner.bottom-left {
+            bottom: 80px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+            clip-path: polygon(0 0, 20% 0, 20% 80%, 100% 80%, 100% 100%, 0 100%);
+        }
+
+        .hud-corner.bottom-right {
+            bottom: 80px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+            clip-path: polygon(80% 0, 100% 0, 100% 100%, 0 100%, 0 80%, 80% 80%);
+        }
+
+        /* Scanning line animation */
+        .scan-line {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(34, 139, 34, 0.4) 20%, 
+                rgba(34, 139, 34, 0.8) 50%, 
+                rgba(34, 139, 34, 0.4) 80%, 
+                transparent 100%);
+            animation: scan 3s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(34, 139, 34, 0.6);
+        }
+
+        @keyframes scan {
+            0% { top: 20px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: calc(100% - 100px); opacity: 0; }
+        }
+
+        /* HUD Info Display */
+        .hud-info {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: rgba(34, 139, 34, 0.9);
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            font-family: 'Courier New', 'Monaco', monospace;
+            border: 1px solid rgba(34, 139, 34, 0.5);
+            clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        /* Center crosshair */
+        .hud-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+        }
+
+        .hud-crosshair::before,
+        .hud-crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(34, 139, 34, 0.6);
+        }
+
+        .hud-crosshair::before {
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            transform: translateY(-50%);
+        }
+
+        .hud-crosshair::after {
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            transform: translateX(-50%);
+        }
+
+        /* HUD Grid Lines */
+        .hud-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(34, 139, 34, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 139, 34, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.3;
+        }
+
+        /* HUD Status Indicators */
+        .hud-status {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .hud-indicator {
+            width: 8px;
+            height: 8px;
+            background: rgba(34, 139, 34, 0.8);
+            border-radius: 50%;
+            animation: hud-pulse 2s ease-in-out infinite;
+        }
+
+        .hud-indicator:nth-child(2) { animation-delay: 0.3s; }
+        .hud-indicator:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes hud-pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
         /* Exit button - positioned at top-right */
         .exit-btn {
             position: absolute;
@@ -1067,6 +1230,35 @@ HTML_TEMPLATE = '''
                             </svg>
                         </button>
                         <video id="video" autoplay playsinline></video>
+                        
+                        <!-- Sci-Fi HUD Overlay -->
+                        <div class="hud-overlay">
+                            <!-- Corner brackets -->
+                            <div class="hud-corner top-left"></div>
+                            <div class="hud-corner top-right"></div>
+                            <div class="hud-corner bottom-left"></div>
+                            <div class="hud-corner bottom-right"></div>
+                            
+                            <!-- Grid lines -->
+                            <div class="hud-grid"></div>
+                            
+                            <!-- Scanning line -->
+                            <div class="scan-line"></div>
+                            
+                            <!-- Center crosshair -->
+                            <div class="hud-crosshair"></div>
+                            
+                            <!-- HUD Info -->
+                            <div class="hud-info">SCAN MODE</div>
+                            
+                            <!-- Status indicators -->
+                            <div class="hud-status">
+                                <div class="hud-indicator"></div>
+                                <div class="hud-indicator"></div>
+                                <div class="hud-indicator"></div>
+                            </div>
+                        </div>
+                        
                         <!-- Camera capture button at bottom center -->
                         <div class="camera-capture-container">
                             <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">
