@@ -135,7 +135,6 @@ def analyze_with_openai_hybrid(image_bytes, extracted_text=""):
             'size': '',
             'inside_color': '',
             'outside_color': '',
-            'cuff_type': '',
             'confidence': 'low',
             'error': 'OpenAI not available'
         }
@@ -153,10 +152,6 @@ Analyze the provided image and extract the following information from any visibl
 - Size: The glove size (7, 8, 9, 10, 11, 12, etc.)
 - Inside Color: The inner MATERIAL color of the glove (IGNORE labels - only rubber/material color)
 - Outside Color: The outer MATERIAL color of the glove (IGNORE labels - only rubber/material color)
-- Cuff Type: The style of the glove cuff - analyze the SHAPE and OPENING CUT:
-  * Bell Cuff: Dramatic widening into bell/flared shape
-  * Straight Cuff: Straight sides with horizontal cut across opening  
-  * Contour Cuff: Angled/slanted cut across the opening (not horizontal)
 
 Look for:
 - ASTM ratings (D120, F496, etc.)
@@ -164,10 +159,6 @@ Look for:
 - Manufacturer logos or names
 - Size markings
 - Inside and outside GLOVE MATERIAL color identification (NEVER use label colors)
-- Cuff type identification - CRITICAL: Focus on the BOTTOM EDGE and OVERALL SHAPE:
-  * Bell Cuff: Wide flared opening, much wider than wrist, bell-like silhouette
-  * Straight Cuff: Straight sides, horizontal bottom edge, tube-like shape
-  * Contour Cuff: Angled/diagonal bottom edge (key distinguishing feature)
 - Any other relevant safety information
 
 Return the information in JSON format with these exact keys:
@@ -177,14 +168,13 @@ Return the information in JSON format with these exact keys:
   "size": "extracted size number",
   "inside_color": "glove material inside color (NOT label color)",
   "outside_color": "glove material outside color (NOT label color)",
-  "cuff_type": "Bell Cuff OR Straight Cuff OR Contour Cuff (analyze opening shape and edge cut)",
   "confidence": "high/medium/low",
   "analysis_method": "hybrid"
 }
 
 If any field cannot be determined, use an empty string. Be precise and only extract information that is clearly visible."""
 
-        user_prompt = f"""Please analyze this electrical glove label image and extract the manufacturer, class, size, inside color, outside color, and cuff type information.
+        user_prompt = f"""Please analyze this electrical glove label image and extract the manufacturer, class, size, inside color, and outside color information.
 
 Pay special attention to:
 1. Distinguishing between the inner and outer colors of the GLOVE MATERIAL ONLY (ignore label colors). Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
@@ -196,30 +186,6 @@ Pay special attention to:
    - If both inside and outside appear to be the same color (e.g., black), report the SAME color for both
    - Common glove material colors: black, red, yellow, orange, blue, white, brown
    - Label colors (IGNORE): bright yellow stickers, green labels, red warning labels, white text labels
-2. Identifying the cuff type based on these SPECIFIC visual characteristics:
-
-   **BELL CUFF** - Look for these key features:
-   - The glove widens significantly below the wrist area
-   - Forms a distinctive "bell" or flared shape at the opening
-   - The cuff opening is much wider than the wrist area
-   - Often has a curved, rounded bottom edge
-   - The widening is dramatic and creates a clear bell silhouette
-   - Example: Like a bell or trumpet shape - narrow at wrist, very wide at opening
-
-   **STRAIGHT CUFF** - Look for these key features:
-   - The glove maintains relatively straight sides from wrist to opening
-   - May widen gradually but keeps straight, parallel edges
-   - The cuff opening is cut straight across (horizontal line)
-   - No dramatic flaring or bell shape
-   - The overall profile is more cylindrical or tube-like
-   - Example: Like a straight tube or cylinder - consistent width
-
-   **CONTOUR CUFF** - Look for these key features:
-   - The cuff opening is cut at an angle or slant (NOT straight across)
-   - May have a diagonal cut across the opening
-   - The opening edge is not horizontal but angled
-   - Can be wider or narrower but the key is the ANGLED cut
-   - Example: Like cutting a tube at an angle - creates a slanted opening edge
 
 {f"OCR Text extracted from image: {extracted_text}" if extracted_text else "No OCR text available."}
 
@@ -280,7 +246,6 @@ Provide the information in the specified JSON format."""
                 'size': '',
                 'inside_color': '',
                 'outside_color': '',
-                'cuff_type': '',
                 'confidence': 'low',
                 'error': f'OpenAI API error: {str(api_error)}'
             }
@@ -298,7 +263,7 @@ Provide the information in the specified JSON format."""
             result_data = json.loads(result_text)
             
             # Ensure all required fields exist
-            required_fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color', 'cuff_type']
+            required_fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color']
             for field in required_fields:
                 if field not in result_data:
                     result_data[field] = ''
@@ -310,8 +275,6 @@ Provide the information in the specified JSON format."""
                 result_data['inside_color'] = format_text_field(result_data['inside_color'])
             if 'outside_color' in result_data:
                 result_data['outside_color'] = format_text_field(result_data['outside_color'])
-            if 'cuff_type' in result_data:
-                result_data['cuff_type'] = format_text_field(result_data['cuff_type'])
 
             # Add hybrid metadata
             result_data['analysis_method'] = 'hybrid'
@@ -328,7 +291,6 @@ Provide the information in the specified JSON format."""
                 'size': '',
                 'inside_color': '',
                 'outside_color': '',
-                'cuff_type': '',
                 'confidence': 'low',
                 'analysis_method': 'hybrid',
                 'error': 'JSON parsing failed'
@@ -342,7 +304,6 @@ Provide the information in the specified JSON format."""
             'size': '',
             'inside_color': '',
             'outside_color': '',
-            'cuff_type': '',
             'confidence': 'low',
             'analysis_method': 'hybrid',
             'error': str(e)
@@ -979,10 +940,12 @@ HTML_TEMPLATE = '''
                 <input type="text" id="outside_color" name="outside_color" placeholder="e.g., Red, Yellow, Black">
             </div>
             
+            <!-- Cuff Type field temporarily hidden - not accurate enough yet
             <div class="form-group">
                 <label for="cuff_type">Cuff Type:</label>
                 <input type="text" id="cuff_type" name="cuff_type" placeholder="e.g., Bell Cuff, Straight Cuff, Contour Cuff">
             </div>
+            -->
             
             <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1120,7 +1083,8 @@ HTML_TEMPLATE = '''
                     if (result.size) document.getElementById('size').value = result.size;
                     if (result.inside_color) document.getElementById('inside_color').value = result.inside_color;
                     if (result.outside_color) document.getElementById('outside_color').value = result.outside_color;
-                    if (result.cuff_type) document.getElementById('cuff_type').value = result.cuff_type;
+                    // Cuff type temporarily disabled
+                    // if (result.cuff_type) document.getElementById('cuff_type').value = result.cuff_type;
                     
                     showMessage('✅ Analysis completed successfully!');
                     

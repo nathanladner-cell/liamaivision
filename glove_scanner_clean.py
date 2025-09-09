@@ -441,10 +441,12 @@ HTML_TEMPLATE = '''
                     <input type="text" id="outside_color" name="outside_color" placeholder="e.g., Red, Yellow, Black">
                 </div>
                 
+                <!-- Cuff Type field temporarily hidden - not accurate enough yet
                 <div class="form-group">
                     <label for="cuff_type">Cuff Type:</label>
                     <input type="text" id="cuff_type" name="cuff_type" placeholder="e.g., Bell Cuff, Straight Cuff, Contour Cuff">
                 </div>
+                -->
                 
                 <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -656,7 +658,7 @@ def analyze():
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, outside color, and cuff type. COLOR RULES: ONLY use glove MATERIAL colors (rubber/fabric), NEVER label colors (ignore yellow/green/red stickers). If both sides are same color (e.g. black), report same color for both. CUFF TYPE: Bell Cuff = dramatic widening/bell shape; Straight Cuff = straight sides/horizontal cut; Contour Cuff = angled/diagonal cut. Return ONLY JSON: manufacturer, class, size, inside_color, outside_color, cuff_type."
+                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, and outside color. COLOR RULES: ONLY use glove MATERIAL colors (rubber/fabric), NEVER label colors (ignore yellow/green/red stickers). If both sides are same color (e.g. black), report same color for both. Return ONLY JSON: manufacturer, class, size, inside_color, outside_color."
                                 },
                                 {
                                     "type": "image_url",
@@ -679,7 +681,7 @@ def analyze():
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, outside color, and cuff type. COLOR RULES: ONLY use glove MATERIAL colors (rubber/fabric), NEVER label colors (ignore yellow/green/red stickers). If both sides are same color (e.g. black), report same color for both. CUFF TYPE: Bell Cuff = dramatic widening/bell shape; Straight Cuff = straight sides/horizontal cut; Contour Cuff = angled/diagonal cut. Return ONLY JSON: manufacturer, class, size, inside_color, outside_color, cuff_type."
+                                    "text": "Analyze this electrical glove label image and extract: manufacturer, class, size, inside color, and outside color. COLOR RULES: ONLY use glove MATERIAL colors (rubber/fabric), NEVER label colors (ignore yellow/green/red stickers). If both sides are same color (e.g. black), report same color for both. Return ONLY JSON: manufacturer, class, size, inside_color, outside_color."
                                 },
                                 {
                                     "type": "image_url",
@@ -714,8 +716,7 @@ def analyze():
                 'class': '',
                 'size': '',
                 'inside_color': '',
-                'outside_color': '',
-                'cuff_type': ''
+                'outside_color': ''
             }
 
         # Format manufacturer and color fields with proper capitalization
@@ -725,8 +726,6 @@ def analyze():
             result_data['inside_color'] = format_text_field(result_data['inside_color'])
         if 'outside_color' in result_data:
             result_data['outside_color'] = format_text_field(result_data['outside_color'])
-        if 'cuff_type' in result_data:
-            result_data['cuff_type'] = format_text_field(result_data['cuff_type'])
 
         return jsonify({'success': True, 'data': result_data})
         

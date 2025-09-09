@@ -140,7 +140,6 @@ def analyze_with_openai_vision(image_bytes, vision_text=""):
             'size': '',
             'inside_color': '',
             'outside_color': '',
-            'cuff_type': '',
             'confidence': 'low',
             'error': 'OpenAI API key not configured'
         }
@@ -164,7 +163,6 @@ Analyze the provided image and extract the following information from any visibl
 - Size: The glove size (7, 8, 9, 10, 11, 12, etc.)
 - Inside Color: The inner MATERIAL color of the glove (IGNORE labels - only rubber/material color)
 - Outside Color: The outer MATERIAL color of the glove (IGNORE labels - only rubber/material color)
-- Cuff Type: The style of the glove cuff (Bell Cuff, Straight Cuff, or Contour Cuff)
 
 Look for:
 - ASTM ratings (D120, F496, etc.)
@@ -172,10 +170,6 @@ Look for:
 - Manufacturer logos or names
 - Size markings
 - Inside and outside GLOVE MATERIAL color identification (NEVER use label colors)
-- Cuff type identification - CRITICAL: Focus on the BOTTOM EDGE and OVERALL SHAPE:
-  * Bell Cuff: Wide flared opening, much wider than wrist, bell-like silhouette
-  * Straight Cuff: Straight sides, horizontal bottom edge, tube-like shape
-  * Contour Cuff: Angled/diagonal bottom edge (key distinguishing feature)
 - Any other relevant safety information
 
 Return the information in JSON format with these exact keys:
@@ -185,14 +179,13 @@ Return the information in JSON format with these exact keys:
   "size": "extracted size number",
   "inside_color": "glove material inside color (NOT label color)",
   "outside_color": "glove material outside color (NOT label color)",
-  "cuff_type": "Bell Cuff OR Straight Cuff OR Contour Cuff (analyze opening shape and edge cut)",
   "confidence": "high/medium/low",
   "additional_info": "any other relevant details"
 }
 
 If any field cannot be determined, use an empty string. Be precise and only extract information that is clearly visible in the image."""
 
-        user_prompt = f"""Please analyze this image of an electrical glove label and extract the manufacturer, class, size, inside color, outside color, and cuff type information.
+        user_prompt = f"""Please analyze this image of an electrical glove label and extract the manufacturer, class, size, inside color, and outside color information.
 
 Pay special attention to:
 1. Distinguishing between the inner and outer colors of the GLOVE MATERIAL ONLY (ignore label colors). Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
@@ -204,30 +197,6 @@ Pay special attention to:
    - If both inside and outside appear to be the same color (e.g., black), report the SAME color for both
    - Common glove material colors: black, red, yellow, orange, blue, white, brown
    - Label colors (IGNORE): bright yellow stickers, green labels, red warning labels, white text labels
-2. Identifying the cuff type based on these SPECIFIC visual characteristics:
-
-   **BELL CUFF** - Look for these key features:
-   - The glove widens significantly below the wrist area
-   - Forms a distinctive "bell" or flared shape at the opening
-   - The cuff opening is much wider than the wrist area
-   - Often has a curved, rounded bottom edge
-   - The widening is dramatic and creates a clear bell silhouette
-   - Example: Like a bell or trumpet shape - narrow at wrist, very wide at opening
-
-   **STRAIGHT CUFF** - Look for these key features:
-   - The glove maintains relatively straight sides from wrist to opening
-   - May widen gradually but keeps straight, parallel edges
-   - The cuff opening is cut straight across (horizontal line)
-   - No dramatic flaring or bell shape
-   - The overall profile is more cylindrical or tube-like
-   - Example: Like a straight tube or cylinder - consistent width
-
-   **CONTOUR CUFF** - Look for these key features:
-   - The cuff opening is cut at an angle or slant (NOT straight across)
-   - May have a diagonal cut across the opening
-   - The opening edge is not horizontal but angled
-   - Can be wider or narrower but the key is the ANGLED cut
-   - Example: Like cutting a tube at an angle - creates a slanted opening edge
 
 {f"Additional text extracted from image: {vision_text}" if vision_text else ""}
 
@@ -274,7 +243,7 @@ Provide the information in the specified JSON format."""
             analysis = json.loads(result_text)
 
             # Validate required fields
-            required_fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color', 'cuff_type']
+            required_fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color']
             for field in required_fields:
                 if field not in analysis:
                     analysis[field] = ""
@@ -294,7 +263,6 @@ Provide the information in the specified JSON format."""
                 'size': '',
                 'inside_color': '',
                 'outside_color': '',
-                'cuff_type': '',
                 'confidence': 'low',
                 'error': f'Failed to parse analysis: {str(e)}'
             }
@@ -323,7 +291,6 @@ def save_analysis():
             'size': data.get('size', ''),
             'inside_color': data.get('inside_color', ''),
             'outside_color': data.get('outside_color', ''),
-            'cuff_type': data.get('cuff_type', ''),
             'confidence': data.get('confidence', 'medium')
         }
 
