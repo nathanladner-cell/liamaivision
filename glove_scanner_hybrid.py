@@ -17,8 +17,8 @@ from google.oauth2 import service_account
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app
-app = Flask(__name__)
+# Initialize Flask app with static files configuration
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 
 # Initialize OpenAI client - Get from environment variable OR use fallback
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
