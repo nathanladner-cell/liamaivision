@@ -522,6 +522,51 @@ HTML_TEMPLATE = '''
             transform: translateY(-3px) scale(1.02);
         }
 
+        /* Modern Waveform Animation */
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            width: 40px;
+            height: 20px;
+        }
+
+        .waveform .bar {
+            width: 3px;
+            background: rgba(34, 139, 34, 0.9);
+            border-radius: 1px;
+            animation: waveform 1.5s ease-in-out infinite;
+        }
+
+        .waveform .bar:nth-child(1) { animation-delay: 0s; }
+        .waveform .bar:nth-child(2) { animation-delay: 0.1s; }
+        .waveform .bar:nth-child(3) { animation-delay: 0.2s; }
+        .waveform .bar:nth-child(4) { animation-delay: 0.3s; }
+        .waveform .bar:nth-child(5) { animation-delay: 0.4s; }
+        .waveform .bar:nth-child(6) { animation-delay: 0.5s; }
+
+        @keyframes waveform {
+            0%, 100% { height: 4px; opacity: 0.4; }
+            50% { height: 20px; opacity: 1; }
+        }
+
+        /* Green completion dot */
+        .completion-dot {
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: completion-pulse 0.6s ease-out;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+
+        @keyframes completion-pulse {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         .camera-btn {
             width: 80px;
             height: 80px;
