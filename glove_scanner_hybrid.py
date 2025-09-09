@@ -577,6 +577,68 @@ HTML_TEMPLATE = '''
 
         .camera-section {
             margin: 0;
+            position: relative;
+        }
+
+        /* Exit button - positioned at top-right */
+        .exit-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .exit-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        .exit-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 3;
+        }
+
+        /* Camera capture container - positioned at bottom center */
+        .camera-capture-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .camera-capture-container .camera-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            color: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .camera-capture-container .camera-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+
+        .camera-capture-container .camera-btn svg {
+            width: 24px;
+            height: 24px;
         }
 
         #video {
@@ -717,19 +779,32 @@ HTML_TEMPLATE = '''
                 border-radius: 12px;
             }
 
-            .button-row {
-                gap: 10px;
+            /* Exit button mobile styles */
+            .exit-btn {
+                width: 35px;
+                height: 35px;
+                top: 10px;
+                right: 10px;
             }
 
-            .button-row .camera-btn {
+            .exit-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            /* Camera capture button mobile styles */
+            .camera-capture-container {
+                bottom: 15px;
+            }
+
+            .camera-capture-container .camera-btn {
                 width: 60px;
                 height: 60px;
-                font-size: 1.3rem;
             }
 
-            .button-row .camera-btn svg {
-                width: 16px;
-                height: 16px;
+            .camera-capture-container .camera-btn svg {
+                width: 20px;
+                height: 20px;
             }
         }
 
@@ -750,15 +825,32 @@ HTML_TEMPLATE = '''
                 max-height: 80vh;
             }
 
-            .button-row .camera-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 1.1rem;
+            /* Exit button for very small screens */
+            .exit-btn {
+                width: 30px;
+                height: 30px;
+                top: 8px;
+                right: 8px;
             }
 
-            .button-row .camera-btn svg {
-                width: 14px;
-                height: 14px;
+            .exit-btn svg {
+                width: 12px;
+                height: 12px;
+            }
+
+            /* Camera capture button for very small screens */
+            .camera-capture-container {
+                bottom: 12px;
+            }
+
+            .camera-capture-container .camera-btn {
+                width: 50px;
+                height: 50px;
+            }
+
+            .camera-capture-container .camera-btn svg {
+                width: 16px;
+                height: 16px;
             }
         }
     </style>
@@ -805,10 +897,22 @@ HTML_TEMPLATE = '''
             <div id="cameraModal" class="camera-modal">
                 <div class="camera-modal-content">
                     <div class="camera-section">
+                        <!-- Exit button positioned at top-right -->
+                        <button type="button" class="exit-btn" onclick="stopCamera()" aria-label="Close camera">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
                         <video id="video" autoplay playsinline></video>
-                        <div class="button-row">
-                            <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">📸</button>
-                            <button type="button" class="camera-btn btn-cancel" onclick="stopCamera()">❌</button>
+                        <!-- Camera capture button at bottom center -->
+                        <div class="camera-capture-container">
+                            <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
