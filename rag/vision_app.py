@@ -138,7 +138,8 @@ def analyze_with_openai_vision(image_bytes, vision_text=""):
             'manufacturer': '',
             'class': '',
             'size': '',
-            'color': '',
+            'inside_color': '',
+            'outside_color': '',
             'confidence': 'low',
             'error': 'OpenAI API key not configured'
         }
@@ -160,14 +161,15 @@ Analyze the provided image and extract the following information from any visibl
 - Manufacturer: The company that made the gloves
 - Class: The electrical protection class (00, 0, 1, 2, 3, 4)
 - Size: The glove size (7, 8, 9, 10, 11, 12, etc.)
-- Color: The glove color (red, yellow, black, etc.)
+- Inside Color: The inner color of the glove (red, yellow, black, etc.)
+- Outside Color: The outer color of the glove (red, yellow, black, etc.)
 
 Look for:
 - ASTM ratings (D120, F496, etc.)
 - Voltage ratings and classifications
 - Manufacturer logos or names
 - Size markings
-- Color identification
+- Inside and outside color identification
 - Any other relevant safety information
 
 Return the information in JSON format with these exact keys:
@@ -175,14 +177,17 @@ Return the information in JSON format with these exact keys:
   "manufacturer": "extracted manufacturer name",
   "class": "extracted class (00, 0, 1, 2, 3, 4)",
   "size": "extracted size number",
-  "color": "extracted color",
+  "inside_color": "extracted inside color",
+  "outside_color": "extracted outside color",
   "confidence": "high/medium/low",
   "additional_info": "any other relevant details"
 }
 
 If any field cannot be determined, use an empty string. Be precise and only extract information that is clearly visible in the image."""
 
-        user_prompt = f"""Please analyze this image of an electrical glove label and extract the manufacturer, class, size, and color information.
+        user_prompt = f"""Please analyze this image of an electrical glove label and extract the manufacturer, class, size, inside color, and outside color information.
+
+Pay special attention to distinguishing between the inner and outer colors of the glove. Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
 
 {f"Additional text extracted from image: {vision_text}" if vision_text else ""}
 
@@ -229,7 +234,7 @@ Provide the information in the specified JSON format."""
             analysis = json.loads(result_text)
 
             # Validate required fields
-            required_fields = ['manufacturer', 'class', 'size', 'color']
+            required_fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color']
             for field in required_fields:
                 if field not in analysis:
                     analysis[field] = ""
@@ -247,7 +252,8 @@ Provide the information in the specified JSON format."""
                 'manufacturer': '',
                 'class': '',
                 'size': '',
-                'color': '',
+                'inside_color': '',
+                'outside_color': '',
                 'confidence': 'low',
                 'error': f'Failed to parse analysis: {str(e)}'
             }
@@ -274,7 +280,8 @@ def save_analysis():
             'manufacturer': data.get('manufacturer', ''),
             'class': data.get('class', ''),
             'size': data.get('size', ''),
-            'color': data.get('color', ''),
+            'inside_color': data.get('inside_color', ''),
+            'outside_color': data.get('outside_color', ''),
             'confidence': data.get('confidence', 'medium')
         }
 

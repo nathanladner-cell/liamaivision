@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Electrical Glove Label Scanner</title>
+    <title>LiamVision</title>
     <link rel="icon" type="image/png" href="/static/liamai.png">
     <style>
         * {
@@ -539,7 +539,7 @@
     <div class="container">
         <div class="header">
             <img src="/static/liamai.png" alt="Vision Scanner">
-            <h1>Electrical Glove Label Scanner</h1>
+            <h1>LiamVision</h1>
             <p>Take a photo of your insulated electrical gloves label to automatically extract information</p>
         </div>
 
@@ -563,9 +563,15 @@
             </div>
 
             <div class="form-group">
-                <label for="color">Color</label>
-                <input type="text" id="color" name="color" placeholder="e.g., Red, Yellow, Black">
-                <span id="colorConfidence" class="confidence-indicator hidden"></span>
+                <label for="inside_color">Inside Color</label>
+                <input type="text" id="inside_color" name="inside_color" placeholder="e.g., Red, Yellow, Black">
+                <span id="inside_colorConfidence" class="confidence-indicator hidden"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="outside_color">Outside Color</label>
+                <input type="text" id="outside_color" name="outside_color" placeholder="e.g., Red, Yellow, Black">
+                <span id="outside_colorConfidence" class="confidence-indicator hidden"></span>
             </div>
 
             <button type="button" id="cameraButton" class="camera-button">
@@ -676,7 +682,7 @@
         }
 
         function populateForm(analysis) {
-            const fields = ['manufacturer', 'class', 'size', 'color'];
+            const fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color'];
 
             fields.forEach(field => {
                 const input = document.getElementById(field);
@@ -722,7 +728,8 @@
                     manufacturer: formData.get('manufacturer'),
                     class: formData.get('class'),
                     size: formData.get('size'),
-                    color: formData.get('color'),
+                    inside_color: formData.get('inside_color'),
+                    outside_color: formData.get('outside_color'),
                     confidence: currentAnalysis.confidence || 'medium',
                     timestamp: new Date().toISOString()
                 };
@@ -755,7 +762,7 @@
         // Clear functionality
         document.getElementById('clearButton').addEventListener('click', function() {
             // Clear form fields
-            const fields = ['manufacturer', 'class', 'size', 'color'];
+            const fields = ['manufacturer', 'class', 'size', 'inside_color', 'outside_color'];
             fields.forEach(field => {
                 const input = document.getElementById(field);
                 const confidenceSpan = document.getElementById(field + 'Confidence');
@@ -783,7 +790,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Electrical Glove Label Scanner initialized');
+            console.log('LiamVision initialized');
         });
     </script>
 </body>

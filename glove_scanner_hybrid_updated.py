@@ -17,8 +17,8 @@ from google.oauth2 import service_account
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app with static files configuration
-app = Flask(__name__, static_folder='static', static_url_path='/static')
+# Initialize Flask app
+app = Flask(__name__)
 
 # Initialize OpenAI client - Get from environment variable OR use fallback
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -236,7 +236,7 @@ Provide the information in the specified JSON format."""
                 'class': '',
                 'size': '',
                 'inside_color': '',
-                'outside_color': '',
+            'outside_color': '',
                 'confidence': 'low',
                 'error': f'OpenAI API error: {str(api_error)}'
             }
@@ -281,7 +281,7 @@ Provide the information in the specified JSON format."""
                 'class': '',
                 'size': '',
                 'inside_color': '',
-                'outside_color': '',
+            'outside_color': '',
                 'confidence': 'low',
                 'analysis_method': 'hybrid',
                 'error': 'JSON parsing failed'
@@ -595,11 +595,9 @@ HTML_TEMPLATE = '''
         .camera-modal-content {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 20px;
+            padding: 30px;
             max-width: 500px;
-            width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
+            width: 90%;
             box-shadow:
                 0 20px 60px rgba(0, 0, 0, 0.3),
                 0 0 0 1px rgba(255, 255, 255, 0.2),
@@ -819,32 +817,19 @@ HTML_TEMPLATE = '''
                 border-radius: 12px;
             }
 
-            /* Exit button mobile styles */
-            .exit-btn {
-                width: 35px;
-                height: 35px;
-                top: 10px;
-                right: 10px;
+            .button-row {
+                gap: 10px;
             }
 
-            .exit-btn svg {
-                width: 14px;
-                height: 14px;
-            }
-
-            /* Camera capture button mobile styles */
-            .camera-capture-container {
-                bottom: 15px;
-            }
-
-            .camera-capture-container .camera-btn {
+            .button-row .camera-btn {
                 width: 60px;
                 height: 60px;
+                font-size: 1.3rem;
             }
 
-            .camera-capture-container .camera-btn svg {
-                width: 20px;
-                height: 20px;
+            .button-row .camera-btn svg {
+                width: 16px;
+                height: 16px;
             }
         }
 
@@ -865,32 +850,15 @@ HTML_TEMPLATE = '''
                 max-height: 80vh;
             }
 
-            /* Exit button for very small screens */
-            .exit-btn {
-                width: 30px;
-                height: 30px;
-                top: 8px;
-                right: 8px;
-            }
-
-            .exit-btn svg {
-                width: 12px;
-                height: 12px;
-            }
-
-            /* Camera capture button for very small screens */
-            .camera-capture-container {
-                bottom: 12px;
-            }
-
-            .camera-capture-container .camera-btn {
+            .button-row .camera-btn {
                 width: 50px;
                 height: 50px;
+                font-size: 1.1rem;
             }
 
-            .camera-capture-container .camera-btn svg {
-                width: 16px;
-                height: 16px;
+            .button-row .camera-btn svg {
+                width: 14px;
+                height: 14px;
             }
         }
     </style>
@@ -922,13 +890,8 @@ HTML_TEMPLATE = '''
             </div>
             
             <div class="form-group">
-                <label for="inside_color">Inside Color:</label>
-                <input type="text" id="inside_color" name="inside_color" placeholder="e.g., Red, Yellow, Black">
-            </div>
-            
-            <div class="form-group">
-                <label for="outside_color">Outside Color:</label>
-                <input type="text" id="outside_color" name="outside_color" placeholder="e.g., Red, Yellow, Black">
+                <label for="color">Color:</label>
+                <input type="text" id="color" name="color" placeholder="e.g., Red, Yellow, Black">
             </div>
             
             <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
@@ -1065,8 +1028,7 @@ HTML_TEMPLATE = '''
                     if (result.manufacturer) document.getElementById('manufacturer').value = result.manufacturer;
                     if (result.class) document.getElementById('class').value = result.class;
                     if (result.size) document.getElementById('size').value = result.size;
-                    if (result.inside_color) document.getElementById('inside_color').value = result.inside_color;
-                    if (result.outside_color) document.getElementById('outside_color').value = result.outside_color;
+                    if (result.color) document.getElementById('color').value = result.color;
                     
                     showMessage('✅ Analysis completed successfully!');
                     
@@ -1163,12 +1125,6 @@ def status():
         'openai_available': bool(openai_client),
         'google_vision_available': bool(vision_client)
     })
-
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    """Serve static files (like liamai.png logo)"""
-    from flask import send_from_directory
-    return send_from_directory('static', filename)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
