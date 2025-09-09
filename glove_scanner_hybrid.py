@@ -346,10 +346,10 @@ HTML_TEMPLATE = '''
                 radial-gradient(circle at 40% 80%, rgba(144, 238, 144, 0.05) 0%, transparent 75%),
                 radial-gradient(circle at 90% 90%, rgba(240, 255, 240, 0.1) 0%, transparent 60%),
                 linear-gradient(135deg, #ffffff 0%, rgba(240, 255, 240, 0.6) 25%, #ffffff 50%, rgba(224, 255, 224, 0.5) 75%, #ffffff 100%);
-            min-height: 100vh;
+            height: 100vh;
             color: #000000;
             position: relative;
-            overflow-x: hidden;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -830,42 +830,40 @@ HTML_TEMPLATE = '''
             50% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* Exit button - positioned at top-right */
+        /* Exit button - positioned at bottom-right */
         .exit-btn {
             position: absolute;
-            top: 15px;
+            bottom: 15px;
             right: 15px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            color: white;
+            width: 24px;
+            height: 24px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            z-index: 20;
             transition: all 0.3s ease;
         }
 
         .exit-btn:hover {
-            background: rgba(0, 0, 0, 0.8);
+            color: rgba(255, 255, 255, 1);
             transform: scale(1.1);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
         .exit-btn svg {
-            width: 16px;
-            height: 16px;
-            stroke-width: 3;
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
         }
 
         /* Camera capture container - positioned at bottom center */
         .camera-capture-container {
             position: absolute;
-            bottom: 12px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -1124,10 +1122,10 @@ HTML_TEMPLATE = '''
 
             /* Exit button mobile styles */
             .exit-btn {
-                width: 32px;
-                height: 32px;
-                top: 8px;
-                right: 8px;
+                width: 22px;
+                height: 22px;
+                bottom: 12px;
+                right: 12px;
             }
 
             .exit-btn svg {
@@ -1172,10 +1170,10 @@ HTML_TEMPLATE = '''
 
             /* Exit button for very small screens */
             .exit-btn {
-                width: 28px;
-                height: 28px;
-                top: 6px;
-                right: 6px;
+                width: 20px;
+                height: 20px;
+                bottom: 10px;
+                right: 10px;
             }
 
             .exit-btn svg {
@@ -1258,7 +1256,7 @@ HTML_TEMPLATE = '''
             <div id="cameraModal" class="camera-modal">
                 <div class="camera-modal-content">
                     <div class="camera-section">
-                        <!-- Exit button positioned at top-right -->
+                        <!-- Exit button positioned at bottom-right -->
                         <button type="button" class="exit-btn" onclick="stopCamera()" aria-label="Close camera">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
