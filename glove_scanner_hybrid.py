@@ -613,7 +613,7 @@ HTML_TEMPLATE = '''
 
         .camera-modal-content {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
+            border-radius: 0;
             padding: 8px;
             max-width: 450px;
             width: 90%;
@@ -632,6 +632,7 @@ HTML_TEMPLATE = '''
             transform: scale(0.9);
             transition: transform 0.3s ease;
             position: relative;
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
         }
 
         .camera-modal.active .camera-modal-content {
@@ -736,12 +737,6 @@ HTML_TEMPLATE = '''
             gap: 3px;
             width: 60px;
             height: 24px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(34, 139, 34, 0.5);
-            clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 4px 8px;
         }
 
         .hud-waveform .bar {
@@ -918,11 +913,12 @@ HTML_TEMPLATE = '''
             height: 100%;
             flex: 1;
             object-fit: cover;
-            border-radius: 12px;
+            border-radius: 0;
             box-shadow: 
                 0 8px 32px rgba(0, 0, 0, 0.12),
                 0 0 0 1px rgba(255, 255, 255, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
         }
 
         .button-row { 
@@ -1122,7 +1118,8 @@ HTML_TEMPLATE = '''
                 height: 100%;
                 flex: 1;
                 object-fit: cover;
-                border-radius: 12px;
+                border-radius: 0;
+                clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
             }
 
             /* Exit button mobile styles */
