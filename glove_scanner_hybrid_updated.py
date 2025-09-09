@@ -181,7 +181,15 @@ If any field cannot be determined, use an empty string. Be precise and only extr
         user_prompt = f"""Please analyze this electrical glove label image and extract the manufacturer, class, size, inside color, outside color, and cuff type information.
 
 Pay special attention to:
-1. Distinguishing between the inner and outer colors of the glove. Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
+1. Distinguishing between the inner and outer colors of the GLOVE MATERIAL ONLY (ignore label colors). Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
+
+   **CRITICAL COLOR DETECTION RULES:**
+   - ONLY analyze the actual rubber/material color of the glove itself
+   - IGNORE label colors (yellow, green, red labels are NOT glove colors)
+   - Labels are small stickers/patches - do NOT use their colors for inside/outside color
+   - If both inside and outside appear to be the same color (e.g., black), report the SAME color for both
+   - Common glove material colors: black, red, yellow, orange, blue, white, brown
+   - Label colors (IGNORE): bright yellow stickers, green labels, red warning labels, white text labels
 2. Identifying the cuff type based on these SPECIFIC visual characteristics:
 
    **BELL CUFF** - Look for these key features:

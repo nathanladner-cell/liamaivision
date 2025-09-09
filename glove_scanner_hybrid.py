@@ -151,8 +151,8 @@ Analyze the provided image and extract the following information from any visibl
 - Manufacturer: The company that made the gloves
 - Class: The electrical protection class (00, 0, 1, 2, 3, 4)
 - Size: The glove size (7, 8, 9, 10, 11, 12, etc.)
-- Inside Color: The inner color of the glove (red, yellow, black, etc.)
-- Outside Color: The outer color of the glove (red, yellow, black, etc.)
+- Inside Color: The inner MATERIAL color of the glove (IGNORE labels - only rubber/material color)
+- Outside Color: The outer MATERIAL color of the glove (IGNORE labels - only rubber/material color)
 - Cuff Type: The style of the glove cuff - analyze the SHAPE and OPENING CUT:
   * Bell Cuff: Dramatic widening into bell/flared shape
   * Straight Cuff: Straight sides with horizontal cut across opening  
@@ -163,7 +163,7 @@ Look for:
 - Voltage ratings and classifications
 - Manufacturer logos or names
 - Size markings
-- Inside and outside color identification
+- Inside and outside GLOVE MATERIAL color identification (NEVER use label colors)
 - Cuff type identification - CRITICAL: Focus on the BOTTOM EDGE and OVERALL SHAPE:
   * Bell Cuff: Wide flared opening, much wider than wrist, bell-like silhouette
   * Straight Cuff: Straight sides, horizontal bottom edge, tube-like shape
@@ -175,8 +175,8 @@ Return the information in JSON format with these exact keys:
   "manufacturer": "extracted manufacturer name",
   "class": "extracted class (00, 0, 1, 2, 3, 4)",
   "size": "extracted size number",
-  "inside_color": "extracted inside color",
-  "outside_color": "extracted outside color",
+  "inside_color": "glove material inside color (NOT label color)",
+  "outside_color": "glove material outside color (NOT label color)",
   "cuff_type": "Bell Cuff OR Straight Cuff OR Contour Cuff (analyze opening shape and edge cut)",
   "confidence": "high/medium/low",
   "analysis_method": "hybrid"
@@ -187,7 +187,15 @@ If any field cannot be determined, use an empty string. Be precise and only extr
         user_prompt = f"""Please analyze this electrical glove label image and extract the manufacturer, class, size, inside color, outside color, and cuff type information.
 
 Pay special attention to:
-1. Distinguishing between the inner and outer colors of the glove. Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
+1. Distinguishing between the inner and outer colors of the GLOVE MATERIAL ONLY (ignore label colors). Many electrical gloves have different colors on the inside and outside for safety and identification purposes.
+
+   **CRITICAL COLOR DETECTION RULES:**
+   - ONLY analyze the actual rubber/material color of the glove itself
+   - IGNORE label colors (yellow, green, red labels are NOT glove colors)
+   - Labels are small stickers/patches - do NOT use their colors for inside/outside color
+   - If both inside and outside appear to be the same color (e.g., black), report the SAME color for both
+   - Common glove material colors: black, red, yellow, orange, blue, white, brown
+   - Label colors (IGNORE): bright yellow stickers, green labels, red warning labels, white text labels
 2. Identifying the cuff type based on these SPECIFIC visual characteristics:
 
    **BELL CUFF** - Look for these key features:
