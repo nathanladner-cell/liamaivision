@@ -472,26 +472,30 @@ HTML_TEMPLATE = '''
         }
 
         .camera-btn {
-            width: 100%;
-            background: linear-gradient(135deg, rgba(34, 139, 34, 0.9) 0%, rgba(0, 128, 0, 0.9) 100%);
-            color: white;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 16px 24px;
-            font-size: 1.1rem;
-            font-weight: 500;
+            border-radius: 50%;
+            padding: 0;
+            font-size: 2rem;
+            font-weight: 400;
             font-family: 'Courier New', 'Monaco', monospace;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 20px 0;
+            transition: all 0.4s ease;
+            margin: 20px auto;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            box-shadow: 
-                0 8px 32px rgba(34, 139, 34, 0.2),
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.15),
                 0 0 0 1px rgba(255, 255, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(0, 0, 0, 0.7);
         }
 
         .camera-btn::before {
@@ -505,22 +509,72 @@ HTML_TEMPLATE = '''
             transition: left 0.5s;
         }
 
-        .camera-btn:hover::before {
-            left: 100%;
-        }
-
         .camera-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 12px 40px rgba(34, 139, 34, 0.3),
-                0 0 0 1px rgba(255, 255, 255, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            background: linear-gradient(135deg, rgba(34, 139, 34, 1) 0%, rgba(0, 128, 0, 1) 100%);
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow:
+                0 16px 50px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            color: rgba(0, 0, 0, 0.9);
         }
 
-        .camera-section { 
-            text-align: center; 
-            margin: 20px 0; 
+        .camera-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 8px 20px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        /* Camera Modal Overlay */
+        .camera-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .camera-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .camera-modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .camera-modal.active .camera-modal-content {
+            transform: scale(1);
+        }
+
+        .camera-section {
+            margin: 0;
         }
 
         #video {
@@ -678,14 +732,19 @@ HTML_TEMPLATE = '''
             </div>
             
             <button type="button" class="camera-btn" id="cameraBtn" onclick="startCamera()">
-                📷 Scan Glove Label (Hybrid AI)
+                📷
             </button>
             
-            <div id="cameraSection" class="camera-section hidden">
-                <video id="video" autoplay playsinline></video>
-                <div class="button-row">
-                    <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">📸 Capture</button>
-                    <button type="button" class="camera-btn btn-cancel" onclick="stopCamera()">❌ Cancel</button>
+            <!-- Camera Modal -->
+            <div id="cameraModal" class="camera-modal">
+                <div class="camera-modal-content">
+                    <div class="camera-section">
+                        <video id="video" autoplay playsinline></video>
+                        <div class="button-row">
+                            <button type="button" class="camera-btn btn-capture" onclick="capturePhoto()">📸</button>
+                            <button type="button" class="camera-btn btn-cancel" onclick="stopCamera()">❌</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -735,9 +794,8 @@ HTML_TEMPLATE = '''
                 const video = document.getElementById('video');
                 video.srcObject = stream;
                 
-                document.getElementById('cameraSection').classList.remove('hidden');
-                document.getElementById('cameraBtn').textContent = '📹 Camera Active';
-                document.getElementById('cameraBtn').style.background = 'linear-gradient(135deg, rgba(40, 167, 69, 0.9) 0%, rgba(34, 139, 34, 0.9) 100%)';
+                document.getElementById('cameraModal').classList.add('active');
+                document.getElementById('cameraBtn').textContent = '📹';
                 
             } catch (err) {
                 console.error('Camera error:', err);
@@ -750,10 +808,9 @@ HTML_TEMPLATE = '''
                 stream.getTracks().forEach(track => track.stop());
                 stream = null;
             }
-            
-            document.getElementById('cameraSection').classList.add('hidden');
-            document.getElementById('cameraBtn').textContent = '📷 Scan Glove Label (Hybrid AI)';
-            document.getElementById('cameraBtn').style.background = 'linear-gradient(135deg, rgba(34, 139, 34, 0.9) 0%, rgba(0, 128, 0, 0.9) 100%)';
+
+            document.getElementById('cameraModal').classList.remove('active');
+            document.getElementById('cameraBtn').textContent = '📷';
         }
         
         async function capturePhoto() {
@@ -814,6 +871,13 @@ HTML_TEMPLATE = '''
                 showMessage('❌ Network error. Please try again.', true);
             }
         }
+
+        // Add click outside modal to close
+        document.getElementById('cameraModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                stopCamera();
+            }
+        });
     </script>
 </body>
 </html>
