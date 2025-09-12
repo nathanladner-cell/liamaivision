@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Liam</title>
-    <link rel="icon" type="image/png" href="/static/liamai.png">
-    <link rel="icon" type="image/x-icon" href="/static/liamai.png">
+    <link rel="icon" type="image/png" href="/static/liamai_cropped.png">
+    <link rel="icon" type="image/x-icon" href="/static/liamai_cropped.png">
     <style>
         * {
             margin: 0;
@@ -122,7 +122,8 @@
             margin: 0 auto 20px;
             display: block;
             border-radius: 0px;
-            object-fit: cover;
+            object-fit: contain; /* Changed from cover to contain to show full cropped logo */
+            object-position: center;
             box-shadow: none;
             animation: iconFloat 4s ease-in-out infinite;
             clip-path: none;
@@ -200,6 +201,11 @@
             overflow: visible; /* Allow re-ask buttons to extend beyond message bounds */
         }
 
+        /* Consistent message spacing across all devices */
+        .message {
+            gap: 0px; /* No gap needed without logos */
+        }
+
         @keyframes messageSlide {
             from {
                 opacity: 0;
@@ -235,6 +241,23 @@
             border: 2px solid transparent;
         }
 
+        /* Mobile-optimized avatar size */
+        @media (max-width: 480px) {
+            .message-avatar {
+                width: 36px;
+                height: 36px;
+                margin-top: 3px; /* Slightly less top margin */
+            }
+        }
+
+        @media (max-width: 320px) {
+            .message-avatar {
+                width: 32px;
+                height: 32px;
+                margin-top: 2px; /* Minimal top margin */
+            }
+        }
+
         .message.user .message-avatar {
             background: linear-gradient(45deg, rgba(34, 139, 34, 0.9), rgba(144, 238, 144, 0.8));
             color: #ffffff;
@@ -268,6 +291,25 @@
             position: relative;
             backdrop-filter: blur(10px) saturate(150%);
             -webkit-backdrop-filter: blur(10px) saturate(150%);
+        }
+
+        /* Optimized message bubble width without logos */
+        .message-content {
+            max-width: 85%; /* More width available without logos */
+        }
+
+        @media (max-width: 480px) {
+            .message-content {
+                max-width: 95%; /* Almost full width on small screens */
+                padding: 12px 16px; /* Slightly smaller padding for more content space */
+            }
+        }
+
+        @media (max-width: 320px) {
+            .message-content {
+                max-width: 98%; /* Near full width on very small screens */
+                padding: 10px 14px; /* Compact padding */
+            }
         }
 
         /* Re-ask button styles */
@@ -1187,47 +1229,7 @@
             background: rgba(255, 255, 255, 1);
         }
 
-        /* Simple smooth swimming animation using transitions */
-        @keyframes swimToMessage {
-            from {
-                transform: translateX(0) translateY(0) scale(1);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(var(--swim-x)) translateY(var(--swim-y)) scale(0.8);
-                opacity: 1;
-            }
-        }
 
-        /* Gentle floating for message logos (disabled) */
-        @keyframes messageFloat {}
-
-        /* Header logo during swimming animation */
-        .header-icon.swimming-to-message {
-            position: fixed !important;
-            z-index: 1001;
-            animation: swimToMessage 2s ease-out forwards;
-            transition: none !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-            will-change: transform;
-        }
-
-        /* Message logo styling */
-        .message-logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 0px;
-            object-fit: cover;
-            background: transparent !important;
-            box-shadow: none;
-            border: none;
-            animation: none;
-            margin-right: 15px;
-            margin-top: 5px;
-            flex-shrink: 0;
-        }
 
         /* Hide header logo during animation */
         .header-icon.hidden {
@@ -1322,7 +1324,7 @@
         </button>
 
         <div class="header">
-            <img src="/static/liamai.png" alt="Liam Icon" class="header-icon">
+            <img src="/static/liamai_cropped.png" alt="Liam Icon" class="header-icon">
         </div>
 
         <div class="chat-messages" id="chatMessages">
@@ -1517,14 +1519,6 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
 
-            if (!isUser) {
-                // For assistant messages, immediately show logo to the left of the bubble
-                const messageLogo = document.createElement('img');
-                messageLogo.src = '/static/liamai.png';
-                messageLogo.alt = 'Liam';
-                messageLogo.className = 'message-logo';
-                messageDiv.appendChild(messageLogo);
-            }
 
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
@@ -1587,71 +1581,6 @@
             });
         }
 
-        function createSwimmingLogo(messageDiv) {
-            const headerIcon = document.querySelector('.header-icon');
-            
-            // Prevent multiple animations
-            if (headerIcon.classList.contains('swimming-to-message')) {
-                return;
-            }
-            
-            // Wait for DOM update then start animation
-            requestAnimationFrame(() => {
-                const headerRect = headerIcon.getBoundingClientRect();
-                const messageRect = messageDiv.getBoundingClientRect();
-                
-                // Calculate final position - directly beside the message
-                const finalLeft = messageRect.left - 70; // 70px to the left of message
-                const finalTop = messageRect.top + (messageRect.height / 2) - 25; // Vertically centered with message
-                
-                // Calculate animation path
-                const targetX = finalLeft - headerRect.left;
-                const targetY = finalTop - headerRect.top;
-                
-                // Set up header icon for animation
-                headerIcon.style.position = 'fixed';
-                headerIcon.style.left = headerRect.left + 'px';
-                headerIcon.style.top = headerRect.top + 'px';
-                headerIcon.style.margin = '0';
-                headerIcon.style.zIndex = '1001';
-                
-                // Set animation target
-                headerIcon.style.setProperty('--swim-x', targetX + 'px');
-                headerIcon.style.setProperty('--swim-y', targetY + 'px');
-                
-                // Start animation
-                headerIcon.classList.add('swimming-to-message');
-                
-                // Create permanent logo at exact final position after animation
-                setTimeout(() => {
-                    // Create permanent logo
-                    const messageLogo = document.createElement('img');
-                    messageLogo.src = '/static/liamai.png';
-                    messageLogo.alt = 'Liam';
-                    messageLogo.style.width = '50px';
-                    messageLogo.style.height = '50px';
-                    messageLogo.style.position = 'fixed';
-                    messageLogo.style.left = finalLeft + 'px';
-                    messageLogo.style.top = finalTop + 'px';
-                    messageLogo.style.zIndex = '10';
-                    messageLogo.style.background = 'transparent';
-                    messageLogo.className = 'message-logo';
-                    
-                    // Add to body so it stays in exact position
-                    document.body.appendChild(messageLogo);
-                    
-                    // Hide animated logo
-                    headerIcon.style.opacity = '0';
-                    
-                    // Clean up after a short delay
-                    setTimeout(() => {
-                        headerIcon.classList.remove('swimming-to-message');
-                        headerIcon.style.cssText = ''; // Reset all styles
-                    }, 300);
-                    
-                }, 2000); // Match animation duration
-            });
-        }
 
         function showTyping() {
             if (isTyping) return; // Prevent multiple calls
@@ -2008,10 +1937,6 @@
             // Clear all messages
             const messagesContainer = document.getElementById('chatMessages');
             messagesContainer.innerHTML = '';
-            
-            // Clear all floating message logos
-            const messageLogos = document.querySelectorAll('.message-logo');
-            messageLogos.forEach(logo => logo.remove());
             
             // Reset input
             const input = document.getElementById('chatInput');
